@@ -19,5 +19,10 @@ export default function MapboxMapClient({
 }: {
   className?: string;
 }) {
-  return <MapboxMap className={className} />;
+  return (
+    <MapboxMap
+      className={className}
+      style="mapbox://styles/mapbox/light-v11"
+    />
+  );
 }

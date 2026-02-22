@@ -49,6 +49,15 @@ export default function MapboxMap({
       zoom,
     });
 
+    map.setProjection("mercator");
+
+    map.on("load", () => {
+      map.setProjection("mercator");
+      map.resize();
+      requestAnimationFrame(() => map.resize());
+      setTimeout(() => map.resize(), 200);
+    });
+
     map.addControl(new mapboxgl.NavigationControl(), "top-right");
     mapRef.current = map;
 
