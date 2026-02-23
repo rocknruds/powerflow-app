@@ -1,0 +1,22 @@
+{
+  "id": "evt-004",
+  "date": "2023-11-10",
+  "type": "border_change",
+  "title": "Recognition of revised maritime boundary",
+  "summary": "International body issues ruling on maritime delimitation; one state accepts, another reserves position.",
+  "actors": ["FRA", "ITA"],
+  "tags": ["maritime", "law-of-the-sea"],
+  "significance": 3,
+  "sources": [
+    {
+      "title": "Tribunal Decision",
+      "org": "Permanent Court of Arbitration",
+      "url": "https://example.com/pca-004",
+      "date": "2023-11-10"
+    }
+  ],
+  "location": {
+    "kind": "point",
+    "coordinates": [9.5, 43.5]
+  }
+}

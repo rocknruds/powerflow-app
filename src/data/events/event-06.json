@@ -1,0 +1,22 @@
+{
+  "id": "evt-006",
+  "date": "2024-05-12",
+  "type": "conflict",
+  "title": "Ceasefire agreement takes effect",
+  "summary": "After prolonged negotiations, a ceasefire enters into force; monitoring mechanism agreed.",
+  "actors": ["ISR", "PSE", "EGY"],
+  "tags": ["ceasefire", "mediation"],
+  "significance": 5,
+  "sources": [
+    {
+      "title": "Ceasefire Text",
+      "org": "UN Mediation",
+      "url": "https://example.com/cf-006",
+      "date": "2024-05-11"
+    }
+  ],
+  "location": {
+    "kind": "point",
+    "coordinates": [35.2, 31.8]
+  }
+}

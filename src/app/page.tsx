@@ -7,10 +7,11 @@ export default function Home() {
       {/* Masthead */}
       <div className="border-b border-neutral-200">
         <div className="max-w-3xl mx-auto px-6 py-4 flex items-center justify-between">
-          <span className="uppercase text-[11px] tracking-[0.28em] text-neutral-600">
+          <span className="uppercase text-[11px] tracking-[0.28em] text-neutral-600 font-bold">
             World Analysis
           </span>
           <nav className="flex items-center gap-6 text-sm text-neutral-600">
+            <a href="/events" className="hover:text-neutral-900">Events</a>
             <a href="#" className="hover:text-neutral-900">Briefings</a>
             <a href="#" className="hover:text-neutral-900">Map</a>
             <a href="#" className="hover:text-neutral-900">Regions</a>
@@ -22,12 +23,13 @@ export default function Home() {
       {/* Header */}
       <header className="max-w-3xl mx-auto px-6 py-12 border-b border-neutral-200">
         <div className="max-w-2xl mx-auto text-center">
-          <h1 className="font-sans text-5xl md:text-6xl leading-tight tracking-tight text-neutral-800">
+          <h1 className="font-sans font-medium text-5xl md:text-6xl leading-tight tracking-tight text-neutral-600">
             Global Briefing
           </h1>
           <p className="mt-3 text-lg leading-snug text-neutral-600">
             Sovereignty, conflict, and legal authority tracking.
           </p>
+          <div className="mt-10 h-[2px] w-24 bg-sky-600/80 rounded-full mx-auto" />
         </div>
       </header>
 
@@ -35,14 +37,14 @@ export default function Home() {
       <section className="py-8 border-b border-neutral-200">
         <div className="max-w-3xl mx-auto px-6 space-y-6 text-[16px] leading-relaxed text-neutral-700">
           <div>
-            <div className="uppercase text-[11px] tracking-[0.22em] text-sky-600/90 mb-2">
+            <div className="uppercase text-[15px] tracking-[0.18em] text-sky-600 font-medium mb-2">
               Active Layers
             </div>
             <p>Conflicts • Borders • Legal Events</p>
           </div>
 
           <div>
-            <div className="uppercase text-[11px] tracking-[0.22em] text-sky-600/90 mb-2">
+            <div className="uppercase text-[15px] tracking-[0.18em] text-sky-600 font-medium mb-2">
               Daily Brief
             </div>
             <p className="text-neutral-600">Coming soon</p>
@@ -52,11 +54,11 @@ export default function Home() {
 
       {/* Map Section */}
       <section className="max-w-3xl mx-auto px-6 py-8">
-        <div className="flex items-center justify-between text-xs text-neutral-600 mb-2">
-          <span className="uppercase tracking-[0.22em]">Map Module</span>
-          <span>Updated: —</span>
+        <div className="flex items-center justify-between mb-2">
+          <span className="uppercase text-[15px] tracking-[0.18em] text-sky-600 font-medium">Map Module</span>
+          <span className="text-xs text-neutral-600">Updated: —</span>
         </div>
-        <div className="rounded-xl border border-neutral-200 bg-white/70 overflow-hidden shadow-[0_0_0_1px_rgba(148,163,184,0.10)]">
+        <div className="rounded-xl border border-neutral-300/60 shadow-sm bg-white overflow-hidden">
           <MapboxMapClient className="h-[320px] md:h-[420px] w-full" />
         </div>
       </section>

@@ -1,0 +1,22 @@
+{
+  "id": "evt-009",
+  "date": "2024-04-18",
+  "type": "border_change",
+  "title": "De facto control line shifts after local agreement",
+  "summary": "Local commanders agree to pullback; line of control adjusted and mapped by observers.",
+  "actors": ["IND", "PAK"],
+  "tags": ["LOC", "de-escalation"],
+  "significance": 4,
+  "sources": [
+    {
+      "title": "Joint Statement",
+      "org": "UNMOGIP",
+      "url": "https://example.com/unmogip-009",
+      "date": "2024-04-18"
+    }
+  ],
+  "location": {
+    "kind": "bbox",
+    "coordinates": [74.0, 34.0, 75.5, 35.5]
+  }
+}

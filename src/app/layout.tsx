@@ -1,10 +1,20 @@
 import type { Metadata } from "next";
-import { Manrope, Playfair_Display } from "next/font/google";
+import localFont from "next/font/local";
+import { Playfair_Display } from "next/font/google";
 import "./globals.css";
 
-const manrope = Manrope({
-  subsets: ["latin"],
-  variable: "--font-sans",
+const funnelSans = localFont({
+  src: [
+    {
+      path: "../../fonts/Funnel_Sans/FunnelSans-VariableFont_wght.ttf",
+      style: "normal",
+    },
+    {
+      path: "../../fonts/Funnel_Sans/FunnelSans-Italic-VariableFont_wght.ttf",
+      style: "italic",
+    },
+  ],
+  variable: "--font-funnel",
   display: "swap",
 });
 
@@ -31,8 +41,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${manrope.variable} ${playfair.variable}`}>
-      <body className="font-sans antialiased bg-neutral-100 text-neutral-900">
+    <html lang="en" className={`${funnelSans.variable} ${playfair.variable}`}>
+      <body className="font-sans antialiased bg-neutral-100 text-neutral-600">
         {children}
       </body>
     </html>

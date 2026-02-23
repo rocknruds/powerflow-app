@@ -1,0 +1,22 @@
+{
+  "id": "evt-001",
+  "date": "2024-03-15",
+  "type": "conflict",
+  "title": "Armed clashes along disputed border region",
+  "summary": "Cross-border skirmishes reported in the contested zone; both sides accuse the other of provocation.",
+  "actors": ["USA", "RUS"],
+  "tags": ["military", "border"],
+  "significance": 4,
+  "sources": [
+    {
+      "title": "Border Incident Report",
+      "org": "Crisis Monitor",
+      "url": "https://example.com/report-001",
+      "date": "2024-03-16"
+    }
+  ],
+  "location": {
+    "kind": "bbox",
+    "coordinates": [-75.5, 42.0, -72.0, 45.0]
+  }
+}

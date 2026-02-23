@@ -1,0 +1,18 @@
+{
+  "id": "evt-003",
+  "date": "2024-04-01",
+  "type": "sanction",
+  "title": "Asset freezes and travel bans announced",
+  "summary": "Coordinated sanctions target individuals and entities linked to alleged violations; multiple jurisdictions participate.",
+  "actors": ["USA", "GBR", "EU"],
+  "tags": ["sanctions", "compliance"],
+  "significance": 3,
+  "sources": [
+    {
+      "title": "Sanctions List Update",
+      "org": "OFAC",
+      "url": "https://example.com/sanctions-003",
+      "date": "2024-04-01"
+    }
+  ]
+}

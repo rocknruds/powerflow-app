@@ -9,7 +9,7 @@ const config: Config = {
   theme: {
     extend: {
       fontFamily: {
-        sans: ["var(--font-family-sans)"],
+        sans: ["var(--font-funnel)", "sans-serif"],
         serif: ["var(--font-family-serif)"],
       },
     },

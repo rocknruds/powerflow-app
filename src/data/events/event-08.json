@@ -1,0 +1,18 @@
+{
+  "id": "evt-008",
+  "date": "2024-02-28",
+  "type": "legal_action",
+  "title": "Domestic court ruling on immunity",
+  "summary": "High court rules on immunity of foreign officials in civil proceedings; implications for future cases.",
+  "actors": ["GBR", "SAU"],
+  "tags": ["immunity", "domestic-courts"],
+  "significance": 2,
+  "sources": [
+    {
+      "title": "Judgment Summary",
+      "org": "Supreme Court",
+      "url": "https://example.com/sc-008",
+      "date": "2024-02-28"
+    }
+  ]
+}

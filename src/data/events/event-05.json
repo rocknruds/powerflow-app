@@ -1,0 +1,18 @@
+{
+  "id": "evt-005",
+  "date": "2024-01-05",
+  "type": "legal_action",
+  "title": "ICJ provisional measures requested",
+  "summary": "Applicant state requests provisional measures pending full proceedings on alleged treaty breach.",
+  "actors": ["UKR", "RUS"],
+  "tags": ["international-law", "ICJ"],
+  "significance": 5,
+  "sources": [
+    {
+      "title": "Application and Request",
+      "org": "ICJ",
+      "url": "https://example.com/icj-005",
+      "date": "2024-01-05"
+    }
+  ]
+}

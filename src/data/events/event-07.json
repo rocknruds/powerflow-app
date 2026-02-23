@@ -1,0 +1,18 @@
+{
+  "id": "evt-007",
+  "date": "2023-12-01",
+  "type": "sanction",
+  "title": "Sectoral sanctions expanded",
+  "summary": "New restrictions on technology exports and financial services for designated sector.",
+  "actors": ["USA", "JPN", "KOR"],
+  "tags": ["export-controls", "technology"],
+  "significance": 2,
+  "sources": [
+    {
+      "title": "Federal Register Notice",
+      "org": "DOC/BIS",
+      "url": "https://example.com/bis-007",
+      "date": "2023-12-01"
+    }
+  ]
+}

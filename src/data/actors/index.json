@@ -1,0 +1,20 @@
+[
+  { "id": "USA", "name": "United States", "type": "state" },
+  { "id": "CHN", "name": "China", "type": "state" },
+  { "id": "RUS", "name": "Russia", "type": "state" },
+  { "id": "UKR", "name": "Ukraine", "type": "state" },
+  { "id": "IRN", "name": "Iran", "type": "state" },
+  { "id": "ISR", "name": "Israel", "type": "state" },
+  { "id": "TUR", "name": "Turkey", "type": "state" },
+  { "id": "GBR", "name": "United Kingdom", "type": "state", "aliases": ["UK"] },
+  { "id": "FRA", "name": "France", "type": "state" },
+  { "id": "DEU", "name": "Germany", "type": "state" },
+  { "id": "EU", "name": "European Union", "type": "org" },
+  { "id": "UN", "name": "United Nations", "type": "org" },
+  { "id": "NATO", "name": "North Atlantic Treaty Organization", "type": "org" },
+  { "id": "WHO", "name": "World Health Organization", "type": "org" },
+  { "id": "ICC", "name": "International Criminal Court", "type": "org" },
+  { "id": "Wagner", "name": "Wagner Group", "type": "nonstate" },
+  { "id": "Hamas", "name": "Hamas", "type": "nonstate" },
+  { "id": "Hezbollah", "name": "Hezbollah", "type": "nonstate" }
+]

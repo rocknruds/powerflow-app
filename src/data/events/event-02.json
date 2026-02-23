@@ -1,0 +1,18 @@
+{
+  "id": "evt-002",
+  "date": "2024-02-20",
+  "type": "treaty",
+  "title": "Bilateral trade and investment agreement signed",
+  "summary": "Two major economies sign a framework agreement covering tariffs, investment protection, and dispute resolution.",
+  "actors": ["USA", "CHN"],
+  "tags": ["trade", "diplomacy"],
+  "significance": 5,
+  "sources": [
+    {
+      "title": "Treaty Text and Summary",
+      "org": "State Dept. Archive",
+      "url": "https://example.com/treaty-002",
+      "date": "2024-02-21"
+    }
+  ]
+}

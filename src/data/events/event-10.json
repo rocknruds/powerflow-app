@@ -1,0 +1,18 @@
+{
+  "id": "evt-010",
+  "date": "2024-06-01",
+  "type": "treaty",
+  "title": "Regional security pact ratified",
+  "summary": "Multilateral defense and consultation pact enters into force after final ratification.",
+  "actors": ["USA", "AUS", "JPN", "KOR"],
+  "tags": ["alliance", "security"],
+  "significance": 5,
+  "sources": [
+    {
+      "title": "Treaty and Ratification Status",
+      "org": "State Dept.",
+      "url": "https://example.com/pact-010",
+      "date": "2024-06-01"
+    }
+  ]
+}
