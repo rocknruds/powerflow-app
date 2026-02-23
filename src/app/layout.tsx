@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import localFont from "next/font/local";
 import { Playfair_Display } from "next/font/google";
 import "./globals.css";
+import Masthead from "@/components/Masthead";
 
 const funnelSans = localFont({
   src: [
@@ -27,11 +28,11 @@ const playfair = Playfair_Display({
 
 export const metadata: Metadata = {
   title: {
-    default: "World Analysis",
-    template: "%s · World Analysis",
+    default: "Sovereign Atlas",
+    template: "%s · Sovereign Atlas",
   },
   description: "Geopolitical briefings with map-driven analysis.",
-  applicationName: "World Analysis",
+  applicationName: "Sovereign Atlas",
   metadataBase: new URL("http://localhost:3000"),
 };
 
@@ -43,6 +44,7 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${funnelSans.variable} ${playfair.variable}`}>
       <body className="font-sans antialiased bg-neutral-100 text-neutral-600">
+        <Masthead />
         {children}
       </body>
     </html>

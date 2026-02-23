@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useEffect, useState, useMemo } from "react";
 
 interface EventRow {
@@ -72,25 +71,6 @@ export default function CountryTimeline({ iso3, actorName, actorNames }: Props) 
 
   return (
     <div className="min-h-dvh bg-neutral-100 text-neutral-900">
-      <div className="border-b border-neutral-200">
-        <div className="max-w-4xl mx-auto px-6 py-4 flex items-center justify-between">
-          <span className="uppercase text-[11px] tracking-[0.28em] text-neutral-600 font-bold">
-            World Analysis
-          </span>
-          <nav className="flex items-center gap-6 text-sm text-neutral-600">
-            <Link href="/" className="hover:text-neutral-900">
-              Home
-            </Link>
-            <Link href="/events" className="hover:text-neutral-900">
-              Events
-            </Link>
-            <Link href="/countries" className="hover:text-neutral-900">
-              Countries
-            </Link>
-          </nav>
-        </div>
-      </div>
-
       <main className="max-w-4xl mx-auto px-6 py-8">
         <h1 className="text-2xl font-medium text-neutral-800 mb-2">
           Timeline: {displayName}
