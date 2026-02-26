@@ -1,6 +1,11 @@
 {
 	"folders": [
 		{
+			"name": "powerflow-agents",
+			"path": "../powerflow-agents"
+		},
+		{
+			"name": "powerflow-app",
 			"path": "."
 		}
 	],
