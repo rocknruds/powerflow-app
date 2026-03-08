@@ -1,6 +1,6 @@
 import Link from "next/link";
-import { getAllPublicActors } from "@/lib/actors";
-import { getRecentScoreMovers } from "@/lib/scores";
+import { getAllPublicActors, enrichActorsWithDeltas } from "@/lib/actors";
+import { getLatestDeltaByActor, computeScoreMovers } from "@/lib/scores";
 import { getLatestBrief } from "@/lib/briefs";
 import { getActiveScenarios } from "@/lib/scenarios";
 import ScoreDelta from "@/components/ScoreDelta";
@@ -29,37 +29,26 @@ function EmptyState({ message }: { message: string }) {
 }
 
 export default async function HomePage() {
-  const [actors, snapshots, latestBrief, scenarios] = await Promise.all([
+  const [actors, deltaMap, latestBrief, scenarios] = await Promise.all([
     getAllPublicActors(),
-    getRecentScoreMovers(15),
+    getLatestDeltaByActor(),
     getLatestBrief(),
     getActiveScenarios(),
   ]);
 
-  const top10 = actors.slice(0, 10);
+  const enrichedActors = enrichActorsWithDeltas(actors, deltaMap);
+  const top10 = enrichedActors.slice(0, 10);
 
-  // Build actor lookup map for enriching score snapshots
-  const actorMap = new Map(actors.map((a) => [a.id, a]));
-
-  // Build delta map: actorId → most recent delta
-  const deltaMap: Record<string, number> = {};
-  for (const s of snapshots) {
-    for (const id of s.actorIds) {
-      if (!(id in deltaMap)) deltaMap[id] = s.scoreDelta;
-    }
+  // Delta record for ActorCard (id → delta number)
+  const deltaRecord: Record<string, number> = {};
+  for (const [id, delta] of deltaMap.entries()) {
+    if (delta !== null) deltaRecord[id] = delta;
   }
 
-  // Enrich movers with actor names and only keep those with non-zero delta
-  const movers = snapshots
-    .map((s) => {
-      const actor = actorMap.get(s.actorIds[0]);
-      return {
-        ...s,
-        actorName: actor?.name || s.actorName || "Unknown",
-        pfScore: s.pfScore || actor?.pfScore || 0,
-      };
-    })
-    .filter((s) => s.scoreDelta !== 0)
+  // Top movers — gainers and fallers combined, sorted by absolute delta
+  const { gainers, fallers } = computeScoreMovers(enrichedActors, 5);
+  const movers = [...gainers, ...fallers]
+    .sort((a, b) => Math.abs(b.delta) - Math.abs(a.delta))
     .slice(0, 5);
 
   return (
@@ -108,21 +97,21 @@ export default async function HomePage() {
                 Score Movers
               </span>
               <div className="h-4 w-px bg-[#1f2937] shrink-0" />
-              {movers.map((s) => (
+              {movers.map((m) => (
                 <div
-                  key={s.id}
+                  key={m.actorId}
                   className="flex items-center gap-2.5 shrink-0 bg-[#111111] border border-[#1f2937] rounded-lg px-3 py-2"
                 >
                   <span className="text-sm font-semibold text-white">
-                    {s.actorName}
+                    {m.actorName}
                   </span>
                   <span
                     className="text-sm font-bold tabular-nums"
-                    style={{ color: pfScoreColor(s.pfScore) }}
+                    style={{ color: pfScoreColor(m.pfScore) }}
                   >
-                    {s.pfScore || "—"}
+                    {m.pfScore || "—"}
                   </span>
-                  <ScoreDelta delta={s.scoreDelta} />
+                  <ScoreDelta delta={m.delta} />
                 </div>
               ))}
             </div>
@@ -153,7 +142,7 @@ export default async function HomePage() {
                     key={actor.id}
                     actor={actor}
                     rank={idx + 1}
-                    delta={deltaMap[actor.id] ?? 0}
+                    delta={deltaRecord[actor.id] ?? 0}
                   />
                 ))}
               </div>
@@ -203,15 +192,15 @@ export default async function HomePage() {
                   <h3 className="text-white font-semibold text-lg mb-2">
                     {latestBrief.title || "Untitled Brief"}
                   </h3>
-                  {(latestBrief.periodStart || latestBrief.periodEnd) && (
+                  {(latestBrief.dateRangeStart || latestBrief.dateRangeEnd) && (
                     <p className="text-xs text-gray-500 mb-3">
-                      {latestBrief.periodStart &&
-                        new Date(latestBrief.periodStart).toLocaleDateString(
+                      {latestBrief.dateRangeStart &&
+                        new Date(latestBrief.dateRangeStart).toLocaleDateString(
                           "en-US",
                           { month: "short", day: "numeric", year: "numeric" }
                         )}
-                      {latestBrief.periodEnd &&
-                        ` – ${new Date(latestBrief.periodEnd).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}`}
+                      {latestBrief.dateRangeEnd &&
+                        ` – ${new Date(latestBrief.dateRangeEnd).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}`}
                     </p>
                   )}
                   {latestBrief.editorialPriority && (

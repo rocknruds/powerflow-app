@@ -1,137 +1,133 @@
-// Notion database IDs
-export const ACTORS_DB_ID = "7aa6bbc818ad4a35a4059fbe2537d115";
-export const SCORE_SNAPSHOTS_DB_ID = "e96696510cac4435a52e89be9fb6a969";
-export const EVENTS_DB_ID = "70e9768bfcec49a9aa8565d5aa1f1881";
-export const BRIEFS_DB_ID = "df4e70c01fa1460d8f9bb6c26f05dc1a";
-export const SCENARIOS_DB_ID = "430eb13962d44154b9761785faf01300";
-export const CONFLICTS_DB_ID = "db9f622892a74cdd942981c330e90886";
+const NOTION_VERSION = '2022-06-28'
+const BASE_URL = 'https://api.notion.com/v1'
 
-// PF Score composite: Authority (60%) + Reach (40%)
-export const calcPFScore = (authority: number, reach: number) =>
-  Math.round(authority * 0.6 + reach * 0.4);
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type NP = Record<string, any>;
-
-export function getTitle(props: NP, key: string): string {
-  try {
-    return (props[key]?.title ?? []).map((t: NP) => t.plain_text as string).join("");
-  } catch {
-    return "";
+function headers() {
+  return {
+    Authorization: `Bearer ${process.env.NOTION_API_KEY}`,
+    'Notion-Version': NOTION_VERSION,
+    'Content-Type': 'application/json',
   }
 }
 
-export function getPageTitle(props: NP): string {
-  try {
-    for (const val of Object.values(props)) {
-      if ((val as NP)?.type === "title") {
-        return ((val as NP).title ?? []).map((t: NP) => t.plain_text as string).join("");
-      }
-    }
-    return "";
-  } catch {
-    return "";
-  }
-}
+/**
+ * Query a Notion database, handling pagination automatically.
+ * Uses Next.js ISR: revalidates every 5 minutes by default.
+ */
+export async function queryDatabase(
+  databaseId: string,
+  filter?: object,
+  sorts?: object[],
+  revalidate = 300
+): Promise<any[]> {
+  const results: any[] = []
+  let cursor: string | undefined
 
-export function getRichText(props: NP, key: string): string {
-  try {
-    return (props[key]?.rich_text ?? []).map((t: NP) => t.plain_text as string).join("");
-  } catch {
-    return "";
-  }
-}
+  do {
+    const body: Record<string, unknown> = { page_size: 100 }
+    if (filter) body.filter = filter
+    if (sorts) body.sorts = sorts
+    if (cursor) body.start_cursor = cursor
 
-export function getNumber(props: NP, key: string): number {
-  try {
-    return (props[key]?.number as number) ?? 0;
-  } catch {
-    return 0;
-  }
-}
+    const res = await fetch(`${BASE_URL}/databases/${databaseId}/query`, {
+      method: 'POST',
+      headers: headers(),
+      body: JSON.stringify(body),
+      next: { revalidate },
+    })
 
-export function getSelect(props: NP, key: string): string {
-  try {
-    return (props[key]?.select?.name as string) ?? "";
-  } catch {
-    return "";
-  }
-}
-
-export function getDate(props: NP, key: string): string {
-  try {
-    return (props[key]?.date?.start as string) ?? "";
-  } catch {
-    return "";
-  }
-}
-
-export function getRelation(props: NP, key: string): string[] {
-  try {
-    return (props[key]?.relation ?? []).map((r: NP) => r.id as string);
-  } catch {
-    return [];
-  }
-}
-
-export function getRollupText(props: NP, key: string): string {
-  try {
-    const rollup = props[key]?.rollup;
-    if (!rollup) return "";
-    if (rollup.type === "array") {
-      return (rollup.array ?? [])
-        .map((item: NP) => {
-          if (item.type === "title") return (item.title ?? []).map((t: NP) => t.plain_text).join("");
-          if (item.type === "rich_text") return (item.rich_text ?? []).map((t: NP) => t.plain_text).join("");
-          return "";
-        })
-        .filter(Boolean)
-        .join(", ");
-    }
-    return "";
-  } catch {
-    return "";
-  }
-}
-
-export async function notionFetch(endpoint: string, body?: object): Promise<NP | null> {
-  const url = `https://api.notion.com/v1${endpoint}`;
-  try {
-    const res = await fetch(url, {
-      method: body ? "POST" : "GET",
-      headers: {
-        Authorization: `Bearer ${process.env.NOTION_API_KEY}`,
-        "Content-Type": "application/json",
-        "Notion-Version": "2022-06-28",
-      },
-      ...(body ? { body: JSON.stringify(body) } : {}),
-      next: { revalidate: 300 },
-    });
     if (!res.ok) {
-      console.error(`Notion ${res.status}: ${endpoint}`);
-      return null;
+      const text = await res.text()
+      throw new Error(`Notion query error [${res.status}]: ${text}`)
     }
-    return res.json() as Promise<NP>;
-  } catch (err) {
-    console.error("Notion fetch error:", err);
-    return null;
-  }
+
+    const data = await res.json()
+    results.push(...data.results)
+    cursor = data.has_more ? data.next_cursor : undefined
+  } while (cursor)
+
+  return results
 }
 
-// Handles cursor pagination — fetches all pages from a Notion database query
-export async function notionQueryAll(dbId: string, body: object): Promise<NP[]> {
-  const results: NP[] = [];
-  let cursor: string | undefined;
-  let hasMore = true;
+/**
+ * Fetch a single Notion page by ID.
+ */
+export async function fetchPage(pageId: string, revalidate = 300): Promise<any | null> {
+  const res = await fetch(`${BASE_URL}/pages/${pageId}`, {
+    headers: headers(),
+    next: { revalidate },
+  })
+  if (!res.ok) return null
+  return res.json()
+}
 
-  while (hasMore) {
-    const payload = cursor ? { ...body, start_cursor: cursor } : body;
-    const data = await notionFetch(`/databases/${dbId}/query`, payload);
-    if (!data) break;
-    results.push(...(data.results ?? []));
-    hasMore = data.has_more === true;
-    cursor = data.next_cursor ?? undefined;
-  }
+/**
+ * Fetch the block children of a page (for rendering brief content).
+ */
+export async function fetchBlocks(blockId: string, revalidate = 300): Promise<any[]> {
+  const results: any[] = []
+  let cursor: string | undefined
 
-  return results;
+  do {
+    const url = new URL(`${BASE_URL}/blocks/${blockId}/children`)
+    url.searchParams.set('page_size', '100')
+    if (cursor) url.searchParams.set('start_cursor', cursor)
+
+    const res = await fetch(url.toString(), {
+      headers: headers(),
+      next: { revalidate },
+    })
+
+    if (!res.ok) break
+
+    const data = await res.json()
+    results.push(...data.results)
+    cursor = data.has_more ? data.next_cursor : undefined
+  } while (cursor)
+
+  return results
+}
+
+// ─── Property extractors ────────────────────────────────────────────────────
+
+export function getTitle(props: any, key: string): string {
+  return props[key]?.title?.map((t: any) => t.plain_text).join('') ?? ''
+}
+
+export function getText(props: any, key: string): string {
+  return props[key]?.rich_text?.map((t: any) => t.plain_text).join('') ?? ''
+}
+
+export function getNumber(props: any, key: string): number | null {
+  return props[key]?.number ?? null
+}
+
+export function getSelect(props: any, key: string): string | null {
+  return props[key]?.select?.name ?? null
+}
+
+export function getMultiSelect(props: any, key: string): string[] {
+  return props[key]?.multi_select?.map((o: any) => o.name) ?? []
+}
+
+export function getDate(props: any, key: string): string | null {
+  return props[key]?.date?.start ?? null
+}
+
+export function getRelationIds(props: any, key: string): string[] {
+  return props[key]?.relation?.map((r: any) => r.id) ?? []
+}
+
+export function getCheckbox(props: any, key: string): boolean {
+  return props[key]?.checkbox ?? false
+}
+
+export function getFormula(props: any, key: string): number | null {
+  const f = props[key]?.formula
+  if (!f) return null
+  if (f.type === 'number') return f.number
+  return null
+}
+
+export function getUrl(props: any, key: string): string | null {
+  return props[key]?.url ?? null
 }
