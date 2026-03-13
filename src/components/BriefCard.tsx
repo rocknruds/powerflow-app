@@ -1,11 +1,11 @@
 import Link from "next/link";
-import type { Brief } from "@/lib/briefs";
+import type { BriefPublic } from "@/lib/types";
 
 interface BriefCardProps {
-  brief: Brief;
+  brief: BriefPublic;
 }
 
-function formatDate(date: string): string {
+function formatDate(date: string | null): string {
   if (!date) return "";
   try {
     return new Date(date).toLocaleDateString("en-US", {
@@ -18,7 +18,7 @@ function formatDate(date: string): string {
   }
 }
 
-function BriefTypeBadge({ type }: { type: string }) {
+function BriefTypeBadge({ type }: { type: string | null }) {
   if (!type) return null;
   return (
     <span className="text-xs px-2 py-0.5 rounded border border-[#3b82f6]/40 text-[#3b82f6] bg-[#3b82f6]/10 font-medium">
@@ -27,7 +27,7 @@ function BriefTypeBadge({ type }: { type: string }) {
   );
 }
 
-function StatusBadge({ status }: { status: string }) {
+function StatusBadge({ status }: { status: string | null }) {
   if (!status) return null;
   const color = status === "Final" ? "#22c55e" : "#eab308";
   return (
@@ -51,10 +51,10 @@ export default function BriefCard({ brief }: BriefCardProps) {
         <h3 className="text-white font-semibold mb-2 line-clamp-2 flex-1">
           {brief.title || "Untitled Brief"}
         </h3>
-        {(brief.periodStart || brief.periodEnd) && (
+        {(brief.dateRangeStart || brief.dateRangeEnd) && (
           <p className="text-xs text-gray-500 mb-2">
-            {formatDate(brief.periodStart)}
-            {brief.periodEnd && ` – ${formatDate(brief.periodEnd)}`}
+            {formatDate(brief.dateRangeStart)}
+            {brief.dateRangeEnd && ` – ${formatDate(brief.dateRangeEnd)}`}
           </p>
         )}
         {brief.editorialPriority && (
