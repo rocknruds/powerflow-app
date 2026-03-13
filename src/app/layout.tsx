@@ -3,6 +3,7 @@ import localFont from "next/font/local";
 import { Playfair_Display } from "next/font/google";
 import "./globals.css";
 import Masthead from "@/components/Masthead";
+import { ThemeProvider } from "@/components/theme/ThemeProvider";
 
 const funnelSans = localFont({
   src: [
@@ -43,10 +44,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={`${funnelSans.variable} ${playfair.variable}`}>
-      <body className="font-sans antialiased bg-[#0a0a0a] text-white min-h-screen">
-        <Masthead />
-        <main className="relative z-10">{children}</main>
+    <html lang="en" className={`${funnelSans.variable} ${playfair.variable}`} suppressHydrationWarning>
+      <body className="font-sans antialiased min-h-screen">
+        <ThemeProvider>
+          <Masthead />
+          <main className="relative z-10">{children}</main>
+        </ThemeProvider>
       </body>
     </html>
   );
