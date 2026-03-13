@@ -26,7 +26,7 @@ export default function ScoreDelta({ delta, className }: ScoreDeltaProps) {
       }}
     >
       {positive ? "▲" : "▼"}
-      {Math.abs(delta) % 1 === 0 ? Math.abs(delta) : Math.abs(delta).toFixed(1)}
+      {Math.round(Math.abs(delta))}
     </span>
   );
 }

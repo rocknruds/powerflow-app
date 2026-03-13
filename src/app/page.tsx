@@ -109,7 +109,7 @@ export default async function HomePage() {
                     {m.actorName}
                   </span>
                   <span className="text-sm font-bold tabular-nums" style={{ color: pfScoreColor(m.pfScore) }}>
-                    {m.pfScore || "—"}
+                    {m.pfScore ? Math.round(m.pfScore) : "—"}
                   </span>
                   <ScoreDelta delta={m.delta} />
                 </div>
