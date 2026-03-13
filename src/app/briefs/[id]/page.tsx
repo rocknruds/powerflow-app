@@ -1,8 +1,7 @@
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import Link from "next/link";
-import { getAllPublicBriefs, getBriefById, getBriefBlocks } from "@/lib/briefs";
-import type { BriefBlock } from "@/lib/briefs";
+import { getAllPublicBriefs, getBriefWithContent } from "@/lib/briefs";
 
 export const revalidate = 300;
 
@@ -101,10 +100,9 @@ export default async function BriefPage({
 }) {
   const { id } = await params;
 
-  const [brief, blocks] = await Promise.all([
-    getBriefById(id),
-    getBriefBlocks(id),
-  ]);
+  const result = await getBriefWithContent(id);
+  if (!result) notFound();
+  const { brief, blocks } = result;
 
   if (!brief) notFound();
 
