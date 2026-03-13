@@ -1,5 +1,5 @@
 import Link from "next/link";
-import type { Actor } from "@/lib/actors";
+import type { Actor } from "@/lib/types";
 import ScoreDelta from "./ScoreDelta";
 
 interface ActorCardProps {
@@ -30,7 +30,7 @@ export function pfScoreColor(score: number): string {
 }
 
 export default function ActorCard({ actor, rank, delta }: ActorCardProps) {
-  const scoreColor = pfScoreColor(actor.pfScore);
+  const scoreColor = pfScoreColor(actor.pfScore ?? 0);
   return (
     <Link href={`/actors/${actor.id}`} className="block">
       <div className="bg-[#111111] border border-[#1f2937] rounded-lg p-4 hover:border-[#3b82f6]/50 transition-colors cursor-pointer">
@@ -58,7 +58,7 @@ export default function ActorCard({ actor, rank, delta }: ActorCardProps) {
               className="text-xl font-bold tabular-nums"
               style={{ color: scoreColor }}
             >
-              {actor.pfScore || "—"}
+              {actor.pfScore !== null ? actor.pfScore : "—"}
             </span>
             {delta !== undefined && <ScoreDelta delta={delta} />}
           </div>
