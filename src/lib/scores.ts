@@ -6,14 +6,14 @@ const SNAPSHOTS_DB_ID =
 
 // ─── Parsing ──────────────────────────────────────────────────────────────
 
-function parseSnapshot(page: any): ScoreSnapshot {
-  const props = page.properties
+function parseSnapshot(page: Record<string, unknown>): ScoreSnapshot {
+  const props = (page.properties ?? {}) as Record<string, unknown>
   return {
-    id: page.id,
-    actorId: getRelationIds(props, 'Actor')[0] ?? null,
-    score: getNumber(props, 'Score'),
-    authorityScore: getNumber(props, 'Authority Score'),  // populated from score_agent.py >= Mar 2026
-    reachScore: getNumber(props, 'Reach Score'),          // populated from score_agent.py >= Mar 2026
+    id: page.id as string,
+    actorId: getRelationIds(props, 'Linked Actor')[0] ?? null,
+    score: getNumber(props, 'PF Score'),
+    authorityScore: getNumber(props, 'Authority Score'),
+    reachScore: getNumber(props, 'Reach Score'),
     scoreDelta: getNumber(props, 'Score Delta'),
     snapshotDate: getDate(props, 'Snapshot Date'),
     snapshotType: getSelect(props, 'Snapshot Type'),
@@ -72,41 +72,37 @@ export async function getLatestDeltaByActor(): Promise<Map<string, number | null
  * Full score history for a single actor — used for the trajectory chart.
  *
  * Returns ScoreHistoryPoint[] sorted oldest-first, ready to pass to recharts.
- *
- * Three lines are available: pfScore, authorityScore, reachScore.
- * authorityScore and reachScore will be null for snapshots taken before
- * March 2026 (when those fields were added to the schema). The chart
- * component should handle nulls gracefully — just don't render those lines
- * for early data points.
- *
+ * Three lines: pfScore, authorityScore, reachScore.
+ * authorityScore and reachScore will be null for snapshots before March 2026.
  * annotation = triggerNotes from the agent — the "why" behind each inflection.
- * This is what makes the chart intelligence rather than just a sparkline.
- * Example: "Operation Epic Fury destroyed IRGC command infrastructure..."
- * shows up as a callout on the chart at that date.
  */
 export async function getActorScoreHistory(actorId: string): Promise<ScoreHistoryPoint[]> {
-  const pages = await queryDatabase(
-    SNAPSHOTS_DB_ID,
-    { property: 'Actor', relation: { contains: actorId } },
-    [{ property: 'Snapshot Date', direction: 'ascending' }]
-  )
-
-  const snapshots = pages.map(parseSnapshot)
-
-  return snapshots
-    .filter(
-      (s): s is ScoreSnapshot & { snapshotDate: string; score: number } =>
-        s.snapshotDate !== null && s.score !== null
+  try {
+    const pages = await queryDatabase(
+      SNAPSHOTS_DB_ID,
+      { property: 'Linked Actor', relation: { contains: actorId } },
+      [{ property: 'Snapshot Date', direction: 'ascending' }]
     )
-    .map((s) => ({
-      date: s.snapshotDate,
-      pfScore: s.score,
-      authorityScore: s.authorityScore,   // null for pre-schema snapshots — handle in chart
-      reachScore: s.reachScore,           // null for pre-schema snapshots — handle in chart
-      delta: s.scoreDelta,
-      annotation: s.triggerNotes,
-      snapshotType: s.snapshotType,
-    }))
+
+    const snapshots = pages.map(parseSnapshot)
+
+    return snapshots
+      .filter(
+        (s): s is ScoreSnapshot & { snapshotDate: string; score: number } =>
+          s.snapshotDate !== null && s.score !== null
+      )
+      .map((s) => ({
+        date: s.snapshotDate,
+        pfScore: s.score,
+        authorityScore: s.authorityScore,
+        reachScore: s.reachScore,
+        delta: s.scoreDelta,
+        annotation: s.triggerNotes,
+        snapshotType: s.snapshotType,
+      }))
+  } catch {
+    return []
+  }
 }
 
 // ─── Derived data ─────────────────────────────────────────────────────────
