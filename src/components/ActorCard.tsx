@@ -52,7 +52,7 @@ export default function ActorCard({ actor, rank, delta }: ActorCardProps) {
             <span className="text-xl font-bold tabular-nums" style={{ color: scoreColor }}>
               {actor.pfScore !== null ? Math.round(actor.pfScore ?? 0) : "—"}
             </span>
-            {delta !== undefined && <ScoreDelta delta={delta} />}
+            <ScoreDelta delta={delta} />
           </div>
         </div>
       </div>
