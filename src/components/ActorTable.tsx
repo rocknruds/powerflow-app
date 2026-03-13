@@ -139,7 +139,7 @@ export default function ActorTable({ actors, snapshotDeltaMap }: ActorTableProps
                     <td className="py-3 pr-4 tabular-nums" style={{ color: "var(--muted-foreground)" }}>{actor.authorityScore ?? "—"}</td>
                     <td className="py-3 pr-4 tabular-nums" style={{ color: "var(--muted-foreground)" }}>{actor.reachScore ?? "—"}</td>
                     <td className="py-3 pr-4">
-                      <span className="font-bold text-base tabular-nums" style={{ color: scoreColor }}>{actor.pfScore ?? "—"}</span>
+                      <span className="font-bold text-base tabular-nums" style={{ color: scoreColor }}>{actor.pfScore != null ? Math.round(actor.pfScore) : "—"}</span>
                     </td>
                     <td className="py-3 pr-4 text-xs" style={{ color: "var(--muted)" }}>{actor.pfVector || "—"}</td>
                     <td className="py-3 pr-4 text-xs" style={{ color: "var(--muted)" }}>{actor.region || "—"}</td>

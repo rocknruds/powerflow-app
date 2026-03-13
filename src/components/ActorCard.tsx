@@ -50,7 +50,7 @@ export default function ActorCard({ actor, rank, delta }: ActorCardProps) {
           </div>
           <div className="flex items-center gap-1.5 shrink-0">
             <span className="text-xl font-bold tabular-nums" style={{ color: scoreColor }}>
-              {actor.pfScore !== null ? actor.pfScore : "—"}
+              {actor.pfScore !== null ? Math.round(actor.pfScore ?? 0) : "—"}
             </span>
             {delta !== undefined && <ScoreDelta delta={delta} />}
           </div>
