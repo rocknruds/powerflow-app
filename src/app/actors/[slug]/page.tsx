@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import Link from "next/link";
-import { getAllPublicActors, getActorById } from "@/lib/actors";
+import { getAllPublicActors, getActorBySlug } from "@/lib/actors";
 import { getActorScoreHistory } from "@/lib/scores";
 import { getActorEvents } from "@/lib/events";
 import type { NotionEvent } from "@/lib/events";
@@ -25,7 +25,7 @@ export async function generateMetadata({
   params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
   const { slug } = await params;
-  const actor = await getActorById(slug);
+  const actor = await getActorBySlug(slug);
   return { title: actor?.name ?? "Actor Profile" };
 }
 
@@ -97,12 +97,14 @@ export default async function ActorProfilePage({
 }) {
   const { slug } = await params;
 
-  const [actor, history, events, scenarios] = await Promise.all([
-    getActorById(slug),
-    getActorScoreHistory(slug),
-    getActorEvents(slug, 6),
-    getActorScenarios(slug),
-  ]);
+  const actor = await getActorBySlug(slug);
+if (!actor) notFound();
+
+const [history, events, scenarios] = await Promise.all([
+  getActorScoreHistory(actor.id),
+  getActorEvents(actor.id, 6),
+  getActorScenarios(actor.id),
+]);
 
   if (!actor) notFound();
 
