@@ -5,40 +5,9 @@ import { getLatestBrief } from "@/lib/briefs";
 import { getActiveScenarios } from "@/lib/scenarios";
 import ScoreDelta from "@/components/ScoreDelta";
 import { pfScoreColor } from "@/components/ActorCard";
+import CollapsibleSection from "@/components/CollapsibleSection";
 
 export const revalidate = 300;
-
-function SectionLabel({
-  children,
-  action,
-}: {
-  children: React.ReactNode;
-  action?: { label: string; href: string };
-}) {
-  return (
-    <div className="flex items-center gap-2 mb-5">
-      <span
-        className="h-[3px] w-[14px] rounded-full shrink-0"
-        style={{ backgroundColor: "var(--accent)" }}
-      />
-      <span
-        className="text-[10px] font-medium uppercase tracking-[0.14em]"
-        style={{ color: "var(--muted)" }}
-      >
-        {children}
-      </span>
-      {action && (
-        <Link
-          href={action.href}
-          className="ml-auto text-[11px] transition-colors"
-          style={{ color: "var(--accent)" }}
-        >
-          {action.label} →
-        </Link>
-      )}
-    </div>
-  );
-}
 
 export default async function HomePage() {
   const [actors, deltaMap, latestBrief, scenarios] = await Promise.all([
@@ -70,7 +39,7 @@ export default async function HomePage() {
 
         {/* ── Hero ── */}
         <section
-          className="py-20"
+          className="pt-20 pb-6"
           style={{ borderBottom: "1px solid var(--border)" }}
         >
           <h1
@@ -122,7 +91,7 @@ export default async function HomePage() {
                 />
                 Score movers — last 30 days
               </div>
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap justify-between gap-y-2">
                 {movers.map((m) => (
                   <Link
                     key={m.actorId}
@@ -140,8 +109,8 @@ export default async function HomePage() {
                       {m.actorName}
                     </span>
                     <span
-                      className="text-xs font-mono"
-                      style={{ color: "var(--muted)" }}
+                      className="text-sm font-mono font-semibold tabular-nums"
+                      style={{ color: "var(--foreground)" }}
                     >
                       {Math.round(m.pfScore)}
                     </span>
@@ -158,53 +127,173 @@ export default async function HomePage() {
           className="py-12"
           style={{ borderBottom: "1px solid var(--border)" }}
         >
-          <SectionLabel action={{ label: "View all", href: "/actors" }}>
-            Actor leaderboard
-          </SectionLabel>
+          <CollapsibleSection label="Actor leaderboard" action={{ label: "View all", href: "/actors" }}>
+            <div>
+              {top5.map((actor, idx) => {
+                const score = actor.pfScore !== null ? Math.round(actor.pfScore) : null;
+                const delta = deltaRecord[actor.id] ?? null;
+                const scoreColor = pfScoreColor(actor.pfScore ?? 0);
+                return (
+                  <Link
+                    key={actor.id}
+                    href={`/actors/${actor.slug}`}
+                    className="flex items-center justify-between py-3 transition-colors group"
+                    style={{ borderBottom: "1px solid var(--border)" }}
+                  >
+                    <div className="flex items-center gap-3">
+                      <span
+                        className="text-xs font-mono w-4 shrink-0"
+                        style={{ color: "var(--muted)" }}
+                      >
+                        {idx + 1}
+                      </span>
+                      <span
+                        className="text-sm font-medium group-hover:text-accent transition-colors"
+                        style={{ color: "var(--foreground)" }}
+                      >
+                        {actor.name}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <span
+                        className="text-base font-mono font-medium tabular-nums"
+                        style={{ color: scoreColor }}
+                      >
+                        {score ?? "—"}
+                      </span>
+                      <ScoreDelta delta={delta} />
+                    </div>
+                  </Link>
+                );
+              })}
+            </div>
 
-          <div>
-            {top5.map((actor, idx) => {
-              const score = actor.pfScore !== null ? Math.round(actor.pfScore) : null;
-              const delta = deltaRecord[actor.id] ?? null;
-              const scoreColor = pfScoreColor(actor.pfScore ?? 0);
-              return (
-                <Link
-                  key={actor.id}
-                  href={`/actors/${actor.slug}`}
-                  className="flex items-center justify-between py-3 transition-colors group"
-                  style={{ borderBottom: "1px solid var(--border)" }}
-                >
-                  <div className="flex items-center gap-3">
-                    <span
-                      className="text-xs font-mono w-4 shrink-0"
-                      style={{ color: "var(--muted)" }}
+            <p className="text-xs mt-4" style={{ color: "var(--muted)" }}>
+              Showing 5 of {actors.length} tracked actors
+            </p>
+          </CollapsibleSection>
+        </section>
+
+        {/* ── Bottom rail ── */}
+        <section className="py-12" style={{ borderBottom: "1px solid var(--border)" }}>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
+
+            <div>
+              <CollapsibleSection label="Latest brief" action={{ label: "All briefs", href: "/briefs" }}>
+                {!latestBrief ? (
+                  <p className="text-sm" style={{ color: "var(--muted)" }}>
+                    No briefs published yet.
+                  </p>
+                ) : (
+                  <Link href={`/briefs/${latestBrief.id}`} className="block group">
+                    <div
+                      className="p-5 rounded-lg transition-colors"
+                      style={{
+                        border: "1px solid var(--border)",
+                        backgroundColor: "var(--surface)",
+                      }}
                     >
-                      {idx + 1}
-                    </span>
-                    <span
-                      className="text-sm font-medium group-hover:text-accent transition-colors"
-                      style={{ color: "var(--foreground)" }}
-                    >
-                      {actor.name}
-                    </span>
+                      <div className="flex items-center gap-2 mb-3 flex-wrap">
+                        {latestBrief.briefType && (
+                          <span
+                            className="text-[11px] px-2 py-0.5 rounded font-medium"
+                            style={{
+                              color: "var(--accent)",
+                              border: "1px solid color-mix(in srgb, var(--accent) 30%, transparent)",
+                              backgroundColor: "color-mix(in srgb, var(--accent) 10%, transparent)",
+                            }}
+                          >
+                            {latestBrief.briefType}
+                          </span>
+                        )}
+                        {latestBrief.status && (
+                          <span
+                            className="text-[11px] px-2 py-0.5 rounded font-medium"
+                            style={{
+                              color: latestBrief.status === "Final" ? "var(--delta-up)" : "var(--score-mid)",
+                              backgroundColor: latestBrief.status === "Final"
+                                ? "color-mix(in srgb, var(--delta-up) 10%, transparent)"
+                                : "color-mix(in srgb, var(--score-mid) 10%, transparent)",
+                            }}
+                          >
+                            {latestBrief.status}
+                          </span>
+                        )}
+                      </div>
+                      <p
+                        className="text-sm font-medium leading-snug mb-2 group-hover:text-accent transition-colors"
+                        style={{ color: "var(--foreground)" }}
+                      >
+                        {latestBrief.title || "Untitled Brief"}
+                      </p>
+                      {latestBrief.editorialPriority && (
+                        <p
+                          className="text-xs leading-relaxed line-clamp-2"
+                          style={{ color: "var(--muted-foreground)" }}
+                        >
+                          {latestBrief.editorialPriority}
+                        </p>
+                      )}
+                    </div>
+                  </Link>
+                )}
+              </CollapsibleSection>
+            </div>
+
+            <div>
+              <CollapsibleSection label="Active scenarios" action={{ label: "All conflicts", href: "/conflicts" }}>
+                {scenarios.length === 0 ? (
+                  <p className="text-sm" style={{ color: "var(--muted)" }}>
+                    No active scenarios.
+                  </p>
+                ) : (
+                  <div className="space-y-2">
+                    {scenarios.slice(0, 3).map((s) => (
+                      <div
+                        key={s.id}
+                        className="p-4 rounded-lg"
+                        style={{
+                          border: "1px solid var(--border)",
+                          backgroundColor: "var(--surface)",
+                        }}
+                      >
+                        <div className="flex items-start justify-between gap-2 mb-1">
+                          <p
+                            className="text-sm font-medium leading-snug"
+                            style={{ color: "var(--foreground)" }}
+                          >
+                            {s.name || "Unnamed Scenario"}
+                          </p>
+                          {s.probabilityEstimate !== "" && s.probabilityEstimate !== 0 && (
+                            <span
+                              className="text-xs font-mono font-medium shrink-0 px-1.5 py-0.5 rounded tabular-nums"
+                              style={{
+                                color: "var(--accent)",
+                                backgroundColor: "color-mix(in srgb, var(--accent) 12%, transparent)",
+                              }}
+                            >
+                              {typeof s.probabilityEstimate === "number"
+                                ? `${s.probabilityEstimate}%`
+                                : s.probabilityEstimate}
+                            </span>
+                          )}
+                        </div>
+                        {s.triggerCondition && (
+                          <p
+                            className="text-xs leading-relaxed line-clamp-2"
+                            style={{ color: "var(--muted)" }}
+                          >
+                            {s.triggerCondition}
+                          </p>
+                        )}
+                      </div>
+                    ))}
                   </div>
-                  <div className="flex items-center gap-3">
-                    <span
-                      className="text-base font-mono font-medium tabular-nums"
-                      style={{ color: scoreColor }}
-                    >
-                      {score ?? "—"}
-                    </span>
-                    <ScoreDelta delta={delta} />
-                  </div>
-                </Link>
-              );
-            })}
+                )}
+              </CollapsibleSection>
+            </div>
+
           </div>
-
-          <p className="text-xs mt-4" style={{ color: "var(--muted)" }}>
-            Showing 5 of {actors.length} tracked actors
-          </p>
         </section>
 
         {/* ── How it works ── */}
@@ -212,7 +301,7 @@ export default async function HomePage() {
           className="py-12"
           style={{ borderBottom: "1px solid var(--border)" }}
         >
-          <SectionLabel>How it works</SectionLabel>
+          <CollapsibleSection label="How it works">
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             {[
               {
@@ -260,130 +349,7 @@ export default async function HomePage() {
               </div>
             ))}
           </div>
-        </section>
-
-        {/* ── Bottom rail ── */}
-        <section className="py-12">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
-
-            <div>
-              <SectionLabel action={{ label: "All briefs", href: "/briefs" }}>
-                Latest brief
-              </SectionLabel>
-              {!latestBrief ? (
-                <p className="text-sm" style={{ color: "var(--muted)" }}>
-                  No briefs published yet.
-                </p>
-              ) : (
-                <Link href={`/briefs/${latestBrief.id}`} className="block group">
-                  <div
-                    className="p-5 rounded-lg transition-colors"
-                    style={{
-                      border: "1px solid var(--border)",
-                      backgroundColor: "var(--surface)",
-                    }}
-                  >
-                    <div className="flex items-center gap-2 mb-3 flex-wrap">
-                      {latestBrief.briefType && (
-                        <span
-                          className="text-[11px] px-2 py-0.5 rounded font-medium"
-                          style={{
-                            color: "var(--accent)",
-                            border: "1px solid color-mix(in srgb, var(--accent) 30%, transparent)",
-                            backgroundColor: "color-mix(in srgb, var(--accent) 10%, transparent)",
-                          }}
-                        >
-                          {latestBrief.briefType}
-                        </span>
-                      )}
-                      {latestBrief.status && (
-                        <span
-                          className="text-[11px] px-2 py-0.5 rounded font-medium"
-                          style={{
-                            color: latestBrief.status === "Final" ? "var(--delta-up)" : "var(--score-mid)",
-                            backgroundColor: latestBrief.status === "Final"
-                              ? "color-mix(in srgb, var(--delta-up) 10%, transparent)"
-                              : "color-mix(in srgb, var(--score-mid) 10%, transparent)",
-                          }}
-                        >
-                          {latestBrief.status}
-                        </span>
-                      )}
-                    </div>
-                    <p
-                      className="text-sm font-medium leading-snug mb-2 group-hover:text-accent transition-colors"
-                      style={{ color: "var(--foreground)" }}
-                    >
-                      {latestBrief.title || "Untitled Brief"}
-                    </p>
-                    {latestBrief.editorialPriority && (
-                      <p
-                        className="text-xs leading-relaxed line-clamp-2"
-                        style={{ color: "var(--muted-foreground)" }}
-                      >
-                        {latestBrief.editorialPriority}
-                      </p>
-                    )}
-                  </div>
-                </Link>
-              )}
-            </div>
-
-            <div>
-              <SectionLabel action={{ label: "All conflicts", href: "/conflicts" }}>
-                Active scenarios
-              </SectionLabel>
-              {scenarios.length === 0 ? (
-                <p className="text-sm" style={{ color: "var(--muted)" }}>
-                  No active scenarios.
-                </p>
-              ) : (
-                <div className="space-y-2">
-                  {scenarios.slice(0, 3).map((s) => (
-                    <div
-                      key={s.id}
-                      className="p-4 rounded-lg"
-                      style={{
-                        border: "1px solid var(--border)",
-                        backgroundColor: "var(--surface)",
-                      }}
-                    >
-                      <div className="flex items-start justify-between gap-2 mb-1">
-                        <p
-                          className="text-sm font-medium leading-snug"
-                          style={{ color: "var(--foreground)" }}
-                        >
-                          {s.name || "Unnamed Scenario"}
-                        </p>
-                        {s.probabilityEstimate !== "" && s.probabilityEstimate !== 0 && (
-                          <span
-                            className="text-xs font-mono font-medium shrink-0 px-1.5 py-0.5 rounded tabular-nums"
-                            style={{
-                              color: "var(--accent)",
-                              backgroundColor: "color-mix(in srgb, var(--accent) 12%, transparent)",
-                            }}
-                          >
-                            {typeof s.probabilityEstimate === "number"
-                              ? `${s.probabilityEstimate}%`
-                              : s.probabilityEstimate}
-                          </span>
-                        )}
-                      </div>
-                      {s.triggerCondition && (
-                        <p
-                          className="text-xs leading-relaxed line-clamp-2"
-                          style={{ color: "var(--muted)" }}
-                        >
-                          {s.triggerCondition}
-                        </p>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-
-          </div>
+          </CollapsibleSection>
         </section>
 
       </div>
