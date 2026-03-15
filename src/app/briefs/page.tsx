@@ -11,7 +11,7 @@ export default async function BriefsPage() {
   const briefs = await getAllPublicBriefs();
 
   return (
-    <div className="min-h-screen bg-[#0a0a0a]">
+    <div className="min-h-screen" style={{ backgroundColor: "var(--background)" }}>
       {/* Page header */}
       <div className="border-b border-[#1f2937] py-10">
         <div className="max-w-7xl mx-auto px-6">

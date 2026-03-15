@@ -1,20 +1,27 @@
 interface LogoMarkProps {
-  size?: number;
+  size?: number; // height in px
   className?: string;
 }
 
-export default function LogoMark({ size = 20, className = "" }: LogoMarkProps) {
+export default function LogoMark({ size = 28, className = "" }: LogoMarkProps) {
+  const width = Math.round(size * (18 / 44));
   return (
     <svg
-      width={size}
-      height={Math.round(size * (14 / 28))}
-      viewBox="0 0 28 14"
+      width={width}
+      height={size}
+      viewBox="0 0 18 44"
       fill="none"
       aria-hidden="true"
       className={className}
     >
-      <rect x="0" y="0" width="20" height="5" rx="1.5" fill="#60A5FA" opacity="1"/>
-      <rect x="4" y="9" width="16" height="5" rx="1.5" fill="#ffffff" opacity="0.25"/>
+      <path
+        d="M5.2 8.6C5.2 7.16406 4.03594 6 2.6 6C1.16406 6 0 7.16406 0 8.6V35.4C0 36.8359 1.16406 38 2.6 38C4.03594 38 5.2 36.8359 5.2 35.4V8.6Z"
+        fill="#60A5FA"
+      />
+      <path
+        d="M18 2.6C18 1.16406 16.8359 0 15.4 0C13.9641 0 12.8 1.16406 12.8 2.6V41.4C12.8 42.8359 13.9641 44 15.4 44C16.8359 44 18 42.8359 18 41.4V2.6Z"
+        fill="#3B4A5C"
+      />
     </svg>
   );
 }

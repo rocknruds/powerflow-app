@@ -119,7 +119,7 @@ export default async function BriefPage({
   const statusColor = brief.status === "Final" ? "#22c55e" : "#eab308";
 
   return (
-    <div className="min-h-screen bg-[#0a0a0a]">
+    <div className="min-h-screen" style={{ backgroundColor: "var(--background)" }}>
       <div className="border-b border-[#1f2937] py-10">
         <div className="max-w-3xl mx-auto px-6">
           <Link
