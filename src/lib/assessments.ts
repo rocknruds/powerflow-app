@@ -1,8 +1,9 @@
-import { queryDatabase, getTitle, getText, getSelect, getDate, getNumber, getRelationIds } from "./notion";
+import { queryDatabase, fetchPage, getTitle, getText, getSelect, getMultiSelect, getDate, getNumber, getRelationIds } from "./notion";
 
 const ASSESSMENTS_DB_ID = process.env.NOTION_ASSESSMENTS_DB_ID ?? "e6a475420b96467ab43e77632f7a7032";
 
 export interface Assessment {
+  id: string;
   title: string;
   currentPosition: string;
   analystCommentary: string;
@@ -10,6 +11,13 @@ export interface Assessment {
   confidenceLevel: string;
   timePeriod: string | null;
   notionUrl: string;
+  outlook: string;
+  periodReview: string;
+  primaryDrivers: string[];
+  riskProfile: string[];
+  region: string | null;
+  pfScore: number | null;
+  generatedOn: string | null;
 }
 
 export interface AssessmentSummary {
@@ -46,13 +54,44 @@ export async function getLatestAssessment(actorId: string): Promise<Assessment |
   const p = page.properties ?? {};
 
   return {
-    title: getTitle(p, "Name") || getTitle(p, "Title"),
+    id: page.id as string,
+    title: getTitle(p, "Title") || getTitle(p, "Name"),
     currentPosition: getText(p, "Current Position"),
     analystCommentary: getText(p, "Analyst Commentary"),
     pfSignal: getSelect(p, "PF Signal") ?? "",
     confidenceLevel: getSelect(p, "Confidence Level") ?? "",
     timePeriod: getDate(p, "Time Period"),
     notionUrl: (page.url as string) ?? "",
+    outlook: getText(p, "Outlook"),
+    periodReview: getText(p, "Period Review"),
+    primaryDrivers: getMultiSelect(p, "Primary Drivers"),
+    riskProfile: getMultiSelect(p, "Risk Profile"),
+    region: getSelect(p, "Region"),
+    pfScore: getNumber(p, "PF Score (0-100)"),
+    generatedOn: getDate(p, "Generated On"),
+  };
+}
+
+export async function getAssessmentById(id: string): Promise<Assessment | null> {
+  const page = await fetchPage(id);
+  if (!page) return null;
+  const p = page.properties ?? {};
+  return {
+    id: page.id as string,
+    title: getTitle(p, "Title") || getTitle(p, "Name"),
+    currentPosition: getText(p, "Current Position"),
+    analystCommentary: getText(p, "Analyst Commentary"),
+    pfSignal: getSelect(p, "PF Signal") ?? "",
+    confidenceLevel: getSelect(p, "Confidence Level") ?? "",
+    timePeriod: getDate(p, "Time Period"),
+    notionUrl: (page.url as string) ?? "",
+    outlook: getText(p, "Outlook"),
+    periodReview: getText(p, "Period Review"),
+    primaryDrivers: getMultiSelect(p, "Primary Drivers"),
+    riskProfile: getMultiSelect(p, "Risk Profile"),
+    region: getSelect(p, "Region"),
+    pfScore: getNumber(p, "PF Score (0-100)"),
+    generatedOn: getDate(p, "Generated On"),
   };
 }
 

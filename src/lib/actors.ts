@@ -8,6 +8,7 @@ import {
   getMultiSelect,
   getDate,
   getFormula,
+  getRelationIds,
 } from './notion'
 import type { Actor, ActorType, ScoreTrend } from './types'
 
@@ -68,6 +69,8 @@ function parsePage(page: any): Actor {
     lastScored: getDate(props, 'Last Scored'),
     scoreReasoning: getText(props, 'Score Reasoning') || null,
     notes: getText(props, 'Notes') || null,
+    patronStateIds: getRelationIds(props, 'Patron State'),
+    dependentOnIds: getRelationIds(props, 'Dependent On'),
     // Enriched later by enrichActorsWithDeltas()
     scoreDelta: null,
     scoreTrend: null,

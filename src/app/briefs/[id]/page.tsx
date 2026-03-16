@@ -42,37 +42,37 @@ function renderBlock(block: NotionBlock): React.ReactNode {
   switch (block.type) {
     case "heading_1":
       return (
-        <h1 key={block.id} className="text-2xl font-bold text-white mt-8 mb-3">
+        <h1 key={block.id} className="text-2xl font-bold mt-8 mb-3" style={{ color: "var(--foreground)" }}>
           {text}
         </h1>
       );
     case "heading_2":
       return (
-        <h2 key={block.id} className="text-xl font-semibold text-white mt-7 mb-2.5">
+        <h2 key={block.id} className="text-xl font-semibold mt-7 mb-2.5" style={{ color: "var(--foreground)" }}>
           {text}
         </h2>
       );
     case "heading_3":
       return (
-        <h3 key={block.id} className="text-lg font-semibold text-gray-200 mt-5 mb-2">
+        <h3 key={block.id} className="text-lg font-semibold mt-5 mb-2" style={{ color: "var(--foreground)" }}>
           {text}
         </h3>
       );
     case "paragraph":
       return (
-        <p key={block.id} className="text-gray-300 leading-relaxed mb-4">
+        <p key={block.id} className="leading-relaxed mb-4" style={{ color: "var(--muted-foreground)" }}>
           {text}
         </p>
       );
     case "bulleted_list_item":
       return (
-        <li key={block.id} className="text-gray-300 leading-relaxed mb-1 ml-4">
+        <li key={block.id} className="leading-relaxed mb-1 ml-4" style={{ color: "var(--muted-foreground)" }}>
           {text}
         </li>
       );
     case "numbered_list_item":
       return (
-        <li key={block.id} className="text-gray-300 leading-relaxed mb-1 ml-4 list-decimal">
+        <li key={block.id} className="leading-relaxed mb-1 ml-4 list-decimal" style={{ color: "var(--muted-foreground)" }}>
           {text}
         </li>
       );
@@ -80,7 +80,8 @@ function renderBlock(block: NotionBlock): React.ReactNode {
       return (
         <blockquote
           key={block.id}
-          className="border-l-2 border-[#3b82f6] pl-4 my-4 text-gray-400 italic"
+          className="pl-4 my-4 italic"
+          style={{ color: "var(--muted)", borderLeft: "2px solid var(--accent)" }}
         >
           {text}
         </blockquote>
@@ -89,16 +90,17 @@ function renderBlock(block: NotionBlock): React.ReactNode {
       return (
         <div
           key={block.id}
-          className="border border-[#1f2937] bg-[#111111] rounded-lg px-4 py-3 my-4 text-gray-300 text-sm leading-relaxed"
+          className="rounded-lg px-4 py-3 my-4 text-sm leading-relaxed"
+          style={{ backgroundColor: "var(--surface)", border: "1px solid var(--border)", color: "var(--muted-foreground)" }}
         >
           {text}
         </div>
       );
     case "divider":
-      return <hr key={block.id} className="border-[#1f2937] my-6" />;
+      return <hr key={block.id} className="my-6" style={{ borderColor: "var(--border)" }} />;
     default:
       return text ? (
-        <p key={block.id} className="text-gray-400 leading-relaxed mb-3">
+        <p key={block.id} className="leading-relaxed mb-3" style={{ color: "var(--muted)" }}>
           {text}
         </p>
       ) : null;
@@ -116,42 +118,46 @@ export default async function BriefPage({
   const brief = await getBriefWithContent(id);
   if (!brief) notFound();
 
-  const statusColor = brief.status === "Final" ? "#22c55e" : "#eab308";
+  const statusColor = brief.status === "Final" ? "var(--delta-up)" : "var(--score-mid)";
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: "var(--background)" }}>
-      <div className="border-b border-[#1f2937] py-10">
+      <div className="py-10" style={{ borderBottom: "1px solid var(--border)" }}>
         <div className="max-w-3xl mx-auto px-6">
           <Link
             href="/briefs"
-            className="text-xs text-gray-600 hover:text-gray-400 transition-colors mb-4 inline-flex items-center gap-1"
+            className="text-xs transition-colors mb-4 inline-flex items-center gap-1"
+            style={{ color: "var(--muted)" }}
           >
             ← Intelligence Briefs
           </Link>
 
           <div className="flex items-center gap-2 mb-4 flex-wrap">
             {brief.briefType && (
-              <span className="text-xs px-2 py-0.5 rounded border border-[#3b82f6]/40 text-[#3b82f6] bg-[#3b82f6]/10 font-medium">
+              <span
+                className="text-xs px-2 py-0.5 rounded font-medium"
+                style={{ color: "var(--accent)", border: "1px solid color-mix(in srgb, var(--accent) 40%, transparent)", backgroundColor: "color-mix(in srgb, var(--accent) 10%, transparent)" }}
+              >
                 {brief.briefType}
               </span>
             )}
             {brief.status && (
               <span
                 className="text-xs px-2 py-0.5 rounded font-medium"
-                style={{ color: statusColor, backgroundColor: `${statusColor}18` }}
+                style={{ color: statusColor, backgroundColor: `color-mix(in srgb, ${statusColor} 10%, transparent)` }}
               >
                 {brief.status}
               </span>
             )}
             {(brief.dateRangeStart || brief.dateRangeEnd) && (
-              <span className="text-xs text-gray-500">
+              <span className="text-xs" style={{ color: "var(--muted)" }}>
                 {formatDate(brief.dateRangeStart)}
                 {brief.dateRangeEnd && ` – ${formatDate(brief.dateRangeEnd)}`}
               </span>
             )}
           </div>
 
-          <h1 className="text-3xl font-bold text-white leading-tight">
+          <h1 className="text-3xl font-bold leading-tight" style={{ color: "var(--foreground)" }}>
             {brief.title || "Untitled Brief"}
           </h1>
         </div>
@@ -159,7 +165,7 @@ export default async function BriefPage({
 
       <div className="max-w-3xl mx-auto px-6 py-10">
         {brief.blocks.length === 0 ? (
-          <div className="rounded-lg border border-[#1f2937] bg-[#111111] px-6 py-12 text-center text-sm text-gray-600">
+          <div className="rounded-lg px-6 py-12 text-center text-sm" style={{ border: "1px solid var(--border)", backgroundColor: "var(--surface)", color: "var(--muted)" }}>
             No content available for this brief.
           </div>
         ) : (

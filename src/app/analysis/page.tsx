@@ -89,17 +89,13 @@ function AssessmentFeedCard({ assessment }: { assessment: AssessmentSummary }) {
         </p>
       )}
 
-      {assessment.notionUrl && (
-        <a
-          href={assessment.notionUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="text-xs font-medium transition-opacity hover:opacity-70"
-          style={{ color: "var(--accent)" }}
-        >
-          Read full assessment →
-        </a>
-      )}
+      <Link
+        href={`/analysis/${assessment.id}`}
+        className="text-xs font-medium transition-opacity hover:opacity-70"
+        style={{ color: "var(--accent)" }}
+      >
+        Read full assessment →
+      </Link>
     </div>
   );
 }

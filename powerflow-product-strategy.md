@@ -4,6 +4,30 @@
 
 ---
 
+## Product Identity
+
+**PowerFlow is a geopolitical intelligence engine.**
+
+It ingests the static, event-driven perspective of typical news and connects the dots — mapping dependencies, scoring actors, and tracing how disturbances cascade through the system. The result is a continuously updated model of how power actually moves through the world.
+
+**The contrast:**
+- News gives you events → stories → forgotten
+- PowerFlow gives you events → ingested → model updates → new understanding of the system
+
+News is reactive. PowerFlow is anticipatory. Because when you're tracking underlying structure — who depends on whom, where authority is eroding, where reach is expanding — you can see stress fractures before they produce headlines.
+
+**One-liner:**
+> *"PowerFlow is a geopolitical intelligence engine. It ingests the world's information and builds a living model of how power actually moves — so you can see what's shifting before it makes headlines."*
+
+**What it's not:**
+- Not a news site (events are inputs, not the product)
+- Not a dashboard (dashboards display state; PowerFlow models dynamics)
+- Not a data terminal (accessibility is a feature, not an afterthought)
+
+**Category:** Geopolitical intelligence engine — a continuously running model of global power, not a snapshot.
+
+---
+
 ## Core Product Philosophy
 
 PowerFlow's central differentiator is **progressive disclosure of complexity** — every piece of information exists at multiple depth levels, and the product teaches users how to read geopolitics as they go deeper. By the time a casual reader hits layer 3, they're reasoning like an analyst because PowerFlow's framework did that to them.

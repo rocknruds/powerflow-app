@@ -22,6 +22,8 @@ export interface Actor {
   lastScored: string | null
   scoreReasoning: string | null
   notes: string | null
+  patronStateIds: string[]
+  dependentOnIds: string[]
   // Enriched from Score Snapshots
   scoreDelta: number | null
   scoreTrend: ScoreTrend | null

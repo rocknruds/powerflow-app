@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import type { Assessment } from "@/lib/assessments";
 
 function getTwoSentences(text: string): string {
@@ -99,19 +100,15 @@ export default function AssessmentCard({ assessment }: { assessment: Assessment 
           </>
         )}
 
-        {assessment.notionUrl && (
-          <div className="mt-4 pt-3" style={{ borderTop: "1px solid var(--border)" }}>
-            <a
-              href={assessment.notionUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-xs font-medium transition-opacity hover:opacity-70"
-              style={{ color: "var(--accent)" }}
-            >
-              View full assessment →
-            </a>
-          </div>
-        )}
+        <div className="mt-4 pt-3" style={{ borderTop: "1px solid var(--border)" }}>
+          <Link
+            href={`/analysis/${assessment.id}`}
+            className="text-xs font-medium transition-opacity hover:opacity-70"
+            style={{ color: "var(--accent)" }}
+          >
+            View full assessment →
+          </Link>
+        </div>
       </div>
     </div>
   );

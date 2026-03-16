@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import Link from "next/link";
-import { getAllPublicActors, getActorBySlug } from "@/lib/actors";
+import { getAllPublicActors, getActorBySlug, getActorsByIds, toSlug } from "@/lib/actors";
 import { getActorScoreHistory } from "@/lib/scores";
 import { getActorEvents } from "@/lib/events";
 import type { NotionEvent } from "@/lib/events";
@@ -105,8 +105,13 @@ export default async function ActorProfilePage({ params }: { params: Promise<{ s
   const [history, assessment, events, relationships] = await Promise.all([
     getActorScoreHistory(actor.id),
     getLatestAssessment(actor.id).catch(() => null),
-    getActorEvents(actor.id, 5).catch((): NotionEvent[] => []),
+    getActorEvents(actor.id, 6).catch((): NotionEvent[] => []),
     getActorRelationships(actor.id).catch((): ActorRelationships => ({ outgoing: [], incoming: [] })),
+  ]);
+
+  const [patronActors, dependentOnActors] = await Promise.all([
+    actor.patronStateIds.length > 0 ? getActorsByIds(actor.patronStateIds) : Promise.resolve([]),
+    actor.dependentOnIds.length > 0 ? getActorsByIds(actor.dependentOnIds) : Promise.resolve([]),
   ]);
 
   const pf = calcPFScore(actor.authorityScore, actor.reachScore);
@@ -114,12 +119,13 @@ export default async function ActorProfilePage({ params }: { params: Promise<{ s
   const latestSnapshot = history[history.length - 1];
   const latestDelta = latestSnapshot?.delta ?? null;
 
-  // Subtitle: subType → region (if State) → actorType → nothing
-  const subtitle = actor.subType
-    ? actor.subType
-    : actor.actorType === "State"
-    ? actor.region
-    : actor.actorType;
+  // Subtitle: State → region only; Non-State/Hybrid → subType or actorType; IGO → actorType
+  const subtitle =
+    actor.actorType === "State"
+      ? actor.region
+      : actor.actorType === "Non-State" || actor.actorType === "Hybrid"
+      ? actor.subType || actor.actorType
+      : actor.actorType;
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: "var(--background)" }}>
@@ -197,127 +203,184 @@ export default async function ActorProfilePage({ params }: { params: Promise<{ s
           </div>
         </div>
 
-        {/* SECTION 2: Latest Assessment (full width) */}
+        {/* SECTION 2: Key Drivers */}
+        {actor.scoreReasoning && (
+          <div className="rounded-xl p-6" style={{ backgroundColor: "var(--surface)", border: "1px solid var(--border)" }}>
+            <SectionLabel>Key Drivers</SectionLabel>
+            <p className="text-sm leading-relaxed" style={{ color: "var(--muted-foreground)" }}>
+              {actor.scoreReasoning}
+            </p>
+            {(patronActors.length > 0 || dependentOnActors.length > 0) && (
+              <div className="mt-4 pt-4 space-y-2" style={{ borderTop: "1px solid var(--border)" }}>
+                {patronActors.length > 0 && (
+                  <div className="flex items-center flex-wrap gap-2">
+                    <span className="text-[10px] font-semibold uppercase tracking-widest" style={{ color: "var(--muted)" }}>Patron:</span>
+                    {patronActors.map((pa) => (
+                      <Link
+                        key={pa.id}
+                        href={`/actors/${toSlug(pa.name)}`}
+                        className="text-xs px-2 py-0.5 rounded transition-opacity hover:opacity-70"
+                        style={{
+                          color: "var(--accent)",
+                          border: "1px solid color-mix(in srgb, var(--accent) 30%, transparent)",
+                          backgroundColor: "color-mix(in srgb, var(--accent) 10%, transparent)",
+                        }}
+                      >
+                        {pa.name}
+                      </Link>
+                    ))}
+                  </div>
+                )}
+                {dependentOnActors.length > 0 && (
+                  <div className="flex items-center flex-wrap gap-2">
+                    <span className="text-[10px] font-semibold uppercase tracking-widest" style={{ color: "var(--muted)" }}>Dependent On:</span>
+                    {dependentOnActors.map((da) => (
+                      <Link
+                        key={da.id}
+                        href={`/actors/${toSlug(da.name)}`}
+                        className="text-xs px-2 py-0.5 rounded transition-opacity hover:opacity-70"
+                        style={{
+                          color: "var(--accent)",
+                          border: "1px solid color-mix(in srgb, var(--accent) 30%, transparent)",
+                          backgroundColor: "color-mix(in srgb, var(--accent) 10%, transparent)",
+                        }}
+                      >
+                        {da.name}
+                      </Link>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* SECTION 3: Latest Assessment (full width) */}
         <AssessmentCard assessment={assessment} />
 
-        {/* SECTION 3 + 4: Events (left) + Relationships (right) */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-
-          {/* SECTION 3: Recent Events */}
-          {events.length > 0 && (
-            <div>
-              <SectionLabel>Recent Events</SectionLabel>
-              <div className="space-y-2">
-                {events.map((event: NotionEvent) => (
-                  <div
-                    key={event.id}
-                    className="rounded-lg px-4 py-3"
-                    style={{ border: "1px solid var(--border)", backgroundColor: "var(--surface)" }}
-                  >
-                    <div className="flex items-center gap-2 flex-wrap mb-1">
-                      {event.date && (
-                        <span
-                          className="text-[10px] font-mono px-1.5 py-0.5 rounded tabular-nums"
-                          style={{ backgroundColor: "var(--surface-raised)", color: "var(--muted)" }}
-                        >
-                          {new Date(event.date).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
-                        </span>
-                      )}
-                      <EventTypeBadge type={event.eventType} />
-                    </div>
-                    <p className="text-sm font-medium leading-snug mb-1" style={{ color: "var(--foreground)" }}>
-                      {event.name || "—"}
-                    </p>
-                    {event.description && (
-                      <p className="text-xs leading-relaxed" style={{ color: "var(--muted)" }}>
-                        {event.description.length > 100
-                          ? event.description.slice(0, 100) + "…"
-                          : event.description}
-                      </p>
-                    )}
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* SECTION 4: Relationship Scoreboard */}
-          {relationships.outgoing.length + relationships.incoming.length > 0 && (
-            <div>
-              <SectionLabel>Relationships</SectionLabel>
-              <div className="rounded-xl overflow-hidden" style={{ border: "1px solid var(--border)", backgroundColor: "var(--surface)" }}>
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr style={{ borderBottom: "1px solid var(--border)" }}>
-                      {["Counterparty", "Type", "Alignment", "Leverage", "Dependency"].map((col) => (
-                        <th
-                          key={col}
-                          className="text-left text-[10px] font-semibold uppercase tracking-widest px-4 py-2.5"
-                          style={{ color: "var(--muted)" }}
-                        >
-                          {col}
-                        </th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {[...relationships.outgoing, ...relationships.incoming].slice(0, 6).map((rel) => {
-                      const alignment = rel.alignmentScore
-                      const alignColor =
-                        alignment === null || alignment === 0
-                          ? "var(--muted)"
-                          : alignment > 0
-                          ? "var(--delta-up)"
-                          : "var(--delta-down)"
-                      const alignLabel =
-                        alignment === null
-                          ? "—"
-                          : alignment > 0
-                          ? `+${alignment}`
-                          : String(alignment)
-                      return (
-                        <tr
-                          key={rel.id}
-                          style={{ borderBottom: "1px solid var(--border)" }}
-                        >
-                          <td className="px-4 py-2.5 font-medium" style={{ color: "var(--foreground)" }}>
-                            {/* TODO: derive slug from counterpartyName and link to /actors/[slug] */}
+        {/* SECTION 4: Relationships (full width) */}
+        {relationships.outgoing.length + relationships.incoming.length > 0 && (
+          <div>
+            <SectionLabel>Relationships</SectionLabel>
+            <div className="rounded-xl overflow-hidden" style={{ border: "1px solid var(--border)", backgroundColor: "var(--surface)" }}>
+              <table className="w-full text-sm">
+                <thead>
+                  <tr style={{ borderBottom: "1px solid var(--border)" }}>
+                    {["Counterparty", "Type", "Alignment", "Leverage", "Dependency"].map((col) => (
+                      <th
+                        key={col}
+                        className="text-left text-[10px] font-semibold uppercase tracking-widest px-4 py-2.5"
+                        style={{ color: "var(--muted)" }}
+                      >
+                        {col}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {[...relationships.outgoing, ...relationships.incoming].slice(0, 8).map((rel) => {
+                    const alignment = rel.alignmentScore
+                    const alignColor =
+                      alignment === null || alignment === 0
+                        ? "var(--muted)"
+                        : alignment > 0
+                        ? "var(--delta-up)"
+                        : "var(--delta-down)"
+                    const alignLabel =
+                      alignment === null
+                        ? "—"
+                        : alignment > 0
+                        ? `+${alignment}`
+                        : String(alignment)
+                    return (
+                      <tr
+                        key={rel.id}
+                        style={{ borderBottom: "1px solid var(--border)" }}
+                      >
+                        <td className="px-4 py-2.5 font-medium" style={{ color: "var(--foreground)" }}>
+                          <Link
+                            href={`/actors/${toSlug(rel.counterpartyName)}`}
+                            className="transition-opacity hover:opacity-70"
+                            style={{ color: "var(--foreground)" }}
+                          >
                             {rel.counterpartyName || "—"}
-                          </td>
-                          <td className="px-4 py-2.5">
-                            {rel.relationshipType ? (
-                              <span
-                                className="text-[10px] px-1.5 py-0.5 rounded whitespace-nowrap"
-                                style={{
-                                  color: "var(--muted)",
-                                  backgroundColor: "color-mix(in srgb, var(--muted) 12%, transparent)",
-                                }}
-                              >
-                                {rel.relationshipType}
-                              </span>
-                            ) : (
-                              <span style={{ color: "var(--muted)" }}>—</span>
-                            )}
-                          </td>
-                          <td className="px-4 py-2.5 tabular-nums font-medium" style={{ color: alignColor }}>
-                            {alignLabel}
-                          </td>
-                          <td className="px-4 py-2.5 tabular-nums" style={{ color: "var(--muted-foreground)" }}>
-                            {rel.leverageScore ?? "—"}
-                          </td>
-                          <td className="px-4 py-2.5 tabular-nums" style={{ color: "var(--muted-foreground)" }}>
-                            {rel.dependencyScore ?? "—"}
-                          </td>
-                        </tr>
-                      )
-                    })}
-                  </tbody>
-                </table>
-              </div>
+                          </Link>
+                        </td>
+                        <td className="px-4 py-2.5">
+                          {rel.relationshipType ? (
+                            <span
+                              className="text-[10px] px-1.5 py-0.5 rounded whitespace-nowrap"
+                              style={{
+                                color: "var(--muted)",
+                                backgroundColor: "color-mix(in srgb, var(--muted) 12%, transparent)",
+                              }}
+                            >
+                              {rel.relationshipType}
+                            </span>
+                          ) : (
+                            <span style={{ color: "var(--muted)" }}>—</span>
+                          )}
+                        </td>
+                        <td className="px-4 py-2.5 tabular-nums font-medium" style={{ color: alignColor }}>
+                          {alignLabel}
+                        </td>
+                        <td className="px-4 py-2.5 tabular-nums" style={{ color: "var(--muted-foreground)" }}>
+                          {rel.leverageScore ?? "—"}
+                        </td>
+                        <td className="px-4 py-2.5 tabular-nums" style={{ color: "var(--muted-foreground)" }}>
+                          {rel.dependencyScore ?? "—"}
+                        </td>
+                      </tr>
+                    )
+                  })}
+                </tbody>
+              </table>
             </div>
-          )}
+            {relationships.outgoing.length + relationships.incoming.length > 8 && (
+              <a href="#" className="text-xs font-medium mt-3 inline-block transition-opacity hover:opacity-70" style={{ color: "var(--accent)" }}>
+                View all →
+              </a>
+            )}
+          </div>
+        )}
 
-        </div>
+        {/* SECTION 5: Recent Events (full width) */}
+        {events.length > 0 && (
+          <div>
+            <SectionLabel>Recent Events</SectionLabel>
+            <div className="space-y-2">
+              {events.map((event: NotionEvent) => (
+                <div
+                  key={event.id}
+                  className="rounded-lg px-4 py-3"
+                  style={{ border: "1px solid var(--border)", backgroundColor: "var(--surface)" }}
+                >
+                  <div className="flex items-center gap-2 flex-wrap mb-1">
+                    {event.date && (
+                      <span
+                        className="text-[10px] font-mono px-1.5 py-0.5 rounded tabular-nums"
+                        style={{ backgroundColor: "var(--surface-raised)", color: "var(--muted)" }}
+                      >
+                        {new Date(event.date).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+                      </span>
+                    )}
+                    <EventTypeBadge type={event.eventType} />
+                  </div>
+                  <p className="text-sm font-medium leading-snug mb-1" style={{ color: "var(--foreground)" }}>
+                    {event.name || "—"}
+                  </p>
+                  {event.description && (
+                    <p className="text-xs leading-relaxed" style={{ color: "var(--muted)" }}>
+                      {event.description.length > 100
+                        ? event.description.slice(0, 100) + "…"
+                        : event.description}
+                    </p>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
