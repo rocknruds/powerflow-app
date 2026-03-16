@@ -41,7 +41,7 @@ export function toSlug(name: string): string {
 
 function computePFScore(authority: number | null, reach: number | null): number | null {
   if (authority === null || reach === null) return null
-  return Math.round(Math.sqrt(authority * reach) * 10) / 10
+  return Math.round(Math.sqrt(authority * reach))
 }
 
 function parsePage(page: any): Actor {

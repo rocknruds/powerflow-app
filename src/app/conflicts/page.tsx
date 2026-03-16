@@ -39,7 +39,7 @@ function IntensityBadge({ intensity }: { intensity: string | null }) {
 }
 
 function ActorDeltaChip({ actor }: { actor: ConflictActor }) {
-  const pf = actor.pfScore?.toFixed(1) ?? "—";
+  const pf = actor.pfScore != null ? Math.round(actor.pfScore).toString() : "—";
   const hasDelta = actor.delta !== null;
   const positive = (actor.delta ?? 0) >= 0;
 
@@ -53,7 +53,7 @@ function ActorDeltaChip({ actor }: { actor: ConflictActor }) {
           style={{ color: positive ? "#22c55e" : "#ef4444" }}
         >
           {positive ? "+" : ""}
-          {actor.delta?.toFixed(1)}
+          {actor.delta != null ? Math.round(actor.delta) : ""}
         </span>
       )}
     </div>

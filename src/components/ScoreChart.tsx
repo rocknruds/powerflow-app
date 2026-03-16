@@ -68,7 +68,7 @@ function CustomTooltip({ active, payload, label }: CustomTooltipProps) {
             style={{ color: (point.delta ?? 0) >= 0 ? "#22c55e" : "#ef4444" }}
           >
             {(point.delta ?? 0) >= 0 ? "+" : ""}
-            {point.delta?.toFixed(1)} Δ
+            {point.delta != null ? Math.round(point.delta) : ""} Δ
           </span>
         </div>
       )}
