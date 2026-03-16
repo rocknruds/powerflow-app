@@ -32,7 +32,7 @@ export default function Masthead() {
           <LogoMark size={26} />
           <span
             className="font-sans text-base"
-            style={{ letterSpacing: "0.02em", lineHeight: 1 }}
+            style={{ letterSpacing: "0.13em", lineHeight: 1 }}
           >
             <span
               className="font-normal"
