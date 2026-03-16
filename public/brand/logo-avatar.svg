@@ -1,9 +1,7 @@
-<svg width="400" height="400" viewBox="0 0 400 400" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <rect width="400" height="400" fill="#0a0a0a"/>
-  <!-- top bar: 0.35 opacity -->
-  <rect x="90" y="149" width="220" height="22" rx="4" fill="#378ADD" opacity="0.35"/>
-  <!-- middle bar: full opacity -->
-  <rect x="90" y="189" width="220" height="22" rx="4" fill="#378ADD"/>
-  <!-- bottom bar: 0.18 opacity -->
-  <rect x="90" y="229" width="220" height="22" rx="4" fill="#378ADD" opacity="0.18"/>
+<svg width="400" height="400" viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg">
+  <rect width="400" height="400" fill="#141922"/>
+  <g transform="translate(160, 101) scale(4.5, 4.5)">
+    <path d="M5.2 8.6C5.2 7.16406 4.03594 6 2.6 6C1.16406 6 0 7.16406 0 8.6V35.4C0 36.8359 1.16406 38 2.6 38C4.03594 38 5.2 36.8359 5.2 35.4V8.6Z" fill="#60A5FA"/>
+    <path d="M18 2.6C18 1.16406 16.8359 0 15.4 0C13.9641 0 12.8 1.16406 12.8 2.6V41.4C12.8 42.8359 13.9641 44 15.4 44C16.8359 44 18 42.8359 18 41.4V2.6Z" fill="#3B4A5C"/>
+  </g>
 </svg>
