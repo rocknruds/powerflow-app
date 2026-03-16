@@ -17,7 +17,7 @@ export const metadata: Metadata = {
     template: "%s · PowerFlow",
   },
   description:
-    "We don't analyze what governments claim. We analyze where power actually moves.",
+    "Track power shifts across actors, dependencies, and conflicts in a single live system.",
   applicationName: "PowerFlow",
   metadataBase: new URL("http://localhost:3000"),
 };

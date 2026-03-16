@@ -39,48 +39,54 @@ export default async function HomePage() {
 
         {/* ── Hero ── */}
         <section
-          className="pt-20 pb-6"
+          className="pt-16 pb-6"
           style={{ borderBottom: "1px solid var(--border)" }}
         >
           <h1
-            className="font-sans font-semibold leading-[1.05] tracking-tight mb-5"
-            style={{ fontSize: "clamp(42px, 6vw, 68px)", color: "var(--foreground)" }}
+            className="font-sans font-semibold leading-[1.08] tracking-tight mb-4"
+            style={{ fontSize: "clamp(32px, 4.5vw, 52px)", color: "var(--foreground)" }}
           >
-            Power moves through networks,
+            When one actor moves,
             <br />
-            <span style={{ color: "var(--accent)" }}>not headlines.</span>
+            <span style={{ color: "var(--accent)" }}>the network moves with it.</span>
           </h1>
 
           <p
-            className="text-base leading-relaxed mb-8 max-w-xl"
+            className="text-sm leading-relaxed mb-6 max-w-lg"
             style={{ color: "var(--muted-foreground)" }}
           >
-            Every actor scored on authority and reach. Dependencies mapped.
-            When one actor moves, trace exactly who gets pulled with it — and by how much.
+            Track power shifts across actors, dependencies, and conflicts in a single live system.
           </p>
 
-          <div className="flex items-center gap-3 mb-12">
+          <div className="flex items-center gap-3 mb-5">
             <Link
               href="/actors"
               className="px-5 py-2.5 rounded-md text-sm font-medium transition-opacity hover:opacity-90"
               style={{ backgroundColor: "var(--accent)", color: "#ffffff" }}
             >
-              Explore Actors →
+              See Today&apos;s Power Shifts →
             </Link>
             <Link
-              href="/briefs"
+              href="/actors"
               className="px-5 py-2.5 rounded-md text-sm transition-colors"
               style={{
                 border: "1px solid var(--border)",
                 color: "var(--muted-foreground)",
               }}
             >
-              Latest Briefs
+              Explore the Actor Network →
             </Link>
           </div>
 
+          <p
+            className="text-[11px] font-mono tracking-wide mb-8"
+            style={{ color: "var(--muted)" }}
+          >
+            {actors.length} actors tracked &nbsp;•&nbsp; Authority + Reach scoring &nbsp;•&nbsp; Dependency networks &nbsp;•&nbsp; Updated daily
+          </p>
+
           {movers.length > 0 && (
-            <div>
+            <div className="flex flex-col items-center">
               <div
                 className="flex items-center gap-1.5 mb-3 text-[10px] font-medium uppercase tracking-[0.12em]"
                 style={{ color: "var(--muted)" }}
@@ -91,7 +97,7 @@ export default async function HomePage() {
                 />
                 Score movers — last 30 days
               </div>
-              <div className="flex flex-wrap gap-2.5">
+              <div className="flex flex-wrap justify-center gap-2.5">
                 {movers.map((m) => (
                   <Link
                     key={m.actorId}
