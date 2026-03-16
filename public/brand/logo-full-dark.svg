@@ -1,11 +1,8 @@
-<svg width="168" height="28" viewBox="0 0 168 28" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <!-- Left bar — accent blue, shorter -->
-  <rect x="0" y="6" width="5.2" height="16" rx="1.5" fill="#60A5FA"/>
-  <!-- Right bar — muted slate, taller -->
-  <rect x="12" y="3" width="5.2" height="22" rx="1.5" fill="#3B4A5C"/>
-  <!-- Wordmark -->
+<svg width="168" height="44" viewBox="0 0 168 44" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <path d="M5.2 8.6C5.2 7.16406 4.03594 6 2.6 6C1.16406 6 0 7.16406 0 8.6V35.4C0 36.8359 1.16406 38 2.6 38C4.03594 38 5.2 36.8359 5.2 35.4V8.6Z" fill="#60A5FA"/>
+  <path d="M18 2.6C18 1.16406 16.8359 0 15.4 0C13.9641 0 12.8 1.16406 12.8 2.6V41.4C12.8 42.8359 13.9641 44 15.4 44C16.8359 44 18 42.8359 18 41.4V2.6Z" fill="#3B4A5C"/>
   <text
-    x="27" y="20"
+    x="27" y="28"
     font-family="Geologica, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
     font-weight="500"
     font-size="17"

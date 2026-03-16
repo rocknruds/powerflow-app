@@ -5,11 +5,11 @@ import { getAllPublicActors, getActorBySlug } from "@/lib/actors";
 import { getActorScoreHistory } from "@/lib/scores";
 import { getActorEvents } from "@/lib/events";
 import type { NotionEvent } from "@/lib/events";
-import { getActorScenarios } from "@/lib/scenarios";
-import type { Scenario } from "@/lib/scenarios";
+import { getLatestAssessment } from "@/lib/assessments";
 import { calcPFScore } from "@/lib/notion";
 import ScoreDelta from "@/components/ScoreDelta";
 import ScoreChart from "@/components/ScoreChart";
+import AssessmentCard from "@/components/AssessmentCard";
 import { pfScoreColor, actorTypeBadgeColor } from "@/components/ActorCard";
 
 export const revalidate = 300;
@@ -71,15 +71,39 @@ function ScoreCell({ label, value, color, sub }: { label: string; value: number 
   );
 }
 
+const EVENT_TYPE_COLORS: Record<string, string> = {
+  "Military Action": "var(--delta-down)",
+  "Diplomatic": "var(--accent)",
+  "Economic": "var(--score-mid)",
+  "Political": "var(--score-authority)",
+  "Humanitarian": "var(--delta-up)",
+};
+
+function EventTypeBadge({ type }: { type: string | null }) {
+  if (!type) return null;
+  const color = EVENT_TYPE_COLORS[type] ?? "var(--muted)";
+  return (
+    <span
+      className="text-[10px] px-1.5 py-0.5 rounded whitespace-nowrap"
+      style={{
+        color,
+        backgroundColor: `color-mix(in srgb, ${color} 12%, transparent)`,
+      }}
+    >
+      {type}
+    </span>
+  );
+}
+
 export default async function ActorProfilePage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   const actor = await getActorBySlug(slug);
   if (!actor) notFound();
 
-  const [history, events, scenarios] = await Promise.all([
+  const [history, assessment, events] = await Promise.all([
     getActorScoreHistory(actor.id),
-    getActorEvents(actor.id, 6),
-    getActorScenarios(actor.id),
+    getLatestAssessment(actor.id).catch(() => null),
+    getActorEvents(actor.id, 5).catch((): NotionEvent[] => []),
   ]);
 
   const pf = calcPFScore(actor.authorityScore, actor.reachScore);
@@ -87,9 +111,12 @@ export default async function ActorProfilePage({ params }: { params: Promise<{ s
   const latestSnapshot = history[history.length - 1];
   const latestDelta = latestSnapshot?.delta ?? null;
 
-  const lastScoredFormatted = actor.lastScored
-    ? new Date(actor.lastScored).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })
-    : null;
+  // Subtitle: subType → region (if State) → actorType → nothing
+  const subtitle = actor.subType
+    ? actor.subType
+    : actor.actorType === "State"
+    ? actor.region
+    : actor.actorType;
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: "var(--background)" }}>
@@ -119,7 +146,9 @@ export default async function ActorProfilePage({ params }: { params: Promise<{ s
                 {actor.pfVector && <PFSignalBadge signal={actor.pfVector} />}
               </div>
               <h1 className="text-4xl font-bold tracking-tight" style={{ color: "var(--foreground)" }}>{actor.name}</h1>
-              {actor.subType && <p className="text-sm mt-1" style={{ color: "var(--muted)" }}>{actor.subType}</p>}
+              {subtitle && (
+                <p className="text-sm mt-1" style={{ color: "var(--muted)" }}>{subtitle}</p>
+              )}
             </div>
             {latestDelta !== null && (
               <div className="flex flex-col items-end gap-1">
@@ -133,7 +162,8 @@ export default async function ActorProfilePage({ params }: { params: Promise<{ s
 
       {/* Main content */}
       <div className="max-w-6xl mx-auto px-6 py-10 space-y-8">
-        {/* Hero: scores + chart */}
+
+        {/* SECTION 1: Score panel + chart */}
         <div className="grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-6">
           <div className="rounded-xl p-6 flex flex-col gap-6" style={{ backgroundColor: "var(--surface)", border: "1px solid var(--border)" }}>
             <ScoreCell label="PF Score" value={pf} color={scoreColor} sub="Authority × 0.6 + Reach × 0.4" />
@@ -164,88 +194,53 @@ export default async function ActorProfilePage({ params }: { params: Promise<{ s
           </div>
         </div>
 
-        {/* Score Reasoning */}
-        {actor.scoreReasoning && (
-          <div className="rounded-xl p-6" style={{ backgroundColor: "var(--surface)", border: "1px solid var(--border)" }}>
-            <div className="flex items-start justify-between gap-4 mb-4">
-              <SectionLabel>Score Reasoning</SectionLabel>
-              {lastScoredFormatted && (
-                <span className="text-xs" style={{ color: "var(--muted)" }}>Last scored {lastScoredFormatted}</span>
-              )}
-            </div>
-            <p className="text-sm leading-relaxed whitespace-pre-line" style={{ color: "var(--muted-foreground)" }}>
-              {actor.scoreReasoning}
-            </p>
-          </div>
-        )}
+        {/* SECTION 2: Latest Assessment (full width) */}
+        <AssessmentCard assessment={assessment} />
 
-        {/* Events + Scenarios */}
+        {/* SECTION 3 + 4: Events (left) + Relationships (right) */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div>
-            <SectionLabel>Recent Events</SectionLabel>
-            {events.length === 0 ? (
-              <div className="rounded-lg px-5 py-8 text-center text-sm" style={{ border: "1px solid var(--border)", backgroundColor: "var(--surface)", color: "var(--muted)" }}>
-                No linked events found.
-              </div>
-            ) : (
+
+          {/* SECTION 3: Recent Events */}
+          {events.length > 0 && (
+            <div>
+              <SectionLabel>Recent Events</SectionLabel>
               <div className="space-y-2">
                 {events.map((event: NotionEvent) => (
-                  <div key={event.id} className="rounded-lg px-4 py-3" style={{ border: "1px solid var(--border)", backgroundColor: "var(--surface)" }}>
-                    <div className="flex items-start justify-between gap-2">
-                      <p className="text-sm font-medium leading-snug" style={{ color: "var(--foreground)" }}>{event.name || "—"}</p>
+                  <div
+                    key={event.id}
+                    className="rounded-lg px-4 py-3"
+                    style={{ border: "1px solid var(--border)", backgroundColor: "var(--surface)" }}
+                  >
+                    <div className="flex items-center gap-2 flex-wrap mb-1">
                       {event.date && (
-                        <span className="text-xs whitespace-nowrap shrink-0" style={{ color: "var(--muted)" }}>
-                          {new Date(event.date).toLocaleDateString("en-US", { month: "short", year: "numeric" })}
+                        <span
+                          className="text-[10px] font-mono px-1.5 py-0.5 rounded tabular-nums"
+                          style={{ backgroundColor: "var(--surface-raised)", color: "var(--muted)" }}
+                        >
+                          {new Date(event.date).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
                         </span>
                       )}
+                      <EventTypeBadge type={event.eventType} />
                     </div>
-                    {event.pfSignal && (
-                      <span className="mt-1 inline-block text-[10px] px-1.5 py-0.5 rounded" style={{ backgroundColor: "var(--surface-raised)", color: "var(--muted)" }}>
-                        {event.pfSignal}
-                      </span>
-                    )}
+                    <p className="text-sm font-medium leading-snug mb-1" style={{ color: "var(--foreground)" }}>
+                      {event.name || "—"}
+                    </p>
                     {event.description && (
-                      <p className="text-xs mt-1.5 leading-relaxed line-clamp-2" style={{ color: "var(--muted)" }}>
-                        {event.description}
+                      <p className="text-xs leading-relaxed" style={{ color: "var(--muted)" }}>
+                        {event.description.length > 100
+                          ? event.description.slice(0, 100) + "…"
+                          : event.description}
                       </p>
                     )}
                   </div>
                 ))}
               </div>
-            )}
-          </div>
+            </div>
+          )}
 
-          <div>
-            <SectionLabel>Active Scenarios</SectionLabel>
-            {!scenarios || scenarios.length === 0 ? (
-              <div className="rounded-lg px-5 py-8 text-center text-sm" style={{ border: "1px solid var(--border)", backgroundColor: "var(--surface)", color: "var(--muted)" }}>
-                No active scenarios linked.
-              </div>
-            ) : (
-              <div className="space-y-2">
-                {scenarios.map((s: Scenario) => (
-                  <div key={s.id} className="rounded-lg px-4 py-3" style={{ border: "1px solid var(--border)", backgroundColor: "var(--surface)" }}>
-                    <div className="flex items-center justify-between gap-2 mb-1">
-                      <p className="text-sm font-medium leading-snug" style={{ color: "var(--foreground)" }}>{s.name || "—"}</p>
-                      {s.probabilityEstimate !== null && (
-                        <span className="text-xs font-semibold tabular-nums" style={{ color: "var(--accent)" }}>
-                          {s.probabilityEstimate}%
-                        </span>
-                      )}
-                    </div>
-                    {s.scenarioClass && (
-                      <span className="text-[10px] uppercase tracking-wide" style={{ color: "var(--muted)" }}>{s.scenarioClass}</span>
-                    )}
-                    {s.triggerCondition && (
-                      <p className="text-xs mt-1.5 leading-relaxed line-clamp-2" style={{ color: "var(--muted)" }}>
-                        {s.triggerCondition}
-                      </p>
-                    )}
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
+          {/* SECTION 4: Relationship Scoreboard */}
+          {/* TODO: Implement when src/lib/relationships.ts is created and exports getActorRelationships */}
+
         </div>
       </div>
     </div>

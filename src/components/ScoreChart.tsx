@@ -85,13 +85,18 @@ export default function ScoreChart({ snapshots }: ScoreChartProps) {
     );
   }
 
+  // Sort ascending by date for correct line rendering
+  const sorted = [...snapshots].sort(
+    (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
+  );
+
   // Find annotated points (event-triggered snapshots with notes) to mark on chart
-  const annotatedPoints = snapshots.filter(
+  const annotatedPoints = sorted.filter(
     (s) => s.annotation && s.snapshotType === "Event-Triggered"
   );
 
   // Check if we have component scores to show
-  const hasComponentScores = snapshots.some(
+  const hasComponentScores = sorted.some(
     (s) => s.authorityScore !== null || s.reachScore !== null
   );
 
@@ -99,7 +104,7 @@ export default function ScoreChart({ snapshots }: ScoreChartProps) {
     <div className="w-full">
       <ResponsiveContainer width="100%" height={220}>
         <LineChart
-          data={snapshots}
+          data={sorted}
           margin={{ top: 8, right: 8, bottom: 0, left: -16 }}
         >
           <CartesianGrid
@@ -189,24 +194,6 @@ export default function ScoreChart({ snapshots }: ScoreChartProps) {
           ))}
         </LineChart>
       </ResponsiveContainer>
-
-      {/* Annotation index — events listed below chart */}
-      {annotatedPoints.length > 0 && (
-        <div className="mt-4 space-y-2 border-t border-[#1f2937] pt-4">
-          {annotatedPoints.map((pt, i) => (
-            <div key={i} className="flex gap-3 items-start">
-              <span className="text-xs text-[#3b82f6] font-mono whitespace-nowrap mt-0.5">
-                {formatDate(pt.date)}
-              </span>
-              <p className="text-xs text-gray-500 leading-relaxed">
-                {pt.annotation!.length > 200
-                  ? pt.annotation!.slice(0, 200) + "…"
-                  : pt.annotation}
-              </p>
-            </div>
-          ))}
-        </div>
-      )}
     </div>
   );
 }
