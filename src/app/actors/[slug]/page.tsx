@@ -6,6 +6,8 @@ import { getActorScoreHistory } from "@/lib/scores";
 import { getActorEvents } from "@/lib/events";
 import type { NotionEvent } from "@/lib/events";
 import { getLatestAssessment } from "@/lib/assessments";
+import { getActorRelationships } from "@/lib/relationships";
+import type { ActorRelationships } from "@/lib/types";
 import { calcPFScore } from "@/lib/notion";
 import ScoreDelta from "@/components/ScoreDelta";
 import ScoreChart from "@/components/ScoreChart";
@@ -100,10 +102,11 @@ export default async function ActorProfilePage({ params }: { params: Promise<{ s
   const actor = await getActorBySlug(slug);
   if (!actor) notFound();
 
-  const [history, assessment, events] = await Promise.all([
+  const [history, assessment, events, relationships] = await Promise.all([
     getActorScoreHistory(actor.id),
     getLatestAssessment(actor.id).catch(() => null),
     getActorEvents(actor.id, 5).catch((): NotionEvent[] => []),
+    getActorRelationships(actor.id).catch((): ActorRelationships => ({ outgoing: [], incoming: [] })),
   ]);
 
   const pf = calcPFScore(actor.authorityScore, actor.reachScore);
@@ -239,7 +242,80 @@ export default async function ActorProfilePage({ params }: { params: Promise<{ s
           )}
 
           {/* SECTION 4: Relationship Scoreboard */}
-          {/* TODO: Implement when src/lib/relationships.ts is created and exports getActorRelationships */}
+          {relationships.outgoing.length + relationships.incoming.length > 0 && (
+            <div>
+              <SectionLabel>Relationships</SectionLabel>
+              <div className="rounded-xl overflow-hidden" style={{ border: "1px solid var(--border)", backgroundColor: "var(--surface)" }}>
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr style={{ borderBottom: "1px solid var(--border)" }}>
+                      {["Counterparty", "Type", "Alignment", "Leverage", "Dependency"].map((col) => (
+                        <th
+                          key={col}
+                          className="text-left text-[10px] font-semibold uppercase tracking-widest px-4 py-2.5"
+                          style={{ color: "var(--muted)" }}
+                        >
+                          {col}
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {[...relationships.outgoing, ...relationships.incoming].slice(0, 6).map((rel) => {
+                      const alignment = rel.alignmentScore
+                      const alignColor =
+                        alignment === null || alignment === 0
+                          ? "var(--muted)"
+                          : alignment > 0
+                          ? "var(--delta-up)"
+                          : "var(--delta-down)"
+                      const alignLabel =
+                        alignment === null
+                          ? "—"
+                          : alignment > 0
+                          ? `+${alignment}`
+                          : String(alignment)
+                      return (
+                        <tr
+                          key={rel.id}
+                          style={{ borderBottom: "1px solid var(--border)" }}
+                        >
+                          <td className="px-4 py-2.5 font-medium" style={{ color: "var(--foreground)" }}>
+                            {/* TODO: derive slug from counterpartyName and link to /actors/[slug] */}
+                            {rel.counterpartyName || "—"}
+                          </td>
+                          <td className="px-4 py-2.5">
+                            {rel.relationshipType ? (
+                              <span
+                                className="text-[10px] px-1.5 py-0.5 rounded whitespace-nowrap"
+                                style={{
+                                  color: "var(--muted)",
+                                  backgroundColor: "color-mix(in srgb, var(--muted) 12%, transparent)",
+                                }}
+                              >
+                                {rel.relationshipType}
+                              </span>
+                            ) : (
+                              <span style={{ color: "var(--muted)" }}>—</span>
+                            )}
+                          </td>
+                          <td className="px-4 py-2.5 tabular-nums font-medium" style={{ color: alignColor }}>
+                            {alignLabel}
+                          </td>
+                          <td className="px-4 py-2.5 tabular-nums" style={{ color: "var(--muted-foreground)" }}>
+                            {rel.leverageScore ?? "—"}
+                          </td>
+                          <td className="px-4 py-2.5 tabular-nums" style={{ color: "var(--muted-foreground)" }}>
+                            {rel.dependencyScore ?? "—"}
+                          </td>
+                        </tr>
+                      )
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
 
         </div>
       </div>

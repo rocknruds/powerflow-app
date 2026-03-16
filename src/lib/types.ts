@@ -120,6 +120,26 @@ export interface NotionBlock {
   children?: NotionBlock[]
 }
 
+// ─── Actor Relationships ────────────────────────────────────────────────────
+
+export interface ActorRelationship {
+  id: string
+  title: string
+  primaryActorId: string
+  comparedActorId: string
+  counterpartyName: string
+  relationshipType: string | null
+  alignmentScore: number | null
+  leverageScore: number | null
+  dependencyScore: number | null
+  lastScored: string | null
+}
+
+export interface ActorRelationships {
+  outgoing: ActorRelationship[]  // this actor → others
+  incoming: ActorRelationship[]  // others → this actor
+}
+
 // ─── Monetization hook ─────────────────────────────────────────────────────
 
 // Not active yet. Wire to your auth session when ready.
