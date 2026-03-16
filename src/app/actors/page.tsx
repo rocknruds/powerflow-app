@@ -25,7 +25,7 @@ export default async function ActorsPage() {
           </div>
           <h1 className="text-3xl font-bold mb-1" style={{ color: "var(--foreground)" }}>Actor Leaderboard</h1>
           <p className="text-sm" style={{ color: "var(--muted)" }}>
-            {actors.length} tracked actor{actors.length !== 1 ? "s" : ""} — ranked by PF Score (Authority × 0.6 + Reach × 0.4)
+            {actors.length} tracked actor{actors.length !== 1 ? "s" : ""} — ranked by PF Score (√(Authority × Reach))
           </p>
         </div>
       </div>

@@ -71,7 +71,7 @@ Then pass `actor.id` (UUID) to all downstream queries.
 
 ### PF Score
 Computed client-side: `calcPFScore(auth, reach)` in `notion.ts`.
-`Authority × 0.6 + Reach × 0.4`. Do not use Notion formula field — returns null issues.
+`√(Authority × Reach)` (geometric mean). Do not use Notion formula field — returns null issues.
 
 ### Relationship display (Option A — locked)
 Asymmetric rows. On actor profile:

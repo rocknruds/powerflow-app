@@ -137,5 +137,5 @@ export function calcPFScore(
   reach: number | null
 ): number | null {
   if (authority === null || reach === null) return null;
-  return Math.round(authority * 0.6 + reach * 0.4);
+  return Math.round(Math.sqrt(authority * reach));
 }
