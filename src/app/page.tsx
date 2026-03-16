@@ -43,23 +43,23 @@ export default async function HomePage() {
           style={{ borderBottom: "1px solid var(--border)" }}
         >
           <h1
-            className="font-sans font-semibold leading-[1.05] tracking-tight mb-5 text-center"
-            style={{ fontSize: "clamp(40px, 6vw, 62px)", color: "var(--foreground)" }}
+            className="font-sans font-semibold leading-[1.05] tracking-tight mb-5"
+            style={{ fontSize: "clamp(42px, 6vw, 68px)", color: "var(--foreground)" }}
           >
-            Track How Power
+            Power moves through networks,
             <br />
-            <span style={{ color: "var(--accent)" }}>Actually Moves</span>
+            <span style={{ color: "var(--accent)" }}>not headlines.</span>
           </h1>
 
           <p
-            className="text-base leading-relaxed mb-8 max-w-xl mx-auto text-center"
+            className="text-base leading-relaxed mb-8 max-w-xl"
             style={{ color: "var(--muted-foreground)" }}
           >
-            Not as states declare it — as events reveal it. Authority scores,
-            dependency maps, and conflict tracking updated as the world shifts.
+            Every actor scored on authority and reach. Dependencies mapped.
+            When one actor moves, trace exactly who gets pulled with it — and by how much.
           </p>
 
-          <div className="flex items-center justify-center gap-3 mb-12">
+          <div className="flex items-center gap-3 mb-12">
             <Link
               href="/actors"
               className="px-5 py-2.5 rounded-md text-sm font-medium transition-opacity hover:opacity-90"
@@ -91,7 +91,7 @@ export default async function HomePage() {
                 />
                 Score movers — last 30 days
               </div>
-              <div className="flex flex-wrap justify-center gap-2.5">
+              <div className="flex flex-wrap gap-2.5">
                 {movers.map((m) => (
                   <Link
                     key={m.actorId}
@@ -174,11 +174,8 @@ export default async function HomePage() {
           </CollapsibleSection>
         </section>
 
-        {/* ── Bottom rail ── */}
+        {/* ── Latest brief ── */}
         <section className="py-12" style={{ borderBottom: "1px solid var(--border)" }}>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
-
-            <div>
               <CollapsibleSection label="Latest brief" action={{ label: "All briefs", href: "/briefs" }}>
                 {!latestBrief ? (
                   <p className="text-sm" style={{ color: "var(--muted)" }}>
@@ -238,9 +235,10 @@ export default async function HomePage() {
                   </Link>
                 )}
               </CollapsibleSection>
-            </div>
+        </section>
 
-            <div>
+        {/* ── Active scenarios ── */}
+        <section className="py-12" style={{ borderBottom: "1px solid var(--border)" }}>
               <CollapsibleSection label="Active scenarios" action={{ label: "All conflicts", href: "/conflicts" }}>
                 {scenarios.length === 0 ? (
                   <p className="text-sm" style={{ color: "var(--muted)" }}>
@@ -291,9 +289,6 @@ export default async function HomePage() {
                   </div>
                 )}
               </CollapsibleSection>
-            </div>
-
-          </div>
         </section>
 
         {/* ── How it works ── */}

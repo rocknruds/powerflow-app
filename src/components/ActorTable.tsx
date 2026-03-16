@@ -116,7 +116,7 @@ export default function ActorTable({ actors, snapshotDeltaMap }: ActorTableProps
               <SortHeader label="Authority" field="authorityScore" sortBy={sortBy} sortDir={sortDir} onClick={toggleSort} />
               <SortHeader label="Reach" field="reachScore" sortBy={sortBy} sortDir={sortDir} onClick={toggleSort} />
               <SortHeader label="PF Score" field="pfScore" sortBy={sortBy} sortDir={sortDir} onClick={toggleSort} />
-              <th className="pb-3 pr-4" style={{ color: "var(--muted)" }}>Vector</th>
+              <th className="pb-3 pr-4" style={{ color: "var(--muted)" }} title="Directional posture — how this actor is currently exercising power (Defender, Challenger, External Pressure, Neutral)">Signal</th>
               <th className="pb-3 pr-4" style={{ color: "var(--muted)" }}>Region</th>
               <th className="pb-3" style={{ color: "var(--muted)" }}>Δ</th>
             </tr>
@@ -146,7 +146,7 @@ export default function ActorTable({ actors, snapshotDeltaMap }: ActorTableProps
                     <td className="py-3 pr-4">
                       <span className="font-bold text-base tabular-nums" style={{ color: scoreColor }}>{actor.pfScore != null ? Math.round(actor.pfScore) : "—"}</span>
                     </td>
-                    <td className="py-3 pr-4 text-xs" style={{ color: "var(--muted)" }}>{actor.pfVector || "—"}</td>
+                    <td className="py-3 pr-4 text-xs" style={{ color: "var(--muted)" }}>{actor.pfVector === "From Above (External Pressure)" ? "Ext. Pressure" : actor.pfVector === "From Below (Challenger)" ? "Challenger" : actor.pfVector || "—"}</td>
                     <td className="py-3 pr-4 text-xs" style={{ color: "var(--muted)" }}>{actor.region || "—"}</td>
                     <td className="py-3"><ScoreDelta delta={delta} /></td>
                   </tr>
