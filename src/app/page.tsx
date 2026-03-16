@@ -97,9 +97,9 @@ export default async function HomePage() {
                 Score movers — last 30 days
               </div>
               <div className="flex items-center gap-2.5">
-                {/* Biggest drops */}
+                {/* Biggest gains */}
                 <div className="flex flex-wrap justify-center gap-2.5">
-                  {topFallers.map((m) => (
+                  {topGainers.map((m) => (
                     <Link
                       key={m.actorId}
                       href={`/actors/${m.actorSlug}`}
@@ -132,9 +132,9 @@ export default async function HomePage() {
                   style={{ backgroundColor: "var(--border)" }}
                 />
 
-                {/* Biggest gains */}
+                {/* Biggest drops */}
                 <div className="flex flex-wrap justify-center gap-2.5">
-                  {topGainers.map((m) => (
+                  {topFallers.map((m) => (
                     <Link
                       key={m.actorId}
                       href={`/actors/${m.actorSlug}`}
