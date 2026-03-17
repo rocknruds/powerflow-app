@@ -11,15 +11,18 @@
 It ingests the static, event-driven perspective of typical news and connects the dots — mapping dependencies, scoring actors, and tracing how disturbances cascade through the system. The result is a continuously updated model of how power actually moves through the world.
 
 **The contrast:**
+
 - News gives you events → stories → forgotten
 - PowerFlow gives you events → ingested → model updates → new understanding of the system
 
 News is reactive. PowerFlow is anticipatory. Because when you're tracking underlying structure — who depends on whom, where authority is eroding, where reach is expanding — you can see stress fractures before they produce headlines.
 
 **One-liner:**
+
 > *"PowerFlow is a geopolitical intelligence engine. It ingests the world's information and builds a living model of how power actually moves — so you can see what's shifting before it makes headlines."*
 
 **What it's not:**
+
 - Not a news site (events are inputs, not the product)
 - Not a dashboard (dashboards display state; PowerFlow models dynamics)
 - Not a data terminal (accessibility is a feature, not an afterthought)
@@ -41,12 +44,15 @@ The goal: **the layman becomes the expert** — not by being lectured at, but by
 ## Target Users
 
 ### Primary: Informed General Public (Plus tier)
+
 People who read Foreign Affairs, follow geopolitics seriously, want a smarter alternative to news. They want clarity, narrative, and visual elegance — not raw database views. They upgrade because the free tier taught them the framework and now they want more.
 
 ### Primary: Analyst / Researcher (Pro tier)
+
 Need structured, longitudinal data to support arguments. Want deep actor profiles, score history, exportable data, and citation-quality sourcing. Likely to pay immediately — bypass the funnel and go straight to Pro.
 
 ### Secondary: Policy / Strategy Professional (Pro tier)
+
 Need to monitor specific regions or actor sets. Want watchlists, scenario flags, and dependency chain visibility. Most monetizable audience alongside analysts.
 
 ---
@@ -56,6 +62,7 @@ Need to monitor specific regions or actor sets. Want watchlists, scenario flags,
 The paywall is not just a revenue gate — it's the mechanism that separates depth layers and rewards curiosity.
 
 ### Free — Hook & Credibility
+
 - Homepage feed showing what moved and why (score shifts, major events)
 - Actor directory with current PF scores + basic profiles
 - Top-level conflict list
@@ -63,6 +70,7 @@ The paywall is not just a revenue gate — it's the mechanism that separates dep
 - Enough to establish credibility and drive return visits
 
 ### Plus (~$12–15/mo) — Informed Public Tier
+
 - Full actor profiles with score history charts
 - Relationship context (who depends on whom)
 - Full weekly briefs
@@ -70,6 +78,7 @@ The paywall is not just a revenue gate — it's the mechanism that separates dep
 - Target: "I read Foreign Affairs and want structured depth"
 
 ### Pro (~$40–50/mo) — Analyst Tier
+
 - Actor comparison tool (2–4 actors side-by-side)
 - Interactive relationship / dependency network map
 - Full Assessments (doctrine-driven, structured analytical documents — the crown jewel)
@@ -81,9 +90,11 @@ The paywall is not just a revenue gate — it's the mechanism that separates dep
 ## Page Architecture
 
 ### 1. Homepage — "The Shift"
+
 **Purpose:** Daily/weekly check-in. Not a news feed — a *movement* feed.
 
 **What it shows:**
+
 - Score delta cards: what changed, by how much (e.g. *Iran −8 this week*)
 - Ripple/cascade effects: who else moved as a result
 - Top conflict updates
@@ -97,9 +108,11 @@ The paywall is not just a revenue gate — it's the mechanism that separates dep
 ---
 
 ### 2. Actors Directory
+
 **Purpose:** Browse and discover actors across the registry.
 
 **Features:**
+
 - Filterable by region, actor type (State / Non-State / IGO), score range, recent movement
 - Cards: name, current PF score, 30-day trajectory arrow (up/down/flat)
 - Search by name or keyword
@@ -109,32 +122,38 @@ The paywall is not just a revenue gate — it's the mechanism that separates dep
 ---
 
 ### 3. Actor Profile Page ← Heart of the Product
+
 **Purpose:** The primary research and reference destination. Where progressive disclosure lives most fully.
 
 **Sections (top to bottom):**
 
 **Hero Block**
+
 - Actor name, type, region
 - Current Authority Score / Reach Score / PF Score
 - 30-day trajectory indicator
 - One-line status summary
 
 **Score History Chart**
+
 - 3-line recharts visualization: Authority, Reach, PF Score over time
 - Zoomable timeline
 - Event markers — score changes linked to specific ingested intel items
 
 **Key Drivers**
+
 - What's pushing the score up or down right now
 - Drawn from score reasoning field and recent Intel Feeds
 
 **Relationship Map**
+
 - Who this actor depends on (Dependent On)
 - Who depends on them (reverse lookup)
 - Patron/proxy chain visualization
 - Visual indicator of ceiling rules in effect
 
 **Assessment** ← Premium Centerpiece
+
 - The structured analytical document generated by the Assessments agent
 - Doctrine-driven, defensible, updated when scores change significantly
 - Versioned — historical assessments browsable ("here's what PowerFlow said about Iran in October vs. today")
@@ -142,10 +161,12 @@ The paywall is not just a revenue gate — it's the mechanism that separates dep
 - Pro tier only
 
 **Related Conflicts**
+
 - Active conflicts this actor is involved in
 - Their role, current impact on score
 
 **Intel Feed Summary**
+
 - Recent ingested items that have driven score changes
 - Linked to source
 
@@ -154,9 +175,11 @@ The paywall is not just a revenue gate — it's the mechanism that separates dep
 ---
 
 ### 4. Conflicts Page
+
 **Purpose:** Track active and historical conflicts with full actor involvement context.
 
 **Features:**
+
 - Conflict cards with status, region, involved actors
 - Actor delta chips: how each involved party's score has moved since conflict onset
 - Timeline of key events driving escalation/de-escalation
@@ -167,9 +190,11 @@ The paywall is not just a revenue gate — it's the mechanism that separates dep
 ---
 
 ### 5. Relationship Network Map ← The Killer Visual
+
 **Purpose:** Make the dependency architecture visible in a way that's immediately striking and analytically useful.
 
 **Features:**
+
 - Interactive force-directed graph
 - Nodes: actors, sized by PF score
 - Edges: dependency relationships — patron/proxy chains, alliance structures, adversarial links
@@ -185,9 +210,11 @@ The paywall is not just a revenue gate — it's the mechanism that separates dep
 ---
 
 ### 6. Actor Comparison Tool
+
 **Purpose:** Side-by-side analytical research for power users.
 
 **Features:**
+
 - Select 2–4 actors
 - Overlay or side-by-side score history charts
 - Relationship overlap visualization
@@ -200,9 +227,11 @@ The paywall is not just a revenue gate — it's the mechanism that separates dep
 ---
 
 ### 7. Briefs
+
 **Purpose:** Weekly narrative synthesis. The product's editorial voice.
 
 **Features:**
+
 - Clean, long-form reading experience — narrative first, data supporting
 - Organized by region or theme
 - Linked to relevant actor profiles and conflicts
@@ -212,9 +241,11 @@ The paywall is not just a revenue gate — it's the mechanism that separates dep
 ---
 
 ### 8. Research / Explore
+
 **Purpose:** Power user search and discovery layer.
 
 **Features:**
+
 - Full-text search across actors, events, intel feeds, assessments
 - Filter by date, region, actor type, conflict
 - The entry point for analysts who know what they're looking for
@@ -228,12 +259,14 @@ The paywall is not just a revenue gate — it's the mechanism that separates dep
 The Assessment agent produces doctrine-driven, structured analytical documents per actor. This is the product's crown jewel and should be treated as such.
 
 **Why it's different:**
+
 - Continuously updated (not a static report)
 - Tied to actual scored, calibrated data
 - Versioned — the history of the analysis is itself valuable
 - Generates the kind of structured, defensible output that would take an analyst hours to produce
 
 **How it surfaces:**
+
 - Primary home: Actor Profile Page (premium section)
 - Referenced in Briefs
 - Surfaced in Actor Comparison tool
@@ -262,3 +295,4 @@ Given current data layer maturity, build in this sequence:
 - **Trajectory over position.** Scores matter less than movement. Always show direction and velocity alongside current state.
 - **Cascade is the story.** The dependency architecture is PowerFlow's unique insight. Every design decision should make that more visible, not less.
 - **Earned authority.** The product should feel like it knows more than you — not because it's inaccessible, but because it's structured and confident. No hedging, no vagueness.
+
