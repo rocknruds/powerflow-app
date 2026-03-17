@@ -106,7 +106,7 @@ Globe renders at `size={140}` in the hero — appropriate for a profile pic with
 ### Drag-to-Rotate Details
 - Sensitivity: ~0.5 degrees of rotation per pixel of drag (tunable constant)
 - No inertial spin on release — globe stops immediately when pointer lifts
-- No rotation bounds — user can freely rotate to any orientation
+- Longitude: unbounded (full 360° rotation). Latitude: clamped to [-90, 90] to prevent the globe from flipping upside down
 - Touch support: same pointer events work for single-finger drag on mobile
 
 ### Layer Switcher
