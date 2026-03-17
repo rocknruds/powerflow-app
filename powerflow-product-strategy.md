@@ -57,36 +57,6 @@ Need to monitor specific regions or actor sets. Want watchlists, scenario flags,
 
 ---
 
-## Monetization Architecture
-
-The paywall is not just a revenue gate — it's the mechanism that separates depth layers and rewards curiosity.
-
-### Free — Hook & Credibility
-
-- Homepage feed showing what moved and why (score shifts, major events)
-- Actor directory with current PF scores + basic profiles
-- Top-level conflict list
-- One sample brief
-- Enough to establish credibility and drive return visits
-
-### Plus (~$12–15/mo) — Informed Public Tier
-
-- Full actor profiles with score history charts
-- Relationship context (who depends on whom)
-- Full weekly briefs
-- Conflict pages with actor involvement details
-- Target: "I read Foreign Affairs and want structured depth"
-
-### Pro (~$40–50/mo) — Analyst Tier
-
-- Actor comparison tool (2–4 actors side-by-side)
-- Interactive relationship / dependency network map
-- Full Assessments (doctrine-driven, structured analytical documents — the crown jewel)
-- Export capabilities
-- Eventually: API access
-
----
-
 ## Page Architecture
 
 ### 1. Homepage — "The Shift"
@@ -274,17 +244,33 @@ The Assessment agent produces doctrine-driven, structured analytical documents p
 
 ---
 
-## Build Priority Order
+## Monetization Architecture
 
-Given current data layer maturity, build in this sequence:
+The paywall is not just a revenue gate — it's the mechanism that separates depth layers and rewards curiosity.
 
-1. **Actor Profile Page** — score history chart + Assessment display. Immediately demonstrates product value.
-2. **Homepage "The Shift" feed** — drives return visits, top of funnel.
-3. **Relationship Network Map** — the visual that makes people share it and justifies Pro pricing.
-4. **Paywall architecture** — must be in before public launch.
-5. **Conflicts Page** — actor delta chips, event timelines.
-6. **Actor Comparison Tool** — Phase 2, once core experience is solid.
-7. **Full Research/Explore layer** — Phase 2.
+### Free — Hook & Credibility
+
+- Homepage feed showing what moved and why (score shifts, major events)
+- Actor directory with current PF scores + basic profiles
+- Top-level conflict list
+- One sample brief
+- Enough to establish credibility and drive return visits
+
+### Plus (~$12–15/mo) — Informed Public Tier
+
+- Full actor profiles with score history charts
+- Relationship context (who depends on whom)
+- Full weekly briefs
+- Conflict pages with actor involvement details
+- Target: "I read Foreign Affairs and want structured depth"
+
+### Pro (~$40–50/mo) — Analyst Tier
+
+- Actor comparison tool (2–4 actors side-by-side)
+- Interactive relationship / dependency network map
+- Full Assessments (doctrine-driven, structured analytical documents — the crown jewel)
+- Export capabilities
+- Eventually: API access
 
 ---
 

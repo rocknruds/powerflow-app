@@ -42,7 +42,7 @@ export default async function HomePage() {
           style={{ borderBottom: "1px solid var(--border)" }}
         >
           <h1
-            className="font-sans font-semibold leading-[1.08] tracking-tight mb-4"
+            className="font-sans font-semibold leading-[1.08] tracking-tight mb-4 text-center"
             style={{ fontSize: "clamp(32px, 4.5vw, 52px)", color: "var(--foreground)" }}
           >
             When one actor moves,
@@ -51,7 +51,7 @@ export default async function HomePage() {
           </h1>
 
           <p
-            className="text-sm leading-relaxed mb-6 max-w-lg"
+            className="text-sm leading-relaxed mb-6 max-w-lg mx-auto text-center"
             style={{ color: "var(--muted-foreground)" }}
           >
             Track power shifts across actors, dependencies, and conflicts in a single live system.
