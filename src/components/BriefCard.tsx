@@ -62,9 +62,9 @@ export default function BriefCard({ brief }: BriefCardProps) {
             {brief.dateRangeEnd && ` – ${formatDate(brief.dateRangeEnd)}`}
           </p>
         )}
-        {brief.editorialPriority && (
+        {(brief.leadThesis || brief.bodyPreview) && (
           <p className="text-sm line-clamp-2 mt-auto pt-2" style={{ color: "var(--muted-foreground)" }}>
-            {brief.editorialPriority}
+            {brief.leadThesis || brief.bodyPreview}
           </p>
         )}
       </div>

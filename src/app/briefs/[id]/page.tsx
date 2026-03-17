@@ -2,6 +2,8 @@ import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { getAllPublicBriefs, getBriefWithContent } from "@/lib/briefs";
+import { parseBriefContent } from "@/lib/parseBriefContent";
+import BriefRenderer from "@/components/briefs/BriefRenderer";
 import type { NotionBlock } from "@/lib/types";
 
 export const revalidate = 300;
@@ -34,77 +36,30 @@ function formatDate(dateStr: string | null): string {
   }
 }
 
-function renderBlock(block: NotionBlock): React.ReactNode {
-  // NotionBlock.content is the text field — not block.text
-  const text = block.content;
-  if (!text && block.type !== "divider") return null;
-
-  switch (block.type) {
-    case "heading_1":
-      return (
-        <h1 key={block.id} className="text-2xl font-bold mt-8 mb-3" style={{ color: "var(--foreground)" }}>
-          {text}
-        </h1>
-      );
-    case "heading_2":
-      return (
-        <h2 key={block.id} className="text-xl font-semibold mt-7 mb-2.5" style={{ color: "var(--foreground)" }}>
-          {text}
-        </h2>
-      );
-    case "heading_3":
-      return (
-        <h3 key={block.id} className="text-lg font-semibold mt-5 mb-2" style={{ color: "var(--foreground)" }}>
-          {text}
-        </h3>
-      );
-    case "paragraph":
-      return (
-        <p key={block.id} className="leading-relaxed mb-4" style={{ color: "var(--muted-foreground)" }}>
-          {text}
-        </p>
-      );
-    case "bulleted_list_item":
-      return (
-        <li key={block.id} className="leading-relaxed mb-1 ml-4" style={{ color: "var(--muted-foreground)" }}>
-          {text}
-        </li>
-      );
-    case "numbered_list_item":
-      return (
-        <li key={block.id} className="leading-relaxed mb-1 ml-4 list-decimal" style={{ color: "var(--muted-foreground)" }}>
-          {text}
-        </li>
-      );
-    case "quote":
-      return (
-        <blockquote
-          key={block.id}
-          className="pl-4 my-4 italic"
-          style={{ color: "var(--muted)", borderLeft: "2px solid var(--accent)" }}
-        >
-          {text}
-        </blockquote>
-      );
-    case "callout":
-      return (
-        <div
-          key={block.id}
-          className="rounded-lg px-4 py-3 my-4 text-sm leading-relaxed"
-          style={{ backgroundColor: "var(--surface)", border: "1px solid var(--border)", color: "var(--muted-foreground)" }}
-        >
-          {text}
-        </div>
-      );
-    case "divider":
-      return <hr key={block.id} className="my-6" style={{ borderColor: "var(--border)" }} />;
-    default:
-      return text ? (
-        <p key={block.id} className="leading-relaxed mb-3" style={{ color: "var(--muted)" }}>
-          {text}
-        </p>
-      ) : null;
-  }
+/** Convert NotionBlock[] back to a markdown body string for parseBriefContent. */
+function blocksToBody(blocks: NotionBlock[]): string {
+  return blocks
+    .map((block) => {
+      switch (block.type) {
+        case "heading_1":
+          return `# ${block.content}`;
+        case "heading_2":
+          return `## ${block.content}`;
+        case "heading_3":
+          return `### ${block.content}`;
+        case "bulleted_list_item":
+          return `- ${block.content}`;
+        case "numbered_list_item":
+          return `- ${block.content}`;
+        case "quote":
+          return `> ${block.content}`;
+        case "divider":
+          return "---";
+        default:
+          return block.content;
+      }
+    })
+    .join("\n\n");
 }
 
 export default async function BriefPage({
@@ -164,13 +119,7 @@ export default async function BriefPage({
       </div>
 
       <div className="max-w-3xl mx-auto px-6 py-10">
-        {brief.blocks.length === 0 ? (
-          <div className="rounded-lg px-6 py-12 text-center text-sm" style={{ border: "1px solid var(--border)", backgroundColor: "var(--surface)", color: "var(--muted)" }}>
-            No content available for this brief.
-          </div>
-        ) : (
-          <div>{brief.blocks.map(renderBlock)}</div>
-        )}
+        <BriefRenderer content={parseBriefContent(blocksToBody(brief.blocks))} />
       </div>
     </div>
   );

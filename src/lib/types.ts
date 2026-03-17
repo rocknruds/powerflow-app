@@ -106,6 +106,8 @@ export interface BriefPublic {
   dateRangeStart: string | null
   dateRangeEnd: string | null
   editorialPriority: string | null
+  leadThesis: string | null
+  bodyPreview: string | null     // truncated first paragraph, used as card fallback
   visibility: string | null
 }
 

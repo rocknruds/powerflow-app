@@ -13,8 +13,32 @@ function parsePage(page: any): BriefPublic {
     dateRangeStart: getDate(props, 'Date Range'),
     dateRangeEnd: props['Date Range']?.date?.end ?? null,
     editorialPriority: getText(props, 'Editorial Priority') || null,
+    leadThesis: getText(props, 'Lead Thesis') || null,
+    bodyPreview: null,
     visibility: getSelect(props, 'Visibility'),
   }
+}
+
+function extractRichTextFromBlock(block: any): string {
+  const content = block[block.type]
+  return content?.rich_text?.map((t: any) => t.plain_text).join('') ?? ''
+}
+
+async function fetchBodyPreview(pageId: string): Promise<string | null> {
+  try {
+    const rawBlocks = await fetchBlocks(pageId)
+    for (const block of rawBlocks) {
+      if (block.type === 'paragraph') {
+        const text = extractRichTextFromBlock(block)
+        if (text.trim()) {
+          return text.length > 200 ? text.slice(0, 200) + '\u2026' : text
+        }
+      }
+    }
+  } catch {
+    // Preview is optional — fail silently
+  }
+  return null
 }
 
 /**
@@ -31,7 +55,18 @@ export async function getAllPublicBriefs(): Promise<BriefPublic[]> {
     [{ property: 'Date Range', direction: 'descending' }]
   )
 
-  return pages.map(parsePage)
+  const briefs = pages.map(parsePage)
+
+  // Fetch body previews for briefs that lack a lead thesis
+  await Promise.all(
+    briefs.map(async (brief) => {
+      if (!brief.leadThesis) {
+        brief.bodyPreview = await fetchBodyPreview(brief.id)
+      }
+    })
+  )
+
+  return briefs
 }
 
 export async function getLatestBrief(): Promise<BriefPublic | null> {
