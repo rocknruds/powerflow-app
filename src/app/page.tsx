@@ -57,13 +57,13 @@ export default async function HomePage() {
             Track power shifts across actors, dependencies, and conflicts in a single live system.
           </p>
 
-          <div className="flex items-center gap-3 mb-5">
+          <div className="flex items-center justify-center gap-3 mb-5">
             <Link
               href="/actors"
               className="px-5 py-2.5 rounded-md text-sm font-medium transition-opacity hover:opacity-90"
               style={{ backgroundColor: "var(--accent)", color: "#ffffff" }}
             >
-              See Today&apos;s Power Shifts →
+              See Today&apos;s Power Shifts
             </Link>
             <Link
               href="/actors"
@@ -73,7 +73,7 @@ export default async function HomePage() {
                 color: "var(--muted-foreground)",
               }}
             >
-              Explore the Actor Network →
+              Explore the Actor Network
             </Link>
           </div>
 
