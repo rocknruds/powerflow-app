@@ -51,7 +51,7 @@ export default async function HomePage() {
           </h1>
 
           <p
-            className="text-sm leading-relaxed mb-6 max-w-lg mx-auto text-center"
+            className="text-sm leading-relaxed mb-6 max-w-xl mx-auto text-center"
             style={{ color: "var(--muted-foreground)" }}
           >
             Track power shifts across actors, dependencies, and conflicts in a single live system.
