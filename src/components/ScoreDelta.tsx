@@ -7,7 +7,7 @@ export default function ScoreDelta({ delta, className }: ScoreDeltaProps) {
   if (delta === undefined || delta === null || delta === 0) {
     return (
       <span
-        className={`inline-flex items-center text-xs tabular-nums ${className ?? ""}`}
+        className={`inline-flex items-center justify-center text-xs tabular-nums min-w-[36px] ${className ?? ""}`}
         style={{ color: "var(--muted)" }}
       >
         —
@@ -17,7 +17,7 @@ export default function ScoreDelta({ delta, className }: ScoreDeltaProps) {
   const positive = delta > 0;
   return (
     <span
-      className={`inline-flex items-center gap-0.5 text-xs font-semibold px-1.5 py-0.5 rounded tabular-nums ${className ?? ""}`}
+      className={`inline-flex items-center justify-center gap-0.5 text-xs font-semibold px-1.5 py-0.5 rounded tabular-nums min-w-[36px] ${className ?? ""}`}
       style={{
         color: positive ? "var(--delta-up)" : "var(--delta-down)",
         backgroundColor: positive

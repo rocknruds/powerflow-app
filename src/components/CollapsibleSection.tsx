@@ -58,7 +58,7 @@ export default function CollapsibleSection({
         >
           <SectionBars open={open} />
           <span
-            className="text-[12px] font-medium uppercase tracking-[0.14em] group-hover/toggle:opacity-70 transition-opacity"
+            className="text-[14px] font-medium uppercase tracking-[0.14em] group-hover/toggle:opacity-70 transition-opacity"
             style={{ color: "var(--muted-foreground)" }}
           >
             {label}

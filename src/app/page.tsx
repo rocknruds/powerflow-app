@@ -78,7 +78,7 @@ export default async function HomePage() {
           </div>
 
           <p
-            className="text-[11px] font-mono tracking-wide mb-8"
+            className="text-[11px] font-mono tracking-wide mb-8 text-center"
             style={{ color: "var(--muted)" }}
           >
             {actors.length} actors tracked &nbsp;•&nbsp; Authority + Reach scoring &nbsp;•&nbsp; Dependency networks &nbsp;•&nbsp; Updated daily
