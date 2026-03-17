@@ -1,14 +1,25 @@
 'use client'
 
-import { useState, useMemo, useCallback, memo } from 'react'
+import { useState, useMemo, useCallback, useRef, memo } from 'react'
 import {
   ComposableMap,
   Geographies,
   Geography,
+  Graticule,
+  Sphere,
 } from 'react-simple-maps'
-import { useRouter } from 'next/navigation'
-import { ISO_NUMERIC_TO_ALPHA3 } from '@/lib/iso-numeric'
-import type { MapActor } from '@/lib/types'
+import { ISO_NUMERIC_TO_ALPHA3, ISO_NUMERIC_TO_NAME } from '@/lib/iso-numeric'
+import {
+  GEO_URL,
+  OCEAN_COLOR,
+  LAND_STROKE,
+  LAND_UNTRACKED,
+  GRATICULE_STROKE,
+  VECTOR_COLORS,
+  TREND_DISPLAY,
+} from '@/lib/geo-constants'
+import type { MapActorFull } from '@/lib/types'
+import MapSidePanel from './MapSidePanel'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -16,23 +27,14 @@ type LayerKey = 'pf' | 'authority' | 'reach' | 'vector'
 
 interface FillEntry {
   fill: string
-  actor: MapActor
+  actor: MapActorFull
 }
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
-const GEO_URL = 'https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json'
-const BG = '#0e1220'
 const LOW = { r: 0x1e, g: 0x2a, b: 0x3a }
 const HIGH = { r: 0x38, g: 0xbd, b: 0xf8 }
-
-const VECTOR_COLORS: Record<string, string> = {
-  Defender: '#3b82f6',
-  'From Above (External Pressure)': '#f59e0b',
-  'From Below (Challenger)': '#ef4444',
-  'From Within (Parallel Governance)': '#a855f7',
-  Neutral: '#6b7280',
-}
+const DRAG_SENSITIVITY = 0.5
 
 const LAYERS: { key: LayerKey; label: string }[] = [
   { key: 'pf', label: 'PF Score' },
@@ -51,9 +53,9 @@ function scoreColor(score: number): string {
   return `rgb(${r},${g},${b})`
 }
 
-function getFill(actor: MapActor, layer: LayerKey): string {
+function getFill(actor: MapActorFull, layer: LayerKey): string {
   if (layer === 'vector') {
-    return actor.pfVector ? (VECTOR_COLORS[actor.pfVector] ?? BG) : BG
+    return actor.pfVector ? (VECTOR_COLORS[actor.pfVector] ?? OCEAN_COLOR) : OCEAN_COLOR
   }
   const score =
     layer === 'pf'
@@ -61,14 +63,14 @@ function getFill(actor: MapActor, layer: LayerKey): string {
       : layer === 'authority'
         ? actor.authorityScore
         : actor.reachScore
-  return score !== null ? scoreColor(score) : BG
+  return score !== null ? scoreColor(score) : OCEAN_COLOR
 }
 
 function layerLabel(layer: LayerKey): string {
   return LAYERS.find((l) => l.key === layer)!.label
 }
 
-function layerValue(actor: MapActor, layer: LayerKey): string {
+function layerValue(actor: MapActorFull, layer: LayerKey): string {
   if (layer === 'vector') return actor.pfVector ?? 'Unscored'
   const score =
     layer === 'pf'
@@ -79,30 +81,20 @@ function layerValue(actor: MapActor, layer: LayerKey): string {
   return score !== null ? String(score) : '\u2014'
 }
 
-const TREND_DISPLAY: Record<string, { symbol: string; color: string }> = {
-  Rising: { symbol: '\u25B2', color: '#22c55e' },
-  Stable: { symbol: '\u2192', color: '#6b7280' },
-  Declining: { symbol: '\u25BC', color: '#f59e0b' },
-  Collapsing: { symbol: '\u25BC\u25BC', color: '#ef4444' },
-}
-
 // ─── Memoized geography layer ─────────────────────────────────────────────────
-// Memo prevents re-render on tooltip state changes (mouse move).
-// Geography paths are parsed once by react-simple-maps; only fills recompute
-// when the active layer changes (via fillMap reference swap).
 
 const MapGeographies = memo(function MapGeographies({
   fillMap,
-  onEnter,
-  onMove,
-  onLeave,
+  onHoverEnter,
+  onHoverMove,
+  onHoverLeave,
   onClick,
 }: {
   fillMap: Record<string, FillEntry>
-  onEnter: (actor: MapActor, e: React.MouseEvent) => void
-  onMove: (e: React.MouseEvent) => void
-  onLeave: () => void
-  onClick: (actor: MapActor) => void
+  onHoverEnter: (actor: MapActorFull, e: React.MouseEvent) => void
+  onHoverMove: (e: React.MouseEvent) => void
+  onHoverLeave: () => void
+  onClick: (geoId: string, actor: MapActorFull | null) => void
 }) {
   return (
     <Geographies geography={GEO_URL}>
@@ -116,32 +108,28 @@ const MapGeographies = memo(function MapGeographies({
             <Geography
               key={geo.rsmKey}
               geography={geo}
-              fill={entry?.fill ?? BG}
-              stroke={BG}
+              fill={entry?.fill ?? LAND_UNTRACKED}
+              stroke={LAND_STROKE}
               strokeWidth={0.4}
               style={{
                 default: { outline: 'none' },
-                hover: scored
-                  ? {
-                      outline: 'none',
-                      filter: 'brightness(1.35)',
-                      stroke: '#60a5fa',
-                      strokeWidth: 1,
-                      cursor: 'pointer',
-                    }
-                  : { outline: 'none' },
+                hover: {
+                  outline: 'none',
+                  filter: scored ? 'brightness(1.35)' : 'brightness(1.1)',
+                  stroke: scored ? '#60a5fa' : LAND_STROKE,
+                  strokeWidth: scored ? 1 : 0.6,
+                  cursor: 'pointer',
+                },
                 pressed: { outline: 'none' },
               }}
               onMouseEnter={
                 scored
-                  ? (e: React.MouseEvent) => onEnter(entry!.actor, e)
+                  ? (e: React.MouseEvent) => onHoverEnter(entry!.actor, e)
                   : undefined
               }
-              onMouseMove={scored ? onMove : undefined}
-              onMouseLeave={scored ? onLeave : undefined}
-              onClick={
-                scored ? () => onClick(entry!.actor) : undefined
-              }
+              onMouseMove={scored ? onHoverMove : undefined}
+              onMouseLeave={scored ? onHoverLeave : undefined}
+              onClick={() => onClick(geo.id, entry?.actor ?? null)}
             />
           )
         })
@@ -152,18 +140,29 @@ const MapGeographies = memo(function MapGeographies({
 
 // ─── Main component ───────────────────────────────────────────────────────────
 
-export default function WorldMap({ actors }: { actors: MapActor[] }) {
-  const router = useRouter()
+export default function WorldMap({ actors }: { actors: MapActorFull[] }) {
   const [layer, setLayer] = useState<LayerKey>('pf')
+  const [rotation, setRotation] = useState<[number, number, number]>([0, -20, 0])
   const [tooltip, setTooltip] = useState<{
     x: number
     y: number
-    actor: MapActor
+    actor: MapActorFull
   } | null>(null)
+  const [selectedActor, setSelectedActor] = useState<MapActorFull | null>(null)
+  const [selectedCountryName, setSelectedCountryName] = useState<string | null>(null)
 
-  // ISO3 → actor lookup (stable across renders)
+  // Drag state (refs to avoid re-renders during drag)
+  const isDragging = useRef(false)
+  const rafId = useRef<number>(0)
+  const dragStart = useRef<{ x: number; y: number; rotation: [number, number, number] }>({
+    x: 0,
+    y: 0,
+    rotation: [0, -20, 0],
+  })
+
+  // ISO3 → actor lookup
   const actorByIso = useMemo(() => {
-    const m: Record<string, MapActor> = {}
+    const m: Record<string, MapActorFull> = {}
     for (const a of actors) m[a.iso3] = a
     return m
   }, [actors])
@@ -177,24 +176,85 @@ export default function WorldMap({ actors }: { actors: MapActor[] }) {
     return m
   }, [actorByIso, layer])
 
-  // Stable callbacks (don't break MapGeographies memo)
-  const handleEnter = useCallback(
-    (actor: MapActor, e: React.MouseEvent) =>
+  // ── Drag handlers ─────────────────────────────────────────────────────────
+
+  const handlePointerDown = useCallback(
+    (e: React.PointerEvent) => {
+      isDragging.current = true
+      dragStart.current = { x: e.clientX, y: e.clientY, rotation: [...rotation] as [number, number, number] }
+      ;(e.target as Element).setPointerCapture(e.pointerId)
+    },
+    [rotation],
+  )
+
+  const handlePointerMove = useCallback((e: React.PointerEvent) => {
+    if (!isDragging.current) return
+    cancelAnimationFrame(rafId.current)
+    const clientX = e.clientX
+    const clientY = e.clientY
+    rafId.current = requestAnimationFrame(() => {
+      const dx = clientX - dragStart.current.x
+      const dy = clientY - dragStart.current.y
+      const [r0, r1, r2] = dragStart.current.rotation
+      setRotation([
+        r0 + dx * DRAG_SENSITIVITY,
+        Math.max(-90, Math.min(90, r1 - dy * DRAG_SENSITIVITY)),
+        r2,
+      ])
+    })
+  }, [])
+
+  const handlePointerUp = useCallback(() => {
+    isDragging.current = false
+    cancelAnimationFrame(rafId.current)
+  }, [])
+
+  // ── Tooltip handlers ──────────────────────────────────────────────────────
+
+  const handleHoverEnter = useCallback(
+    (actor: MapActorFull, e: React.MouseEvent) =>
       setTooltip({ x: e.clientX, y: e.clientY, actor }),
     [],
   )
-  const handleMove = useCallback(
+  const handleHoverMove = useCallback(
     (e: React.MouseEvent) =>
       setTooltip((prev) =>
         prev ? { ...prev, x: e.clientX, y: e.clientY } : null,
       ),
     [],
   )
-  const handleLeave = useCallback(() => setTooltip(null), [])
+  const handleHoverLeave = useCallback(() => setTooltip(null), [])
+
+  // ── Click handler ─────────────────────────────────────────────────────────
+
   const handleClick = useCallback(
-    (actor: MapActor) => router.push(`/actors/${actor.slug}`),
-    [router],
+    (geoId: string, actor: MapActorFull | null) => {
+      if (actor) {
+        setSelectedActor(actor)
+        setSelectedCountryName(null)
+      } else {
+        // Untracked country
+        const name = ISO_NUMERIC_TO_NAME[geoId] ?? null
+        if (name) {
+          setSelectedActor(null)
+          setSelectedCountryName(name)
+        }
+      }
+    },
+    [],
   )
+
+  const handleClosePanel = useCallback(() => {
+    setSelectedActor(null)
+    setSelectedCountryName(null)
+  }, [])
+
+  // Close panel when clicking the globe background (not a country)
+  const handleBackgroundClick = useCallback(() => {
+    if (selectedActor || selectedCountryName) {
+      handleClosePanel()
+    }
+  }, [selectedActor, selectedCountryName, handleClosePanel])
 
   const trend = tooltip
     ? TREND_DISPLAY[tooltip.actor.scoreTrend ?? ''] ?? {
@@ -203,10 +263,12 @@ export default function WorldMap({ actors }: { actors: MapActor[] }) {
       }
     : null
 
+  const panelOpen = selectedActor !== null || selectedCountryName !== null
+
   return (
     <div
       className="relative w-full overflow-hidden"
-      style={{ height: 'calc(100vh - 68px)', backgroundColor: BG }}
+      style={{ height: 'calc(100vh - 68px)', backgroundColor: OCEAN_COLOR }}
     >
       {/* ── Page title ─────────────────────────────────────────── */}
       <div className="absolute top-5 left-6 z-10">
@@ -243,24 +305,47 @@ export default function WorldMap({ actors }: { actors: MapActor[] }) {
         ))}
       </div>
 
-      {/* ── Map ────────────────────────────────────────────────── */}
-      <ComposableMap
-        projectionConfig={{ scale: 155, center: [10, 2] }}
-        width={960}
-        height={480}
-        style={{ width: '100%', height: '100%' }}
+      {/* ── Globe ────────────────────────────────────────────────── */}
+      <div
+        onPointerDown={handlePointerDown}
+        onPointerMove={handlePointerMove}
+        onPointerUp={handlePointerUp}
+        style={{ cursor: isDragging.current ? 'grabbing' : 'grab', width: '100%', height: '100%' }}
       >
-        <MapGeographies
-          fillMap={fillMap}
-          onEnter={handleEnter}
-          onMove={handleMove}
-          onLeave={handleLeave}
-          onClick={handleClick}
-        />
-      </ComposableMap>
+        <ComposableMap
+          projection="geoOrthographic"
+          projectionConfig={{
+            scale: 280,
+            center: [0, 0],
+            rotate: rotation,
+          }}
+          width={800}
+          height={600}
+          style={{ width: '100%', height: '100%' }}
+        >
+          <Sphere
+            id="globe-sphere"
+            fill={OCEAN_COLOR}
+            stroke={LAND_STROKE}
+            strokeWidth={0.5}
+            onClick={handleBackgroundClick}
+          />
+          <Graticule
+            stroke={GRATICULE_STROKE}
+            strokeWidth={0.3}
+          />
+          <MapGeographies
+            fillMap={fillMap}
+            onHoverEnter={handleHoverEnter}
+            onHoverMove={handleHoverMove}
+            onHoverLeave={handleHoverLeave}
+            onClick={handleClick}
+          />
+        </ComposableMap>
+      </div>
 
       {/* ── Tooltip ────────────────────────────────────────────── */}
-      {tooltip && (
+      {tooltip && !isDragging.current && (
         <div
           className="fixed pointer-events-none z-50 px-3.5 py-2.5 rounded-lg"
           style={{
@@ -366,6 +451,13 @@ export default function WorldMap({ actors }: { actors: MapActor[] }) {
           </div>
         )}
       </div>
+
+      {/* ── Side Panel ──────────────────────────────────────────── */}
+      <MapSidePanel
+        actor={selectedActor}
+        untrackedCountryName={selectedCountryName}
+        onClose={handleClosePanel}
+      />
     </div>
   )
 }
