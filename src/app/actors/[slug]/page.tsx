@@ -14,12 +14,7 @@ import ScoreChart from "@/components/ScoreChart";
 import AssessmentCard from "@/components/AssessmentCard";
 import { pfScoreColor, actorTypeBadgeColor } from "@/components/ActorCard";
 
-import dynamic from "next/dynamic";
-
-const ActorGlobe = dynamic(() => import("@/components/geo/ActorGlobe"), {
-  ssr: false,
-  loading: () => <div style={{ width: 140, height: 140 }} />,
-});
+import ActorGlobe from "@/components/geo/ActorGlobeWrapper";
 
 export const revalidate = 300;
 
