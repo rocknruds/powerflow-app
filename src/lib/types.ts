@@ -142,6 +142,27 @@ export interface ActorRelationships {
   incoming: ActorRelationship[]  // others → this actor
 }
 
+// ─── Map Types ────────────────────────────────────────────────────────────
+
+export interface MapActor {
+  name: string
+  slug: string
+  iso3: string
+  pfScore: number | null
+  authorityScore: number | null
+  reachScore: number | null
+  pfVector: string | null
+  scoreTrend: string | null
+}
+
+export interface MapActorFull extends MapActor {
+  scoreReasoning: string | null
+  scoreDelta: number | null
+  bestRelationship: { name: string; alignment: number } | null
+  worstRelationship: { name: string; alignment: number } | null
+  recentEvents: { date: string; name: string }[]
+}
+
 // ─── Monetization hook ─────────────────────────────────────────────────────
 
 // Not active yet. Wire to your auth session when ready.

@@ -8,19 +8,9 @@ import {
 } from 'react-simple-maps'
 import { useRouter } from 'next/navigation'
 import { ISO_NUMERIC_TO_ALPHA3 } from '@/lib/iso-numeric'
+import type { MapActor } from '@/lib/types'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
-
-export interface MapActor {
-  name: string
-  slug: string
-  iso3: string
-  pfScore: number | null
-  authorityScore: number | null
-  reachScore: number | null
-  pfVector: string | null
-  scoreTrend: string | null
-}
 
 type LayerKey = 'pf' | 'authority' | 'reach' | 'vector'
 
