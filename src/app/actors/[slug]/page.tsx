@@ -14,6 +14,13 @@ import ScoreChart from "@/components/ScoreChart";
 import AssessmentCard from "@/components/AssessmentCard";
 import { pfScoreColor, actorTypeBadgeColor } from "@/components/ActorCard";
 
+import dynamic from "next/dynamic";
+
+const ActorGlobe = dynamic(() => import("@/components/geo/ActorGlobe"), {
+  ssr: false,
+  loading: () => <div style={{ width: 140, height: 140 }} />,
+});
+
 export const revalidate = 300;
 
 export async function generateStaticParams() {
@@ -159,12 +166,17 @@ export default async function ActorProfilePage({ params }: { params: Promise<{ s
                 <p className="text-sm mt-1" style={{ color: "var(--muted)" }}>{subtitle}</p>
               )}
             </div>
-            {latestDelta !== null && (
-              <div className="flex flex-col items-end gap-1">
-                <ScoreDelta delta={latestDelta} className="text-base" />
-                <span className="text-xs" style={{ color: "var(--muted)" }}>recent Δ</span>
-              </div>
-            )}
+            <div className="flex flex-col items-end gap-2 shrink-0">
+              {actor.actorType === "State" && actor.iso3 && (
+                <ActorGlobe isoCode={actor.iso3} size={140} />
+              )}
+              {latestDelta !== null && (
+                <div className="flex flex-col items-end gap-1">
+                  <ScoreDelta delta={latestDelta} className="text-base" />
+                  <span className="text-xs" style={{ color: "var(--muted)" }}>recent Δ</span>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>
