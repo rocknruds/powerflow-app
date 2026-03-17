@@ -36,3 +36,48 @@ export async function getActorEvents(actorId: string, limit = 5): Promise<Notion
   );
   return pages.slice(0, limit).map(parseEvent);
 }
+
+/**
+ * Batch fetch recent events for multiple actors.
+ * Single Notion query with compound OR filter, grouped server-side.
+ * Returns max 2 events per actor, most recent first.
+ */
+export async function getRecentEventsForActors(
+  actorIds: string[],
+  limitPerActor = 2
+): Promise<Map<string, { date: string; name: string }[]>> {
+  const result = new Map<string, { date: string; name: string }[]>()
+  if (actorIds.length === 0) return result
+
+  const filter = {
+    or: actorIds.map((id) => ({
+      property: 'Key Actors',
+      relation: { contains: id },
+    })),
+  }
+
+  try {
+    const pages = await queryDatabase(
+      EVENTS_DB_ID,
+      filter,
+      [{ property: 'Date', direction: 'descending' as const }]
+    )
+
+    for (const page of pages) {
+      const event = parseEvent(page)
+      // An event can reference multiple actors — add to each
+      for (const actorId of event.actorIds) {
+        if (!actorIds.includes(actorId)) continue
+        const list = result.get(actorId) ?? []
+        if (list.length < limitPerActor) {
+          list.push({ date: event.date ?? '', name: event.name })
+          result.set(actorId, list)
+        }
+      }
+    }
+  } catch {
+    // Return empty map on error
+  }
+
+  return result
+}

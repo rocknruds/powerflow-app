@@ -92,3 +92,48 @@ export async function getTopRelationships(
     return []
   }
 }
+
+/**
+ * Batch fetch best/worst relationship for multiple actors.
+ * Single Notion query with compound OR filter, grouped server-side.
+ */
+export async function getTopRelationshipsForActors(
+  actorIds: string[]
+): Promise<Map<string, { best: { name: string; alignment: number } | null; worst: { name: string; alignment: number } | null }>> {
+  const result = new Map<string, { best: { name: string; alignment: number } | null; worst: { name: string; alignment: number } | null }>()
+  if (actorIds.length === 0) return result
+
+  const filter = {
+    or: actorIds.map((id) => ({
+      property: 'Primary Actor',
+      relation: { contains: id },
+    })),
+  }
+
+  try {
+    const pages = await queryDatabase(RELATIONSHIPS_DB_ID, filter, undefined, 300)
+
+    // Group by primary actor
+    const byActor = new Map<string, { counterpartyName: string; alignment: number }[]>()
+    for (const page of pages) {
+      const rel = parsePage(page, 'outgoing')
+      if (rel.primaryActorId && rel.alignmentScore !== null) {
+        const list = byActor.get(rel.primaryActorId) ?? []
+        list.push({ counterpartyName: rel.counterpartyName, alignment: rel.alignmentScore })
+        byActor.set(rel.primaryActorId, list)
+      }
+    }
+
+    // Pick best (highest alignment) and worst (lowest alignment) per actor
+    for (const [actorId, rels] of byActor) {
+      const sorted = rels.sort((a, b) => a.alignment - b.alignment)
+      const worst = sorted[0] ? { name: sorted[0].counterpartyName, alignment: sorted[0].alignment } : null
+      const best = sorted[sorted.length - 1] ? { name: sorted[sorted.length - 1].counterpartyName, alignment: sorted[sorted.length - 1].alignment } : null
+      result.set(actorId, { best, worst })
+    }
+  } catch {
+    // Return empty map on error
+  }
+
+  return result
+}
