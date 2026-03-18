@@ -36,6 +36,45 @@ function formatDate(dateStr: string | null): string {
   }
 }
 
+const MONTH_NAMES = [
+  "January","February","March","April","May","June",
+  "July","August","September","October","November","December",
+]
+
+/** Parse ISO date string (YYYY-MM-DD) without timezone offset. */
+function parseDateParts(iso: string): { year: number; month: number; day: number } | null {
+  const parts = iso.split("-")
+  if (parts.length < 3) return null
+  return { year: +parts[0], month: +parts[1], day: +parts[2] }
+}
+
+/**
+ * For monthly briefs: returns "March 2026" + optional "through March 18".
+ * For weekly/other: returns the raw title split on " — ".
+ */
+function parseBriefHeading(brief: { title: string; briefType: string | null; dateRangeStart: string | null; dateRangeEnd: string | null }): { name: string; sub: string | null } {
+  if (brief.briefType === "Monthly" && brief.dateRangeStart) {
+    const s = parseDateParts(brief.dateRangeStart)
+    if (s) {
+      const name = `${MONTH_NAMES[s.month - 1]} ${s.year}`
+      let sub: string | null = null
+      if (brief.dateRangeEnd) {
+        const e = parseDateParts(brief.dateRangeEnd)
+        if (e) {
+          const lastDay = new Date(e.year, e.month, 0).getDate()
+          if (e.day < lastDay) {
+            sub = `through ${MONTH_NAMES[e.month - 1]} ${e.day}`
+          }
+        }
+      }
+      return { name, sub }
+    }
+  }
+
+  const parts = (brief.title || "Untitled Brief").split(" — ")
+  return { name: parts[0], sub: parts.length > 1 ? parts.slice(1).join(" — ") : null }
+}
+
 /** Convert NotionBlock[] back to a markdown body string for parseBriefContent. */
 function blocksToBody(blocks: NotionBlock[]): string {
   return blocks
@@ -113,17 +152,15 @@ export default async function BriefPage({
           </div>
 
           {(() => {
-            const parts = (brief.title || "Untitled Brief").split(" — ");
-            const name = parts[0];
-            const datePart = parts.length > 1 ? parts.slice(1).join(" — ") : null;
+            const { name, sub } = parseBriefHeading(brief);
             return (
               <>
                 <h1 className="text-3xl font-bold leading-tight" style={{ color: "var(--foreground)" }}>
                   {name}
                 </h1>
-                {datePart && (
+                {sub && (
                   <p className="text-lg mt-1" style={{ color: "var(--muted)" }}>
-                    {datePart}
+                    {sub}
                   </p>
                 )}
               </>
