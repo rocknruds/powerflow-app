@@ -15,7 +15,8 @@ import ScoreChart from "@/components/ScoreChart";
 import AssessmentCard from "@/components/AssessmentCard";
 import { pfScoreColor, actorTypeBadgeColor } from "@/components/ActorCard";
 
-import ActorGlobe from "@/components/geo/ActorGlobeWrapper";
+import KeyDrivers from "@/components/KeyDrivers";
+import ActorGeoPanel from "@/components/geo/ActorGeoPanelWrapper";
 
 export const revalidate = 300;
 
@@ -132,47 +133,63 @@ export default async function ActorProfilePage({ params }: { params: Promise<{ s
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: "var(--background)" }}>
-      {/* Page header */}
-      <div className="py-8" style={{ borderBottom: "1px solid var(--border)" }}>
+      {/* Page header — asymmetric split hero */}
+      <div style={{ borderBottom: "1px solid var(--border)" }}>
         <div className="max-w-6xl mx-auto px-6">
-          <Link href="/actors" className="text-xs transition-colors mb-5 inline-flex items-center gap-1" style={{ color: "var(--muted)" }}>
-            ← Actor Leaderboard
-          </Link>
-          <div className="flex items-start justify-between gap-4 flex-wrap">
-            <div>
-              <div className="flex items-center gap-2 mb-2 flex-wrap">
-                {actor.actorType && (
-                  <span
-                    className="text-xs font-semibold px-2.5 py-0.5 rounded"
-                    style={{
-                      color: actorTypeBadgeColor(actor.actorType),
-                      border: `1px solid color-mix(in srgb, ${actorTypeBadgeColor(actor.actorType)} 40%, transparent)`,
-                      backgroundColor: `color-mix(in srgb, ${actorTypeBadgeColor(actor.actorType)} 12%, transparent)`,
-                    }}
-                  >
-                    {actor.actorType}
-                  </span>
-                )}
-                {actor.region && <MetaBadge>{actor.region}</MetaBadge>}
-                {actor.iso3 && <span className="text-xs font-mono" style={{ color: "var(--muted)" }}>{actor.iso3}</span>}
-                {actor.pfVector && <PFSignalBadge signal={actor.pfVector} />}
-              </div>
-              <h1 className="text-4xl font-bold tracking-tight" style={{ color: "var(--foreground)" }}>{actor.name}</h1>
-              {subtitle && (
-                <p className="text-sm mt-1" style={{ color: "var(--muted)" }}>{subtitle}</p>
+          <div className="pt-6 pb-2">
+            <Link href="/actors" className="text-xs transition-colors inline-flex items-center gap-1" style={{ color: "var(--muted)" }}>
+              ← Actor Leaderboard
+            </Link>
+          </div>
+        </div>
+        <div className="max-w-6xl mx-auto flex flex-col lg:flex-row" style={{ minHeight: 270 }}>
+          {/* Left panel: metadata + scores (order-last on mobile so map stacks above) */}
+          <div className="order-last lg:order-first lg:w-[38%] px-6 py-6 flex flex-col justify-center" style={{ backgroundColor: "var(--surface)" }}>
+            <div className="flex items-center gap-2 mb-2 flex-wrap">
+              {actor.actorType && (
+                <span
+                  className="text-xs font-semibold px-2.5 py-0.5 rounded"
+                  style={{
+                    color: actorTypeBadgeColor(actor.actorType),
+                    border: `1px solid color-mix(in srgb, ${actorTypeBadgeColor(actor.actorType)} 40%, transparent)`,
+                    backgroundColor: `color-mix(in srgb, ${actorTypeBadgeColor(actor.actorType)} 12%, transparent)`,
+                  }}
+                >
+                  {actor.actorType}
+                </span>
               )}
+              {actor.region && <MetaBadge>{actor.region}</MetaBadge>}
+              {actor.iso3 && <span className="text-xs font-mono" style={{ color: "var(--muted)" }}>{actor.iso3}</span>}
+              {actor.pfVector && <PFSignalBadge signal={actor.pfVector} />}
             </div>
-            <div className="flex flex-col items-end gap-2 shrink-0">
-              {actor.actorType === "State" && actor.iso3 && (
-                <ActorGlobe isoCode={actor.iso3} size={140} />
-              )}
+            <h1 className="text-[28px] font-bold" style={{ color: "var(--foreground)", letterSpacing: "-0.5px" }}>{actor.name}</h1>
+            {subtitle && (
+              <p className="text-xs mt-1" style={{ color: "var(--muted)" }}>{subtitle}</p>
+            )}
+            <div className="flex items-end gap-5 pt-4 mt-4" style={{ borderTop: "1px solid var(--border)" }}>
+              <div>
+                <p className="text-[10px] mb-1" style={{ color: "var(--muted)" }}>PF Score</p>
+                <p className="text-[22px] sm:text-[26px] font-bold tabular-nums" style={{ color: scoreColor }}>{pf ?? "—"}</p>
+              </div>
+              <div>
+                <p className="text-[10px] mb-1" style={{ color: "var(--muted)" }}>Authority</p>
+                <p className="text-[22px] sm:text-[26px] font-bold tabular-nums" style={{ color: "var(--score-authority)" }}>{actor.authorityScore ?? "—"}</p>
+              </div>
+              <div>
+                <p className="text-[10px] mb-1" style={{ color: "var(--muted)" }}>Reach</p>
+                <p className="text-[22px] sm:text-[26px] font-bold tabular-nums" style={{ color: "var(--score-reach)" }}>{actor.reachScore ?? "—"}</p>
+              </div>
               {latestDelta !== null && (
-                <div className="flex flex-col items-end gap-1">
-                  <ScoreDelta delta={latestDelta} className="text-base" />
-                  <span className="text-xs" style={{ color: "var(--muted)" }}>recent Δ</span>
+                <div className="flex flex-col items-start pb-0.5">
+                  <ScoreDelta delta={latestDelta} className="text-sm" />
+                  <span className="text-[9px] mt-0.5" style={{ color: "var(--muted)" }}>recent Δ</span>
                 </div>
               )}
             </div>
+          </div>
+          {/* Right panel: geographic map (order-first on mobile so it stacks above metadata) */}
+          <div className="order-first lg:order-last lg:flex-1 h-[140px] sm:h-[180px] lg:h-auto">
+            <ActorGeoPanel isoCode={actor.iso3} region={actor.region} actorType={actor.actorType} />
           </div>
         </div>
       </div>
@@ -215,9 +232,7 @@ export default async function ActorProfilePage({ params }: { params: Promise<{ s
         {actor.scoreReasoning && (
           <div className="rounded-xl p-6" style={{ backgroundColor: "var(--surface)", border: "1px solid var(--border)" }}>
             <SectionLabel>Key Drivers</SectionLabel>
-            <p className="text-sm leading-relaxed" style={{ color: "var(--muted-foreground)" }}>
-              {actor.scoreReasoning}
-            </p>
+            <KeyDrivers reasoning={actor.scoreReasoning} />
             {(patronActors.length > 0 || dependentOnActors.length > 0) && (
               <div className="mt-4 pt-4 space-y-2" style={{ borderTop: "1px solid var(--border)" }}>
                 {patronActors.length > 0 && (
