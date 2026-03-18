@@ -13,7 +13,7 @@ Replace the small globe with a large geographic panel occupying ~62% of the hero
 
 ### Layout: Asymmetric Split
 
-The hero is a flex row with no gap. Left panel has `--surface` background. Right panel has `--ocean` (#0e1220) background. A soft gradient blends the boundary between the two panels (left edge of map fades into the metadata panel background). No hard border between zones.
+The hero is a flex row with no gap. Left panel has `--surface` background. Right panel has `OCEAN_COLOR` (`#0e1220`) background — hardcoded, not a CSS variable, consistent with how all map colors are defined in `geo-constants.ts`. A soft gradient blends the boundary between the two panels (left edge of map fades into the metadata panel background). No hard border between zones.
 
 ```
 ┌─────────────────────────────────────────────────────────┐
@@ -32,18 +32,18 @@ The hero is a flex row with no gap. Left panel has `--surface` background. Right
 
 **Left panel contents (top to bottom):**
 - Back link: "← Actor Leaderboard" (existing)
-- Badge row: actor type badge (colored), region badge (muted border), ISO3 code (mono, muted), PF signal badge (if present)
+- Badge row: actor type badge (colored), region badge (muted border), ISO3 code (mono, muted), `pfVector` signal badge via existing `PFSignalBadge` component (if present)
 - Actor name: 28px, weight 700, `--foreground`, -0.5px letter-spacing
 - Subtitle: region for State actors, subType or actorType for Non-State/Hybrid, actorType for IGO. 12px, `--muted`.
 - Divider: 1px `--border` with 16px top padding
-- Score row: PF Score (`--accent`), Authority (`--score-authority`), Reach (`--score-reach`) — each 26px, weight 700, tabular-nums. Labels above each in 10px `--muted`. Recent delta displayed after scores (colored by direction).
+- Score row: PF Score (`--accent`), Authority (`--score-authority`), Reach (`--score-reach`) — each `text-[26px]` (intentionally smaller than the current 30px standalone panel, since they share space with the actor name), weight 700, `tabular-nums`. Labels above each in `text-[10px]` `--muted`. Recent delta displayed after scores via existing `ScoreDelta` component (colored by direction).
 
 **Right panel contents:**
 - Full-height SVG map rendered by `ActorGlobe` component (renamed to `ActorGeoPanel`)
-- Edge fades: gradient overlays on all four edges blending into surrounding colors
-  - Left edge: 35px gradient from `--surface` to transparent
-  - Right edge: 25px gradient from `--ocean` to transparent
-  - Top/bottom: 18px gradients from `--ocean` to transparent
+- Edge fades: four absolutely-positioned `<div>` overlays with CSS `linear-gradient` backgrounds, layered on top of the SVG map. Not SVG gradients — CSS overlays.
+  - Left edge: 35px wide, gradient from `var(--surface)` to transparent (must use CSS variable for light mode compatibility)
+  - Right edge: 25px wide, gradient from `#0e1220` to transparent
+  - Top/bottom: 18px tall, gradients from `#0e1220` to transparent
 
 ### Projection: Natural Earth
 
@@ -59,7 +59,7 @@ Switch from `geoOrthographic` to `geoNaturalEarth1`. This gives a nearly flat pr
 
 Each actor's map is centered and scaled to show their regional context. Two data structures drive this:
 
-**ISO3_CENTERS** (existing, in `ActorGlobe.tsx`): Maps ISO3 codes to `[longitude, latitude]` center coordinates. Already has 65+ entries. Used for State actors to center on their country.
+**ISO3_CENTERS** (existing, currently in `ActorGlobe.tsx` — move to `geo-constants.ts` as part of this work): Maps ISO3 codes to `[longitude, latitude]` center coordinates. Already has 65+ entries. Used for State actors to center on their country. For Natural Earth projection, these coordinates are passed as the `center` prop on `projectionConfig`.
 
 **REGION_CENTERS** (new, in `geo-constants.ts`): Maps region strings to `{ center: [lon, lat], scale: number }`. Used for:
 - Non-state/Hybrid/IGO actors (center on their `region` field)
@@ -80,17 +80,49 @@ export const REGION_CENTERS: Record<string, { center: [number, number]; scale: n
   'Oceania': { center: [140, -25], scale: 400 },
   'East Africa': { center: [38, 2], scale: 500 },
   'West Africa': { center: [-5, 10], scale: 500 },
+  'Eastern Europe': { center: [30, 50], scale: 400 },
+  'Caucasus': { center: [44, 42], scale: 800 },
+  'Horn of Africa': { center: [42, 6], scale: 600 },
+  'Caribbean': { center: [-72, 18], scale: 600 },
 }
 ```
 
-**Scale calculation for State actors:** The component uses a per-country scale based on the country's geographic extent. Large countries (Russia, USA, China, Brazil) use a lower scale to show the full landmass. Small countries (Israel, Lebanon, Qatar) use a higher scale zoomed into the subregion. This is derived from a `COUNTRY_SCALES` lookup in `geo-constants.ts` with a sensible default (~600) for unlisted countries.
+**Scale calculation for State actors:** The component uses a per-country scale override for countries whose geographic extent deviates significantly from the default. Default scale is 600 (suitable for medium-sized countries like Iran, Turkey, Egypt). The `COUNTRY_SCALES` lookup in `geo-constants.ts` overrides this for outliers:
+
+```typescript
+export const COUNTRY_SCALES: Record<string, number> = {
+  // Large countries — zoom out to show full landmass
+  RUS: 250,
+  USA: 350,
+  CAN: 300,
+  CHN: 350,
+  BRA: 300,
+  AUS: 350,
+  IND: 400,
+  ARG: 350,
+  KAZ: 400,
+  IDN: 350,
+  // Small countries/territories — zoom in to subregion
+  ISR: 1200,
+  PSE: 1200,
+  LBN: 1200,
+  QAT: 1400,
+  BHR: 1400,
+  ARE: 900,
+  KWT: 1200,
+  TWN: 1000,
+  XKX: 1200,
+}
+```
+
+Unlisted countries use the default scale of 600. These values will need visual tuning during implementation — the numbers above are starting points based on geographic extent.
 
 ### Actor Highlight Treatment: Gradient Fill + Border + Ambient Pulse
 
 **State actors** — the actor's country is rendered with:
-- **Fill:** Radial gradient centered on the country. Core at ~35% opacity SIGNAL_BLUE, fading to ~8% at edges. Gives the country depth and visual weight without being flat or loud.
+- **Fill:** SVG `<radialGradient>` with `gradientUnits="objectBoundingBox"` (auto-centers on the path's bounding box). Core at ~35% opacity SIGNAL_BLUE, fading to ~8% at edges. This will appear slightly stretched on geographically elongated countries (Chile, Norway) — acceptable, since the gradient is subtle and decorative.
 - **Stroke:** 1.6px SIGNAL_BLUE border. Provides cartographic precision and clear boundary definition.
-- **Ambient glow:** A radial ellipse behind the country with a CSS keyframe animation pulsing between 5–10% opacity over 5 seconds. Reinforces the "living model" product identity. Implemented as a separate SVG `<ellipse>` element behind the country paths, animated with `@keyframes`.
+- **Ambient glow:** A separate SVG `<ellipse>` element rendered *behind* the country geography paths (lower z-order in SVG). Positioned at the country's `ISO3_CENTERS` coordinates (projected into SVG space via the same projection). Size: ~1.3x the country's rendered width/height. Animated with CSS `@keyframes` pulsing between 5–10% opacity over 5 seconds. The ellipse position is approximate — it does not need pixel-perfect alignment with the country boundary, just a soft glow in the right area.
 
 **Non-state / Hybrid / IGO actors** — no country is highlighted:
 - All countries render in uniform `LAND_UNTRACKED` (#141c2a) with `LAND_STROKE` (#1e2a3a) borders
@@ -126,9 +158,13 @@ The current page has a separate score panel section below the hero (the `grid-co
 
 ### Responsive Behavior
 
-- **≥1024px (lg):** Full asymmetric split as described
-- **<1024px (md):** Map panel stacks above the metadata. Map height fixed at 180px. Full-width. Metadata below with scores in a horizontal row.
-- **<640px (sm):** Same stacking, map height reduced to 140px. Score values shrink to 22px.
+Use Tailwind responsive prefixes (matching existing codebase pattern):
+
+- **`lg:` (≥1024px):** Full asymmetric split as described. Hero uses `flex-row`.
+- **`md:` to `lg:` (768–1023px):** Map panel stacks above the metadata. Hero uses `flex-col`. Map height fixed at 180px via `h-[180px]`. Full-width. Metadata below with scores in a horizontal row.
+- **Below `sm:` (<640px):** Same stacking, map height reduced to 140px via `h-[140px]`. Score values shrink to `text-[22px]`.
+
+The `ActorGeoPanel` component itself is always `w-full h-full` — the parent layout controls sizing via Tailwind classes.
 
 ## Component Architecture
 
@@ -147,9 +183,17 @@ interface ActorGeoPanelProps {
 
 No `size` prop — the component fills its container (`width: 100%`, `height: 100%`).
 
+**Fallback behavior:**
+- If `actorType` is `"State"` and `isoCode` exists in `ISO3_CENTERS`: center on country, highlight it
+- If `actorType` is `"State"` but `isoCode` is missing/unknown: fall back to `REGION_CENTERS` using `region`, no country highlight
+- If `actorType` is non-State: use `REGION_CENTERS` with `region`, no highlight
+- If `region` is null or not in `REGION_CENTERS`: render a world-level view (center `[0, 20]`, scale `150`) — safe fallback, never renders nothing
+
+**Accessibility:** The SVG element should have `aria-hidden="true"` and `role="presentation"` — the map is decorative/orientational, not interactive or informational. Screen readers should skip it entirely.
+
 ### Updated wrapper: `ActorGeoPanelWrapper.tsx`
 
-Same pattern as current — `next/dynamic` with `ssr: false`. Loading placeholder becomes a full-height div with `--ocean` background (no visible pop-in).
+Same pattern as current — `next/dynamic` with `ssr: false`. Loading placeholder becomes a full-height div with `background: #0e1220` (hardcoded to match `OCEAN_COLOR`, no visible pop-in).
 
 ### Keyframe animation
 
@@ -172,13 +216,15 @@ Applied to the ambient glow `<ellipse>` element only. No animation on the countr
 4. Remove the score card column from the `grid-cols-[280px_1fr]` layout
 5. Render the Score Trajectory chart full-width (single column)
 6. Move Depth/Capabilities metadata to Key Drivers section
+7. Delete `ActorGlobe.tsx` and `ActorGlobeWrapper.tsx` — fully replaced by `ActorGeoPanel.tsx` and `ActorGeoPanelWrapper.tsx`
 
 ### New constants: `geo-constants.ts`
 
 Add:
+- `ISO3_CENTERS` — moved from `ActorGlobe.tsx`
 - `REGION_CENTERS` — region string → center/scale mapping
 - `COUNTRY_SCALES` — ISO3 → scale overrides for large/small countries
-- `OCEAN_BG` alias for `OCEAN_COLOR` if naming clarity helps
+- Default scale constant: `export const DEFAULT_GEO_SCALE = 600`
 
 ### Light mode consideration
 
