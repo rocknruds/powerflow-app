@@ -1,0 +1,139 @@
+<h2>Projection Style</h2>
+<p class="subtitle">Same actor (Iran), same layout — different geographic rendering feel</p>
+
+<div class="split">
+  <!-- Option A: Orthographic zoomed -->
+  <div class="mockup" data-choice="a" onclick="toggleSelect(this)" style="cursor: pointer;">
+    <div class="mockup-header">A — Orthographic (Zoomed Globe)</div>
+    <div class="mockup-body" style="padding: 0; background: #0a0e1a; height: 280px;">
+      <div style="display: flex; height: 100%;">
+        <!-- Left metadata -->
+        <div style="width: 38%; padding: 20px; display: flex; flex-direction: column; justify-content: center; background: #0d1117; border-right: none;">
+          <div style="display: flex; gap: 6px; margin-bottom: 10px; flex-wrap: wrap;">
+            <span style="font-size: 9px; padding: 2px 6px; border-radius: 4px; background: rgba(96,165,250,0.12); color: #60a5fa; border: 1px solid rgba(96,165,250,0.3);">State</span>
+            <span style="font-size: 9px; padding: 2px 6px; border-radius: 4px; color: #6b7280; border: 1px solid #1e2530;">Middle East</span>
+          </div>
+          <div style="font-size: 20px; font-weight: 700; color: #e8eaf0; margin-bottom: 4px;">Iran</div>
+          <div style="font-size: 11px; color: #6b7280; margin-bottom: 14px;">Islamic Republic</div>
+          <div style="font-size: 10px; color: #4b5563; font-family: monospace;">IRN</div>
+        </div>
+        <!-- Right: Orthographic zoomed -->
+        <div style="flex: 1; background: #0e1220; position: relative; overflow: hidden;">
+          <svg width="100%" height="100%" viewBox="0 0 300 280" preserveAspectRatio="xMidYMid slice">
+            <!-- Globe curvature edge -->
+            <defs>
+              <radialGradient id="globe-edge-a" cx="50%" cy="50%" r="55%">
+                <stop offset="75%" stop-color="transparent"/>
+                <stop offset="100%" stop-color="#0e1220"/>
+              </radialGradient>
+              <clipPath id="globe-clip-a">
+                <ellipse cx="150" cy="140" rx="145" ry="145"/>
+              </clipPath>
+            </defs>
+            <g clip-path="url(#globe-clip-a)">
+              <!-- Ocean -->
+              <rect width="300" height="280" fill="#0e1220"/>
+              <!-- Graticule curves suggesting sphere -->
+              <ellipse cx="150" cy="140" rx="140" ry="140" fill="none" stroke="#1a2235" stroke-width="0.4"/>
+              <ellipse cx="150" cy="140" rx="100" ry="140" fill="none" stroke="#1a2235" stroke-width="0.3"/>
+              <ellipse cx="150" cy="140" rx="50" ry="140" fill="none" stroke="#1a2235" stroke-width="0.3"/>
+              <!-- Horizontal graticules (curved) -->
+              <ellipse cx="150" cy="80" rx="130" ry="20" fill="none" stroke="#1a2235" stroke-width="0.3"/>
+              <ellipse cx="150" cy="140" rx="140" ry="12" fill="none" stroke="#1a2235" stroke-width="0.3"/>
+              <ellipse cx="150" cy="200" rx="130" ry="20" fill="none" stroke="#1a2235" stroke-width="0.3"/>
+              <!-- Turkey -->
+              <path d="M80,85 L140,78 L155,85 L140,95 L90,98 Z" fill="#141c2a" stroke="#1e2a3a" stroke-width="0.6"/>
+              <!-- Iraq -->
+              <path d="M140,95 L170,90 L180,110 L165,130 L140,125 L130,105 Z" fill="#141c2a" stroke="#1e2a3a" stroke-width="0.6"/>
+              <!-- Iran - large, centered -->
+              <path d="M170,90 L210,75 L250,85 L260,110 L250,145 L225,165 L190,160 L165,145 L165,130 L180,110 Z" fill="rgba(56,189,248,0.45)" stroke="#38bdf8" stroke-width="1"/>
+              <!-- Afghanistan -->
+              <path d="M250,85 L280,80 L290,100 L275,120 L260,110 Z" fill="#141c2a" stroke="#1e2a3a" stroke-width="0.6"/>
+              <!-- Pakistan -->
+              <path d="M260,110 L275,120 L280,155 L260,175 L240,170 L250,145 Z" fill="#141c2a" stroke="#1e2a3a" stroke-width="0.6"/>
+              <!-- Saudi Arabia -->
+              <path d="M110,130 L140,125 L165,145 L190,160 L170,190 L130,200 L100,180 L95,150 Z" fill="#141c2a" stroke="#1e2a3a" stroke-width="0.6"/>
+              <!-- Oman/UAE area -->
+              <path d="M190,160 L225,165 L230,185 L200,195 L170,190 Z" fill="#141c2a" stroke="#1e2a3a" stroke-width="0.6"/>
+              <!-- Caspian Sea suggestion -->
+              <ellipse cx="195" cy="80" rx="12" ry="20" fill="#0e1220" stroke="#1e2a3a" stroke-width="0.4"/>
+              <!-- Egypt -->
+              <path d="M55,120 L80,115 L85,150 L70,180 L50,175 L45,145 Z" fill="#141c2a" stroke="#1e2a3a" stroke-width="0.6"/>
+            </g>
+            <!-- Globe edge vignette -->
+            <ellipse cx="150" cy="140" rx="145" ry="145" fill="url(#globe-edge-a)"/>
+            <!-- Subtle glow on Iran -->
+            <ellipse cx="210" cy="120" rx="60" ry="50" fill="rgba(56,189,248,0.06)"/>
+          </svg>
+          <!-- Left fade -->
+          <div style="position: absolute; left: 0; top: 0; bottom: 0; width: 30px; background: linear-gradient(to right, #0d1117, transparent); pointer-events: none;"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Option C: Natural Earth -->
+  <div class="mockup" data-choice="c" onclick="toggleSelect(this)" style="cursor: pointer;">
+    <div class="mockup-header">C — Natural Earth (Atlas)</div>
+    <div class="mockup-body" style="padding: 0; background: #0a0e1a; height: 280px;">
+      <div style="display: flex; height: 100%;">
+        <!-- Left metadata -->
+        <div style="width: 38%; padding: 20px; display: flex; flex-direction: column; justify-content: center; background: #0d1117;">
+          <div style="display: flex; gap: 6px; margin-bottom: 10px; flex-wrap: wrap;">
+            <span style="font-size: 9px; padding: 2px 6px; border-radius: 4px; background: rgba(96,165,250,0.12); color: #60a5fa; border: 1px solid rgba(96,165,250,0.3);">State</span>
+            <span style="font-size: 9px; padding: 2px 6px; border-radius: 4px; color: #6b7280; border: 1px solid #1e2530;">Middle East</span>
+          </div>
+          <div style="font-size: 20px; font-weight: 700; color: #e8eaf0; margin-bottom: 4px;">Iran</div>
+          <div style="font-size: 11px; color: #6b7280; margin-bottom: 14px;">Islamic Republic</div>
+          <div style="font-size: 10px; color: #4b5563; font-family: monospace;">IRN</div>
+        </div>
+        <!-- Right: Natural Earth projection -->
+        <div style="flex: 1; background: #0e1220; position: relative; overflow: hidden;">
+          <svg width="100%" height="100%" viewBox="0 0 300 280" preserveAspectRatio="xMidYMid slice">
+            <!-- Subtle graticule - very slight curve -->
+            <line x1="0" y1="70" x2="300" y2="72" stroke="#1a2235" stroke-width="0.3"/>
+            <line x1="0" y1="140" x2="300" y2="140" stroke="#1a2235" stroke-width="0.3"/>
+            <line x1="0" y1="210" x2="300" y2="208" stroke="#1a2235" stroke-width="0.3"/>
+            <!-- Vertical graticules with very slight curvature -->
+            <path d="M75,0 Q73,140 75,280" fill="none" stroke="#1a2235" stroke-width="0.3"/>
+            <path d="M150,0 Q150,140 150,280" fill="none" stroke="#1a2235" stroke-width="0.3"/>
+            <path d="M225,0 Q227,140 225,280" fill="none" stroke="#1a2235" stroke-width="0.3"/>
+            <!-- Turkey -->
+            <path d="M65,82 L145,75 L162,84 L145,95 L80,98 Z" fill="#141c2a" stroke="#1e2a3a" stroke-width="0.6"/>
+            <!-- Iraq -->
+            <path d="M145,95 L175,90 L185,112 L170,132 L145,127 L135,107 Z" fill="#141c2a" stroke="#1e2a3a" stroke-width="0.6"/>
+            <!-- Iran - large, centered -->
+            <path d="M175,90 L218,74 L258,84 L268,112 L258,148 L230,168 L195,162 L170,148 L170,132 L185,112 Z" fill="rgba(56,189,248,0.45)" stroke="#38bdf8" stroke-width="1"/>
+            <!-- Afghanistan -->
+            <path d="M258,84 L290,78 L300,100 L282,122 L268,112 Z" fill="#141c2a" stroke="#1e2a3a" stroke-width="0.6"/>
+            <!-- Pakistan -->
+            <path d="M268,112 L282,122 L288,158 L268,178 L248,172 L258,148 Z" fill="#141c2a" stroke="#1e2a3a" stroke-width="0.6"/>
+            <!-- Saudi Arabia -->
+            <path d="M105,132 L145,127 L170,148 L195,162 L175,195 L135,205 L100,185 L92,152 Z" fill="#141c2a" stroke="#1e2a3a" stroke-width="0.6"/>
+            <!-- Oman/UAE -->
+            <path d="M195,162 L230,168 L238,190 L205,200 L175,195 Z" fill="#141c2a" stroke="#1e2a3a" stroke-width="0.6"/>
+            <!-- Caspian Sea -->
+            <ellipse cx="200" cy="78" rx="10" ry="18" fill="#0e1220" stroke="#1e2a3a" stroke-width="0.4"/>
+            <!-- Egypt -->
+            <path d="M40,122 L70,115 L78,152 L62,185 L38,178 L32,148 Z" fill="#141c2a" stroke="#1e2a3a" stroke-width="0.6"/>
+            <!-- Mediterranean Sea hint -->
+            <path d="M30,75 L65,82 L80,98 L65,105 L30,100 Z" fill="#0e1220" stroke="none"/>
+            <!-- Subtle glow on Iran -->
+            <ellipse cx="218" cy="120" rx="55" ry="50" fill="rgba(56,189,248,0.05)"/>
+          </svg>
+          <!-- Edges fade out -->
+          <div style="position: absolute; left: 0; top: 0; bottom: 0; width: 30px; background: linear-gradient(to right, #0d1117, transparent); pointer-events: none;"></div>
+          <div style="position: absolute; right: 0; top: 0; bottom: 0; width: 20px; background: linear-gradient(to left, #0e1220, transparent); pointer-events: none;"></div>
+          <div style="position: absolute; top: 0; left: 0; right: 0; height: 15px; background: linear-gradient(to bottom, #0e1220, transparent); pointer-events: none;"></div>
+          <div style="position: absolute; bottom: 0; left: 0; right: 0; height: 15px; background: linear-gradient(to top, #0e1220, transparent); pointer-events: none;"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div style="margin-top: 24px; padding: 16px; border-radius: 8px; background: rgba(96,165,250,0.06); border: 1px solid rgba(96,165,250,0.15);">
+  <p style="font-size: 13px; color: #9ca3af; margin: 0;">
+    <strong style="color: #e8eaf0;">Key difference:</strong> Orthographic shows earth curvature at edges (globe feel, the country sits on a sphere). Natural Earth is nearly flat with very subtle curvature (atlas/briefing feel, more technical).
+  </p>
+</div>

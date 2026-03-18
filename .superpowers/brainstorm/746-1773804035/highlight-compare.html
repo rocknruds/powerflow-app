@@ -1,0 +1,179 @@
+<h2>Actor Highlight Treatment</h2>
+<p class="subtitle">How should the highlighted country read against surrounding geography?</p>
+
+<div class="split">
+  <!-- Option B: Filled + Border Emphasis -->
+  <div class="mockup" data-choice="b" onclick="toggleSelect(this)" style="cursor: pointer;">
+    <div class="mockup-header">B — Filled + Border Emphasis</div>
+    <div class="mockup-body" style="padding: 0; background: #0e1220; height: 300px; position: relative; overflow: hidden;">
+      <svg width="100%" height="100%" viewBox="0 0 400 300" preserveAspectRatio="xMidYMid slice">
+        <!-- Graticule -->
+        <line x1="0" y1="75" x2="400" y2="77" stroke="#1a2235" stroke-width="0.3"/>
+        <line x1="0" y1="150" x2="400" y2="150" stroke="#1a2235" stroke-width="0.3"/>
+        <line x1="0" y1="225" x2="400" y2="223" stroke="#1a2235" stroke-width="0.3"/>
+        <path d="M100,0 Q98,150 100,300" fill="none" stroke="#1a2235" stroke-width="0.3"/>
+        <path d="M200,0 Q200,150 200,300" fill="none" stroke="#1a2235" stroke-width="0.3"/>
+        <path d="M300,0 Q302,150 300,300" fill="none" stroke="#1a2235" stroke-width="0.3"/>
+
+        <!-- Turkey -->
+        <path d="M85,88 L195,78 L218,88 L195,102 L105,106 Z" fill="#141c2a" stroke="#1e2a3a" stroke-width="0.6"/>
+        <!-- Iraq -->
+        <path d="M195,102 L235,96 L248,120 L228,148 L195,140 L182,116 Z" fill="#141c2a" stroke="#1e2a3a" stroke-width="0.6"/>
+        <!-- Iran — filled at low opacity + bright border -->
+        <path d="M235,96 L292,78 L345,90 L358,120 L345,162 L308,185 L262,178 L228,162 L228,148 L248,120 Z"
+              fill="rgba(56,189,248,0.2)" stroke="#38bdf8" stroke-width="1.8"/>
+        <!-- Afghanistan -->
+        <path d="M345,90 L388,82 L400,108 L378,132 L358,120 Z" fill="#141c2a" stroke="#1e2a3a" stroke-width="0.6"/>
+        <!-- Pakistan -->
+        <path d="M358,120 L378,132 L385,172 L358,195 L332,188 L345,162 Z" fill="#141c2a" stroke="#1e2a3a" stroke-width="0.6"/>
+        <!-- Saudi Arabia -->
+        <path d="M140,140 L195,140 L228,162 L262,178 L235,215 L182,225 L135,202 L125,165 Z" fill="#141c2a" stroke="#1e2a3a" stroke-width="0.6"/>
+        <!-- Oman/UAE -->
+        <path d="M262,178 L308,185 L318,210 L275,222 L235,215 Z" fill="#141c2a" stroke="#1e2a3a" stroke-width="0.6"/>
+        <!-- Caspian -->
+        <ellipse cx="268" cy="82" rx="12" ry="22" fill="#0e1220" stroke="#1e2a3a" stroke-width="0.4"/>
+        <!-- Egypt -->
+        <path d="M52,132 L92,125 L102,165 L82,202 L50,195 L42,162 Z" fill="#141c2a" stroke="#1e2a3a" stroke-width="0.6"/>
+        <!-- Mediterranean -->
+        <path d="M38,80 L85,88 L105,106 L85,115 L38,108 Z" fill="#0e1220" stroke="none"/>
+
+        <!-- Subtle glow -->
+        <ellipse cx="292" cy="132" rx="65" ry="55" fill="rgba(56,189,248,0.04)"/>
+      </svg>
+      <!-- Edge fades -->
+      <div style="position: absolute; left: 0; top: 0; bottom: 0; width: 25px; background: linear-gradient(to right, #0e1220, transparent);"></div>
+      <div style="position: absolute; right: 0; top: 0; bottom: 0; width: 20px; background: linear-gradient(to left, #0e1220, transparent);"></div>
+      <div style="position: absolute; top: 0; left: 0; right: 0; height: 15px; background: linear-gradient(to bottom, #0e1220, transparent);"></div>
+      <div style="position: absolute; bottom: 0; left: 0; right: 0; height: 15px; background: linear-gradient(to top, #0e1220, transparent);"></div>
+    </div>
+  </div>
+
+  <!-- Option C: Gradient Fill + Pulse -->
+  <div class="mockup" data-choice="c" onclick="toggleSelect(this)" style="cursor: pointer;">
+    <div class="mockup-header">C — Gradient Fill + Pulse</div>
+    <div class="mockup-body" style="padding: 0; background: #0e1220; height: 300px; position: relative; overflow: hidden;">
+      <style>
+        @keyframes glow-pulse {
+          0%, 100% { opacity: 0.06; }
+          50% { opacity: 0.12; }
+        }
+      </style>
+      <svg width="100%" height="100%" viewBox="0 0 400 300" preserveAspectRatio="xMidYMid slice">
+        <defs>
+          <!-- Gradient fill for Iran -->
+          <radialGradient id="iran-grad" cx="50%" cy="45%" r="55%">
+            <stop offset="0%" stop-color="#38bdf8" stop-opacity="0.45"/>
+            <stop offset="60%" stop-color="#38bdf8" stop-opacity="0.25"/>
+            <stop offset="100%" stop-color="#38bdf8" stop-opacity="0.12"/>
+          </radialGradient>
+        </defs>
+
+        <!-- Graticule -->
+        <line x1="0" y1="75" x2="400" y2="77" stroke="#1a2235" stroke-width="0.3"/>
+        <line x1="0" y1="150" x2="400" y2="150" stroke="#1a2235" stroke-width="0.3"/>
+        <line x1="0" y1="225" x2="400" y2="223" stroke="#1a2235" stroke-width="0.3"/>
+        <path d="M100,0 Q98,150 100,300" fill="none" stroke="#1a2235" stroke-width="0.3"/>
+        <path d="M200,0 Q200,150 200,300" fill="none" stroke="#1a2235" stroke-width="0.3"/>
+        <path d="M300,0 Q302,150 300,300" fill="none" stroke="#1a2235" stroke-width="0.3"/>
+
+        <!-- Turkey -->
+        <path d="M85,88 L195,78 L218,88 L195,102 L105,106 Z" fill="#141c2a" stroke="#1e2a3a" stroke-width="0.6"/>
+        <!-- Iraq -->
+        <path d="M195,102 L235,96 L248,120 L228,148 L195,140 L182,116 Z" fill="#141c2a" stroke="#1e2a3a" stroke-width="0.6"/>
+        <!-- Iran — gradient fill + border -->
+        <path d="M235,96 L292,78 L345,90 L358,120 L345,162 L308,185 L262,178 L228,162 L228,148 L248,120 Z"
+              fill="url(#iran-grad)" stroke="#38bdf8" stroke-width="1.2"/>
+        <!-- Afghanistan -->
+        <path d="M345,90 L388,82 L400,108 L378,132 L358,120 Z" fill="#141c2a" stroke="#1e2a3a" stroke-width="0.6"/>
+        <!-- Pakistan -->
+        <path d="M358,120 L378,132 L385,172 L358,195 L332,188 L345,162 Z" fill="#141c2a" stroke="#1e2a3a" stroke-width="0.6"/>
+        <!-- Saudi Arabia -->
+        <path d="M140,140 L195,140 L228,162 L262,178 L235,215 L182,225 L135,202 L125,165 Z" fill="#141c2a" stroke="#1e2a3a" stroke-width="0.6"/>
+        <!-- Oman/UAE -->
+        <path d="M262,178 L308,185 L318,210 L275,222 L235,215 Z" fill="#141c2a" stroke="#1e2a3a" stroke-width="0.6"/>
+        <!-- Caspian -->
+        <ellipse cx="268" cy="82" rx="12" ry="22" fill="#0e1220" stroke="#1e2a3a" stroke-width="0.4"/>
+        <!-- Egypt -->
+        <path d="M52,132 L92,125 L102,165 L82,202 L50,195 L42,162 Z" fill="#141c2a" stroke="#1e2a3a" stroke-width="0.6"/>
+        <!-- Mediterranean -->
+        <path d="M38,80 L85,88 L105,106 L85,115 L38,108 Z" fill="#0e1220" stroke="none"/>
+
+        <!-- Animated glow pulse -->
+        <ellipse cx="292" cy="132" rx="70" ry="60" fill="rgba(56,189,248,1)" style="animation: glow-pulse 4s ease-in-out infinite;"/>
+      </svg>
+      <!-- Edge fades -->
+      <div style="position: absolute; left: 0; top: 0; bottom: 0; width: 25px; background: linear-gradient(to right, #0e1220, transparent);"></div>
+      <div style="position: absolute; right: 0; top: 0; bottom: 0; width: 20px; background: linear-gradient(to left, #0e1220, transparent);"></div>
+      <div style="position: absolute; top: 0; left: 0; right: 0; height: 15px; background: linear-gradient(to bottom, #0e1220, transparent);"></div>
+      <div style="position: absolute; bottom: 0; left: 0; right: 0; height: 15px; background: linear-gradient(to top, #0e1220, transparent);"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Hybrid option -->
+<div style="margin-top: 28px;">
+  <div class="mockup" data-choice="bc" onclick="toggleSelect(this)" style="cursor: pointer;">
+    <div class="mockup-header">B+C Hybrid — Border Emphasis + Gradient Fill + Subtle Pulse</div>
+    <div class="mockup-body" style="padding: 0; background: #0e1220; height: 300px; position: relative; overflow: hidden;">
+      <style>
+        @keyframes glow-pulse-hybrid {
+          0%, 100% { opacity: 0.05; }
+          50% { opacity: 0.10; }
+        }
+      </style>
+      <svg width="100%" height="100%" viewBox="0 0 400 300" preserveAspectRatio="xMidYMid slice">
+        <defs>
+          <radialGradient id="iran-grad-h" cx="50%" cy="45%" r="55%">
+            <stop offset="0%" stop-color="#38bdf8" stop-opacity="0.35"/>
+            <stop offset="55%" stop-color="#38bdf8" stop-opacity="0.18"/>
+            <stop offset="100%" stop-color="#38bdf8" stop-opacity="0.08"/>
+          </radialGradient>
+        </defs>
+
+        <!-- Graticule -->
+        <line x1="0" y1="75" x2="400" y2="77" stroke="#1a2235" stroke-width="0.3"/>
+        <line x1="0" y1="150" x2="400" y2="150" stroke="#1a2235" stroke-width="0.3"/>
+        <line x1="0" y1="225" x2="400" y2="223" stroke="#1a2235" stroke-width="0.3"/>
+        <path d="M100,0 Q98,150 100,300" fill="none" stroke="#1a2235" stroke-width="0.3"/>
+        <path d="M200,0 Q200,150 200,300" fill="none" stroke="#1a2235" stroke-width="0.3"/>
+        <path d="M300,0 Q302,150 300,300" fill="none" stroke="#1a2235" stroke-width="0.3"/>
+
+        <!-- Turkey -->
+        <path d="M85,88 L195,78 L218,88 L195,102 L105,106 Z" fill="#141c2a" stroke="#1e2a3a" stroke-width="0.6"/>
+        <!-- Iraq -->
+        <path d="M195,102 L235,96 L248,120 L228,148 L195,140 L182,116 Z" fill="#141c2a" stroke="#1e2a3a" stroke-width="0.6"/>
+        <!-- Iran — gradient fill + strong border -->
+        <path d="M235,96 L292,78 L345,90 L358,120 L345,162 L308,185 L262,178 L228,162 L228,148 L248,120 Z"
+              fill="url(#iran-grad-h)" stroke="#38bdf8" stroke-width="1.6"/>
+        <!-- Afghanistan -->
+        <path d="M345,90 L388,82 L400,108 L378,132 L358,120 Z" fill="#141c2a" stroke="#1e2a3a" stroke-width="0.6"/>
+        <!-- Pakistan -->
+        <path d="M358,120 L378,132 L385,172 L358,195 L332,188 L345,162 Z" fill="#141c2a" stroke="#1e2a3a" stroke-width="0.6"/>
+        <!-- Saudi Arabia -->
+        <path d="M140,140 L195,140 L228,162 L262,178 L235,215 L182,225 L135,202 L125,165 Z" fill="#141c2a" stroke="#1e2a3a" stroke-width="0.6"/>
+        <!-- Oman/UAE -->
+        <path d="M262,178 L308,185 L318,210 L275,222 L235,215 Z" fill="#141c2a" stroke="#1e2a3a" stroke-width="0.6"/>
+        <!-- Caspian -->
+        <ellipse cx="268" cy="82" rx="12" ry="22" fill="#0e1220" stroke="#1e2a3a" stroke-width="0.4"/>
+        <!-- Egypt -->
+        <path d="M52,132 L92,125 L102,165 L82,202 L50,195 L42,162 Z" fill="#141c2a" stroke="#1e2a3a" stroke-width="0.6"/>
+        <!-- Mediterranean -->
+        <path d="M38,80 L85,88 L105,106 L85,115 L38,108 Z" fill="#0e1220" stroke="none"/>
+
+        <!-- Animated glow — more subtle than pure C -->
+        <ellipse cx="292" cy="132" rx="75" ry="62" fill="rgba(56,189,248,1)" style="animation: glow-pulse-hybrid 5s ease-in-out infinite;"/>
+      </svg>
+      <!-- Edge fades -->
+      <div style="position: absolute; left: 0; top: 0; bottom: 0; width: 25px; background: linear-gradient(to right, #0e1220, transparent);"></div>
+      <div style="position: absolute; right: 0; top: 0; bottom: 0; width: 20px; background: linear-gradient(to left, #0e1220, transparent);"></div>
+      <div style="position: absolute; top: 0; left: 0; right: 0; height: 15px; background: linear-gradient(to bottom, #0e1220, transparent);"></div>
+      <div style="position: absolute; bottom: 0; left: 0; right: 0; height: 15px; background: linear-gradient(to top, #0e1220, transparent);"></div>
+    </div>
+  </div>
+</div>
+
+<div style="margin-top: 20px; padding: 16px; border-radius: 8px; background: rgba(96,165,250,0.06); border: 1px solid rgba(96,165,250,0.15);">
+  <p style="font-size: 13px; color: #9ca3af; margin: 0;">
+    <strong style="color: #e8eaf0;">Hybrid combines both:</strong> Gradient fill gives the country depth and visual weight (brighter center, softer edges). Strong border gives cartographic precision. Subtle 5s pulse on the ambient glow adds a "living system" feel without being distracting.
+  </p>
+</div>

@@ -1,0 +1,121 @@
+<h2>Hero Layout Direction</h2>
+<p class="subtitle">How should the geographic visual relate to the actor metadata?</p>
+
+<div class="cards">
+  <!-- Option A: Side Panel -->
+  <div class="card" data-choice="a" onclick="toggleSelect(this)">
+    <div class="card-image" style="padding: 24px; background: #0a0e1a;">
+      <div style="display: flex; gap: 0; height: 200px; border-radius: 8px; overflow: hidden; border: 1px solid #1e2530;">
+        <!-- Left: metadata -->
+        <div style="flex: 1; padding: 20px; display: flex; flex-direction: column; justify-content: center; background: #0d1117;">
+          <div style="display: flex; gap: 6px; margin-bottom: 8px;">
+            <span style="font-size: 9px; padding: 2px 6px; border-radius: 4px; background: rgba(96,165,250,0.12); color: #60a5fa; border: 1px solid rgba(96,165,250,0.3);">State</span>
+            <span style="font-size: 9px; padding: 2px 6px; border-radius: 4px; color: #6b7280; border: 1px solid #1e2530;">Middle East</span>
+          </div>
+          <div style="font-size: 22px; font-weight: 700; color: #e8eaf0; margin-bottom: 4px;">Iran</div>
+          <div style="font-size: 11px; color: #6b7280;">Islamic Republic</div>
+        </div>
+        <!-- Right: geographic panel -->
+        <div style="width: 45%; background: #0e1220; display: flex; align-items: center; justify-content: center; position: relative; border-left: 1px solid #1e2530;">
+          <!-- Stylized map area -->
+          <svg width="160" height="160" viewBox="0 0 160 160">
+            <circle cx="80" cy="80" r="70" fill="none" stroke="#1e2a3a" stroke-width="0.5" opacity="0.5"/>
+            <circle cx="80" cy="80" r="50" fill="none" stroke="#1e2a3a" stroke-width="0.5" opacity="0.3"/>
+            <!-- Simplified Iran shape -->
+            <path d="M70,55 L95,50 L110,60 L115,75 L105,90 L90,100 L75,95 L60,80 L65,65 Z" fill="#38bdf8" opacity="0.6" stroke="#38bdf8" stroke-width="0.5"/>
+            <!-- Neighboring countries faint -->
+            <path d="M45,50 L65,45 L70,55 L65,65 L50,60 Z" fill="#141c2a" stroke="#1e2a3a" stroke-width="0.5"/>
+            <path d="M115,75 L130,70 L135,85 L120,90 L105,90 Z" fill="#141c2a" stroke="#1e2a3a" stroke-width="0.5"/>
+            <!-- Graticule lines -->
+            <line x1="20" y1="80" x2="140" y2="80" stroke="#1a2235" stroke-width="0.3"/>
+            <line x1="80" y1="20" x2="80" y2="140" stroke="#1a2235" stroke-width="0.3"/>
+          </svg>
+          <!-- Subtle glow -->
+          <div style="position: absolute; inset: 0; background: radial-gradient(circle at center, rgba(56,189,248,0.06) 0%, transparent 70%); pointer-events: none;"></div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>A — Side Panel</h3>
+      <p>Geographic visual as a distinct right-side panel (~40-45% width). Clear separation between metadata and map. The map gets its own contained space with a defined border.</p>
+      <p style="color: #6b7280; font-size: 12px; margin-top: 8px;">Feels structured, dossier-like. Two clear zones.</p>
+    </div>
+  </div>
+
+  <!-- Option B: Integrated Background -->
+  <div class="card" data-choice="b" onclick="toggleSelect(this)">
+    <div class="card-image" style="padding: 24px; background: #0a0e1a;">
+      <div style="height: 200px; border-radius: 8px; overflow: hidden; border: 1px solid #1e2530; position: relative; background: #0d1117;">
+        <!-- Background map - bleeds across full width -->
+        <div style="position: absolute; right: -20px; top: -20px; width: 75%; height: 130%; opacity: 0.18;">
+          <svg width="100%" height="100%" viewBox="0 0 200 200">
+            <path d="M80,55 L120,45 L145,60 L155,85 L140,110 L115,125 L90,118 L65,95 L70,70 Z" fill="#38bdf8" stroke="#38bdf8" stroke-width="0.5"/>
+            <path d="M40,45 L65,38 L80,55 L70,70 L48,60 Z" fill="#141c2a" stroke="#1e2a3a" stroke-width="0.5"/>
+            <path d="M155,85 L180,75 L190,100 L170,110 L140,110 Z" fill="#141c2a" stroke="#1e2a3a" stroke-width="0.5"/>
+            <path d="M90,118 L80,140 L60,135 L55,120 L65,95 Z" fill="#141c2a" stroke="#1e2a3a" stroke-width="0.5"/>
+            <line x1="10" y1="90" x2="200" y2="90" stroke="#1a2235" stroke-width="0.5"/>
+            <line x1="100" y1="10" x2="100" y2="200" stroke="#1a2235" stroke-width="0.5"/>
+            <circle cx="100" cy="90" r="60" fill="none" stroke="#1e2a3a" stroke-width="0.3"/>
+          </svg>
+        </div>
+        <!-- Gradient fade from left -->
+        <div style="position: absolute; inset: 0; background: linear-gradient(to right, #0d1117 35%, transparent 75%); pointer-events: none;"></div>
+        <!-- Content overlaid -->
+        <div style="position: relative; z-index: 2; padding: 20px; display: flex; flex-direction: column; justify-content: center; height: 100%;">
+          <div style="display: flex; gap: 6px; margin-bottom: 8px;">
+            <span style="font-size: 9px; padding: 2px 6px; border-radius: 4px; background: rgba(96,165,250,0.12); color: #60a5fa; border: 1px solid rgba(96,165,250,0.3);">State</span>
+            <span style="font-size: 9px; padding: 2px 6px; border-radius: 4px; color: #6b7280; border: 1px solid #1e2530;">Middle East</span>
+          </div>
+          <div style="font-size: 22px; font-weight: 700; color: #e8eaf0; margin-bottom: 4px;">Iran</div>
+          <div style="font-size: 11px; color: #6b7280;">Islamic Republic</div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>B — Integrated Background</h3>
+      <p>Geographic visual bleeds across the hero as a large background element. Text overlays with a left-to-right gradient fade. No hard boundary between content and map.</p>
+      <p style="color: #6b7280; font-size: 12px; margin-top: 8px;">Feels immersive, cinematic. Geography as atmosphere.</p>
+    </div>
+  </div>
+
+  <!-- Option C: Asymmetric Split -->
+  <div class="card" data-choice="c" onclick="toggleSelect(this)">
+    <div class="card-image" style="padding: 24px; background: #0a0e1a;">
+      <div style="display: flex; gap: 0; height: 200px; border-radius: 8px; overflow: hidden; border: 1px solid #1e2530;">
+        <!-- Left: metadata (narrower) -->
+        <div style="width: 38%; padding: 20px; display: flex; flex-direction: column; justify-content: center; background: #0d1117;">
+          <div style="display: flex; gap: 6px; margin-bottom: 8px; flex-wrap: wrap;">
+            <span style="font-size: 9px; padding: 2px 6px; border-radius: 4px; background: rgba(96,165,250,0.12); color: #60a5fa; border: 1px solid rgba(96,165,250,0.3);">State</span>
+            <span style="font-size: 9px; padding: 2px 6px; border-radius: 4px; color: #6b7280; border: 1px solid #1e2530;">Middle East</span>
+          </div>
+          <div style="font-size: 22px; font-weight: 700; color: #e8eaf0; margin-bottom: 4px;">Iran</div>
+          <div style="font-size: 11px; color: #6b7280;">Islamic Republic</div>
+        </div>
+        <!-- Right: map takes majority -->
+        <div style="flex: 1; background: #0e1220; position: relative; overflow: hidden;">
+          <!-- Large cropped map -->
+          <svg width="100%" height="100%" viewBox="0 0 250 200" preserveAspectRatio="xMidYMid slice">
+            <!-- Tight crop on region -->
+            <path d="M80,40 L140,30 L180,55 L195,90 L175,125 L145,145 L110,135 L75,110 L70,75 Z" fill="#38bdf8" opacity="0.5" stroke="#38bdf8" stroke-width="0.8"/>
+            <path d="M35,30 L75,20 L80,40 L70,75 L45,55 Z" fill="#141c2a" stroke="#1e2a3a" stroke-width="0.5"/>
+            <path d="M195,90 L230,80 L245,110 L220,125 L175,125 Z" fill="#141c2a" stroke="#1e2a3a" stroke-width="0.5"/>
+            <path d="M110,135 L95,165 L65,158 L55,135 L75,110 Z" fill="#141c2a" stroke="#1e2a3a" stroke-width="0.5"/>
+            <path d="M140,30 L170,20 L195,30 L195,55 L180,55 Z" fill="#141c2a" stroke="#1e2a3a" stroke-width="0.5"/>
+            <!-- Subtle graticule -->
+            <line x1="0" y1="100" x2="250" y2="100" stroke="#1a2235" stroke-width="0.4"/>
+            <line x1="125" y1="0" x2="125" y2="200" stroke="#1a2235" stroke-width="0.4"/>
+          </svg>
+          <!-- Left edge fade into metadata panel -->
+          <div style="position: absolute; left: 0; top: 0; bottom: 0; width: 40px; background: linear-gradient(to right, #0d1117, transparent); pointer-events: none;"></div>
+          <!-- Subtle glow on actor -->
+          <div style="position: absolute; inset: 0; background: radial-gradient(ellipse at 55% 50%, rgba(56,189,248,0.08) 0%, transparent 60%); pointer-events: none;"></div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>C — Asymmetric Split</h3>
+      <p>Metadata panel on the left (~35-40%), geographic visual takes the remaining 60-65%. Map is tightly cropped on the actor's region with edge-to-edge rendering. Soft gradient blends the boundary.</p>
+      <p style="color: #6b7280; font-size: 12px; margin-top: 8px;">Balanced: structured metadata + generous map presence. Geography dominates but doesn't overwhelm text.</p>
+    </div>
+  </div>
+</div>

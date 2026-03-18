@@ -52,8 +52,8 @@ export default function ActorGeoPanel({ isoCode, region, actorType }: ActorGeoPa
     >
       <style>{`
         @keyframes geo-glow {
-          0%, 100% { opacity: 0.05; }
-          50% { opacity: 0.10; }
+          0%, 100% { opacity: 0.12; }
+          50% { opacity: 0.28; }
         }
       `}</style>
 
@@ -72,24 +72,15 @@ export default function ActorGeoPanel({ isoCode, region, actorType }: ActorGeoPa
             <stop offset="55%" stopColor={SIGNAL_BLUE} stopOpacity={0.18} />
             <stop offset="100%" stopColor={SIGNAL_BLUE} stopOpacity={0.08} />
           </radialGradient>
+          <filter id="country-glow-blur" x="-50%" y="-50%" width="200%" height="200%">
+            <feGaussianBlur stdDeviation="12" />
+          </filter>
         </defs>
-
-        {/* Ambient glow ellipse — centered in the ComposableMap coordinate space (800x400) */}
-        {shouldHighlight && (
-          <ellipse
-            cx={400}
-            cy={200}
-            rx={120}
-            ry={100}
-            fill={SIGNAL_BLUE}
-            style={{ animation: 'geo-glow 5s ease-in-out infinite' }}
-          />
-        )}
 
         <Graticule stroke={GRATICULE_STROKE} strokeWidth={0.3} />
         <Geographies geography={GEO_URL}>
-          {({ geographies }: { geographies: any[] }) =>
-            geographies.map((geo) => {
+          {({ geographies }: { geographies: any[] }) => {
+            const geos = geographies.map((geo) => {
               const alpha3 = ISO_NUMERIC_TO_ALPHA3[geo.id]
               const isActor = shouldHighlight && alpha3 === isoCode
               return (
@@ -107,7 +98,31 @@ export default function ActorGeoPanel({ isoCode, region, actorType }: ActorGeoPa
                 />
               )
             })
-          }
+
+            // Country-shaped glow: blurred copy of the highlighted country rendered on top
+            const actorGeo = shouldHighlight
+              ? geographies.find((geo) => ISO_NUMERIC_TO_ALPHA3[geo.id] === isoCode)
+              : null
+
+            return (
+              <>
+                {geos}
+                {actorGeo && (
+                  <Geography
+                    geography={actorGeo}
+                    fill={SIGNAL_BLUE}
+                    stroke={SIGNAL_BLUE}
+                    strokeWidth={4}
+                    style={{
+                      default: { outline: 'none', filter: 'url(#country-glow-blur)', animation: 'geo-glow 5s ease-in-out infinite' },
+                      hover: { outline: 'none', filter: 'url(#country-glow-blur)', animation: 'geo-glow 5s ease-in-out infinite' },
+                      pressed: { outline: 'none', filter: 'url(#country-glow-blur)', animation: 'geo-glow 5s ease-in-out infinite' },
+                    }}
+                  />
+                )}
+              </>
+            )
+          }}
         </Geographies>
       </ComposableMap>
 
