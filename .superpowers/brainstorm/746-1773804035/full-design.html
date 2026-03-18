@@ -1,0 +1,212 @@
+<h2>Full Hero Design — Final Proposal</h2>
+<p class="subtitle">All decisions consolidated. State actor (Iran) and non-state fallback (Hezbollah).</p>
+
+<div style="margin-bottom: 32px;">
+  <h3 style="margin-bottom: 4px;">State Actor — Iran</h3>
+  <p class="subtitle" style="margin-bottom: 16px;">Asymmetric split · Natural Earth · Gradient fill + border + pulse · Scores integrated</p>
+
+  <div style="border-radius: 12px; overflow: hidden; border: 1px solid #1e2530; background: #0d1117; height: 270px; display: flex;">
+    <!-- LEFT: Metadata + Scores (~38%) -->
+    <div style="width: 38%; padding: 24px 28px; display: flex; flex-direction: column; justify-content: center; position: relative;">
+      <!-- Back link -->
+      <div style="position: absolute; top: 14px; left: 28px;">
+        <span style="font-size: 11px; color: #4b5563;">← Actor Leaderboard</span>
+      </div>
+
+      <!-- Badges -->
+      <div style="display: flex; gap: 6px; margin-bottom: 10px; flex-wrap: wrap;">
+        <span style="font-size: 9px; padding: 2px 7px; border-radius: 4px; background: rgba(96,165,250,0.12); color: #60a5fa; border: 1px solid rgba(96,165,250,0.3); font-weight: 600;">State</span>
+        <span style="font-size: 9px; padding: 2px 7px; border-radius: 4px; color: #6b7280; border: 1px solid #1e2530;">Middle East</span>
+        <span style="font-size: 9px; color: #4b5563; font-family: monospace; padding: 2px 4px;">IRN</span>
+        <span style="font-size: 9px; padding: 2px 7px; border-radius: 4px; background: rgba(245,158,11,0.12); color: #f59e0b; font-weight: 500;">Widening</span>
+      </div>
+
+      <!-- Name -->
+      <div style="font-size: 28px; font-weight: 700; color: #e8eaf0; letter-spacing: -0.5px; margin-bottom: 2px;">Iran</div>
+      <div style="font-size: 12px; color: #6b7280; margin-bottom: 20px;">Middle East</div>
+
+      <!-- Score row -->
+      <div style="display: flex; gap: 20px; padding-top: 16px; border-top: 1px solid #1e2530;">
+        <!-- PF Score -->
+        <div>
+          <div style="font-size: 10px; color: #6b7280; margin-bottom: 4px;">PF Score</div>
+          <div style="font-size: 26px; font-weight: 700; color: #60a5fa; font-variant-numeric: tabular-nums;">62</div>
+        </div>
+        <!-- Authority -->
+        <div>
+          <div style="font-size: 10px; color: #6b7280; margin-bottom: 4px;">Authority</div>
+          <div style="font-size: 26px; font-weight: 700; color: #f59e0b; font-variant-numeric: tabular-nums;">68</div>
+        </div>
+        <!-- Reach -->
+        <div>
+          <div style="font-size: 10px; color: #6b7280; margin-bottom: 4px;">Reach</div>
+          <div style="font-size: 26px; font-weight: 700; color: #f97316; font-variant-numeric: tabular-nums;">57</div>
+        </div>
+        <!-- Delta -->
+        <div style="display: flex; flex-direction: column; justify-content: flex-end; padding-bottom: 2px;">
+          <div style="font-size: 14px; font-weight: 600; color: #ef4444;">−3</div>
+          <div style="font-size: 9px; color: #6b7280;">recent Δ</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT: Geographic Panel (~62%) -->
+    <div style="flex: 1; background: #0e1220; position: relative; overflow: hidden;">
+      <style>
+        @keyframes hero-glow {
+          0%, 100% { opacity: 0.05; }
+          50% { opacity: 0.10; }
+        }
+      </style>
+      <svg width="100%" height="100%" viewBox="0 0 450 270" preserveAspectRatio="xMidYMid slice">
+        <defs>
+          <radialGradient id="actor-grad" cx="50%" cy="45%" r="55%">
+            <stop offset="0%" stop-color="#38bdf8" stop-opacity="0.35"/>
+            <stop offset="55%" stop-color="#38bdf8" stop-opacity="0.18"/>
+            <stop offset="100%" stop-color="#38bdf8" stop-opacity="0.08"/>
+          </radialGradient>
+        </defs>
+
+        <!-- Graticule -->
+        <line x1="0" y1="67" x2="450" y2="69" stroke="#1a2235" stroke-width="0.3"/>
+        <line x1="0" y1="135" x2="450" y2="135" stroke="#1a2235" stroke-width="0.3"/>
+        <line x1="0" y1="203" x2="450" y2="201" stroke="#1a2235" stroke-width="0.3"/>
+        <path d="M112,0 Q110,135 112,270" fill="none" stroke="#1a2235" stroke-width="0.25"/>
+        <path d="M225,0 Q225,135 225,270" fill="none" stroke="#1a2235" stroke-width="0.25"/>
+        <path d="M338,0 Q340,135 338,270" fill="none" stroke="#1a2235" stroke-width="0.25"/>
+
+        <!-- Turkey -->
+        <path d="M60,72 L185,60 L215,72 L190,86 L82,90 Z" fill="#141c2a" stroke="#1e2a3a" stroke-width="0.6"/>
+        <!-- Syria -->
+        <path d="M120,90 L155,86 L162,100 L145,112 L120,108 Z" fill="#141c2a" stroke="#1e2a3a" stroke-width="0.6"/>
+        <!-- Iraq -->
+        <path d="M162,100 L210,92 L225,115 L208,140 L175,132 L155,112 Z" fill="#141c2a" stroke="#1e2a3a" stroke-width="0.6"/>
+        <!-- Iran — gradient fill + strong border -->
+        <path d="M210,92 L275,72 L330,82 L348,112 L338,150 L305,175 L260,168 L225,155 L208,140 L225,115 Z"
+              fill="url(#actor-grad)" stroke="#38bdf8" stroke-width="1.6"/>
+        <!-- Turkmenistan -->
+        <path d="M275,72 L310,60 L340,65 L335,80 L330,82 Z" fill="#141c2a" stroke="#1e2a3a" stroke-width="0.6"/>
+        <!-- Afghanistan -->
+        <path d="M330,82 L380,72 L405,92 L385,118 L348,112 Z" fill="#141c2a" stroke="#1e2a3a" stroke-width="0.6"/>
+        <!-- Pakistan -->
+        <path d="M348,112 L385,118 L395,158 L368,182 L340,175 L338,150 Z" fill="#141c2a" stroke="#1e2a3a" stroke-width="0.6"/>
+        <!-- Saudi Arabia -->
+        <path d="M105,118 L175,132 L208,140 L225,155 L260,168 L235,205 L170,218 L120,198 L100,162 Z" fill="#141c2a" stroke="#1e2a3a" stroke-width="0.6"/>
+        <!-- Oman/UAE -->
+        <path d="M260,168 L305,175 L315,200 L278,212 L235,205 Z" fill="#141c2a" stroke="#1e2a3a" stroke-width="0.6"/>
+        <!-- Yemen -->
+        <path d="M170,218 L235,205 L250,225 L195,240 L160,235 Z" fill="#141c2a" stroke="#1e2a3a" stroke-width="0.6"/>
+        <!-- Caspian Sea -->
+        <ellipse cx="255" cy="72" rx="14" ry="22" fill="#0e1220" stroke="#1e2a3a" stroke-width="0.4"/>
+        <!-- Egypt -->
+        <path d="M30,108 L72,100 L82,140 L65,182 L35,175 L25,142 Z" fill="#141c2a" stroke="#1e2a3a" stroke-width="0.6"/>
+        <!-- Mediterranean hint -->
+        <path d="M20,68 L60,72 L82,90 L72,100 L20,92 Z" fill="#0e1220" stroke="none"/>
+        <!-- Persian Gulf -->
+        <path d="M225,155 L260,168 L255,172 L220,160 Z" fill="#0e1220" stroke="none" opacity="0.7"/>
+
+        <!-- Animated ambient glow -->
+        <ellipse cx="280" cy="125" rx="75" ry="60" fill="rgba(56,189,248,1)" style="animation: hero-glow 5s ease-in-out infinite;"/>
+      </svg>
+
+      <!-- Edge fades -->
+      <div style="position: absolute; left: 0; top: 0; bottom: 0; width: 35px; background: linear-gradient(to right, #0d1117, transparent); pointer-events: none;"></div>
+      <div style="position: absolute; right: 0; top: 0; bottom: 0; width: 25px; background: linear-gradient(to left, #0e1220, transparent); pointer-events: none;"></div>
+      <div style="position: absolute; top: 0; left: 0; right: 0; height: 18px; background: linear-gradient(to bottom, #0e1220, transparent); pointer-events: none;"></div>
+      <div style="position: absolute; bottom: 0; left: 0; right: 0; height: 18px; background: linear-gradient(to top, #0e1220, transparent); pointer-events: none;"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Non-State Actor Fallback -->
+<div style="margin-bottom: 32px;">
+  <h3 style="margin-bottom: 4px;">Non-State Actor — Hezbollah</h3>
+  <p class="subtitle" style="margin-bottom: 16px;">Same layout · Region crop (Middle East) · No country highlight · No pulse</p>
+
+  <div style="border-radius: 12px; overflow: hidden; border: 1px solid #1e2530; background: #0d1117; height: 270px; display: flex;">
+    <!-- LEFT: Metadata + Scores -->
+    <div style="width: 38%; padding: 24px 28px; display: flex; flex-direction: column; justify-content: center; position: relative;">
+      <div style="position: absolute; top: 14px; left: 28px;">
+        <span style="font-size: 11px; color: #4b5563;">← Actor Leaderboard</span>
+      </div>
+
+      <div style="display: flex; gap: 6px; margin-bottom: 10px; flex-wrap: wrap;">
+        <span style="font-size: 9px; padding: 2px 7px; border-radius: 4px; background: rgba(239,68,68,0.12); color: #ef4444; border: 1px solid rgba(239,68,68,0.3); font-weight: 600;">Non-State</span>
+        <span style="font-size: 9px; padding: 2px 7px; border-radius: 4px; color: #6b7280; border: 1px solid #1e2530;">Middle East</span>
+        <span style="font-size: 9px; padding: 2px 7px; border-radius: 4px; background: rgba(34,197,94,0.12); color: #22c55e; font-weight: 500;">Narrowing</span>
+      </div>
+
+      <div style="font-size: 28px; font-weight: 700; color: #e8eaf0; letter-spacing: -0.5px; margin-bottom: 2px;">Hezbollah</div>
+      <div style="font-size: 12px; color: #6b7280; margin-bottom: 20px;">Armed Non-State</div>
+
+      <div style="display: flex; gap: 20px; padding-top: 16px; border-top: 1px solid #1e2530;">
+        <div>
+          <div style="font-size: 10px; color: #6b7280; margin-bottom: 4px;">PF Score</div>
+          <div style="font-size: 26px; font-weight: 700; color: #60a5fa; font-variant-numeric: tabular-nums;">38</div>
+        </div>
+        <div>
+          <div style="font-size: 10px; color: #6b7280; margin-bottom: 4px;">Authority</div>
+          <div style="font-size: 26px; font-weight: 700; color: #f59e0b; font-variant-numeric: tabular-nums;">42</div>
+        </div>
+        <div>
+          <div style="font-size: 10px; color: #6b7280; margin-bottom: 4px;">Reach</div>
+          <div style="font-size: 26px; font-weight: 700; color: #f97316; font-variant-numeric: tabular-nums;">35</div>
+        </div>
+        <div style="display: flex; flex-direction: column; justify-content: flex-end; padding-bottom: 2px;">
+          <div style="font-size: 14px; font-weight: 600; color: #22c55e;">+2</div>
+          <div style="font-size: 9px; color: #6b7280;">recent Δ</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT: Region crop — no highlight, no pulse -->
+    <div style="flex: 1; background: #0e1220; position: relative; overflow: hidden;">
+      <svg width="100%" height="100%" viewBox="0 0 450 270" preserveAspectRatio="xMidYMid slice">
+        <!-- Graticule -->
+        <line x1="0" y1="67" x2="450" y2="69" stroke="#1a2235" stroke-width="0.3"/>
+        <line x1="0" y1="135" x2="450" y2="135" stroke="#1a2235" stroke-width="0.3"/>
+        <line x1="0" y1="203" x2="450" y2="201" stroke="#1a2235" stroke-width="0.3"/>
+        <path d="M112,0 Q110,135 112,270" fill="none" stroke="#1a2235" stroke-width="0.25"/>
+        <path d="M225,0 Q225,135 225,270" fill="none" stroke="#1a2235" stroke-width="0.25"/>
+        <path d="M338,0 Q340,135 338,270" fill="none" stroke="#1a2235" stroke-width="0.25"/>
+
+        <!-- All countries in uniform dark landmass -->
+        <path d="M60,72 L185,60 L215,72 L190,86 L82,90 Z" fill="#141c2a" stroke="#1e2a3a" stroke-width="0.6"/>
+        <path d="M120,90 L155,86 L162,100 L145,112 L120,108 Z" fill="#141c2a" stroke="#1e2a3a" stroke-width="0.6"/>
+        <path d="M162,100 L210,92 L225,115 L208,140 L175,132 L155,112 Z" fill="#141c2a" stroke="#1e2a3a" stroke-width="0.6"/>
+        <path d="M210,92 L275,72 L330,82 L348,112 L338,150 L305,175 L260,168 L225,155 L208,140 L225,115 Z" fill="#141c2a" stroke="#1e2a3a" stroke-width="0.6"/>
+        <path d="M275,72 L310,60 L340,65 L335,80 L330,82 Z" fill="#141c2a" stroke="#1e2a3a" stroke-width="0.6"/>
+        <path d="M330,82 L380,72 L405,92 L385,118 L348,112 Z" fill="#141c2a" stroke="#1e2a3a" stroke-width="0.6"/>
+        <path d="M348,112 L385,118 L395,158 L368,182 L340,175 L338,150 Z" fill="#141c2a" stroke="#1e2a3a" stroke-width="0.6"/>
+        <path d="M105,118 L175,132 L208,140 L225,155 L260,168 L235,205 L170,218 L120,198 L100,162 Z" fill="#141c2a" stroke="#1e2a3a" stroke-width="0.6"/>
+        <path d="M260,168 L305,175 L315,200 L278,212 L235,205 Z" fill="#141c2a" stroke="#1e2a3a" stroke-width="0.6"/>
+        <path d="M170,218 L235,205 L250,225 L195,240 L160,235 Z" fill="#141c2a" stroke="#1e2a3a" stroke-width="0.6"/>
+        <ellipse cx="255" cy="72" rx="14" ry="22" fill="#0e1220" stroke="#1e2a3a" stroke-width="0.4"/>
+        <path d="M30,108 L72,100 L82,140 L65,182 L35,175 L25,142 Z" fill="#141c2a" stroke="#1e2a3a" stroke-width="0.6"/>
+        <path d="M20,68 L60,72 L82,90 L72,100 L20,92 Z" fill="#0e1220" stroke="none"/>
+        <path d="M225,155 L260,168 L255,172 L220,160 Z" fill="#0e1220" stroke="none" opacity="0.7"/>
+      </svg>
+
+      <!-- Edge fades -->
+      <div style="position: absolute; left: 0; top: 0; bottom: 0; width: 35px; background: linear-gradient(to right, #0d1117, transparent); pointer-events: none;"></div>
+      <div style="position: absolute; right: 0; top: 0; bottom: 0; width: 25px; background: linear-gradient(to left, #0e1220, transparent); pointer-events: none;"></div>
+      <div style="position: absolute; top: 0; left: 0; right: 0; height: 18px; background: linear-gradient(to bottom, #0e1220, transparent); pointer-events: none;"></div>
+      <div style="position: absolute; bottom: 0; left: 0; right: 0; height: 18px; background: linear-gradient(to top, #0e1220, transparent); pointer-events: none;"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Design Summary -->
+<div style="padding: 20px; border-radius: 10px; background: rgba(96,165,250,0.06); border: 1px solid rgba(96,165,250,0.15);">
+  <h3 style="color: #e8eaf0; margin-top: 0; margin-bottom: 12px; font-size: 14px;">Design Decisions Summary</h3>
+  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px 24px; font-size: 12px;">
+    <div><span style="color: #6b7280;">Layout:</span> <span style="color: #e8eaf0;">Asymmetric split (38/62)</span></div>
+    <div><span style="color: #6b7280;">Projection:</span> <span style="color: #e8eaf0;">Natural Earth</span></div>
+    <div><span style="color: #6b7280;">Hero height:</span> <span style="color: #e8eaf0;">~270px with integrated scores</span></div>
+    <div><span style="color: #6b7280;">Highlight:</span> <span style="color: #e8eaf0;">Gradient fill + border + glow pulse</span></div>
+    <div><span style="color: #6b7280;">State actors:</span> <span style="color: #e8eaf0;">Country highlight + ambient pulse</span></div>
+    <div><span style="color: #6b7280;">Non-state actors:</span> <span style="color: #e8eaf0;">Region crop, no highlight, no pulse</span></div>
+    <div><span style="color: #6b7280;">Edge treatment:</span> <span style="color: #e8eaf0;">Gradient fade on all 4 edges</span></div>
+    <div><span style="color: #6b7280;">Score panel below:</span> <span style="color: #e8eaf0;">Removed (consolidated into hero)</span></div>
+  </div>
+</div>

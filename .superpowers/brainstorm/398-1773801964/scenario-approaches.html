@@ -1,0 +1,751 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Active Scenarios — Design Approaches</title>
+<style>
+  :root {
+    --background: #0a0e1a;
+    --foreground: #e8eaf0;
+    --surface: #0d1117;
+    --surface-raised: #141922;
+    --border: #1e2530;
+    --accent: #60a5fa;
+    --muted: #4d5a6c;
+    --muted-foreground: #a0a8b4;
+    --delta-up: #22c55e;
+    --delta-down: #ef4444;
+    --score-mid: #f59e0b;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--background);
+    color: var(--foreground);
+    font-family: 'Geologica', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    padding: 40px 48px;
+    line-height: 1.5;
+  }
+
+  .page-header {
+    text-align: center;
+    margin-bottom: 56px;
+  }
+  .page-header h1 {
+    font-size: 22px;
+    font-weight: 500;
+    letter-spacing: -0.02em;
+    color: var(--foreground);
+    margin-bottom: 8px;
+  }
+  .page-header p {
+    font-size: 13px;
+    color: var(--muted-foreground);
+    max-width: 520px;
+    margin: 0 auto;
+  }
+
+  .approach {
+    margin-bottom: 64px;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    cursor: pointer;
+    transition: border-color 0.2s;
+  }
+  .approach:hover {
+    border-color: color-mix(in srgb, var(--accent) 40%, transparent);
+  }
+  .approach.selected {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 1px var(--accent);
+  }
+
+  .approach-header {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 20px 24px;
+    background: var(--surface-raised);
+    border-bottom: 1px solid var(--border);
+  }
+  .approach-letter {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    background: color-mix(in srgb, var(--accent) 15%, transparent);
+    border: 1px solid color-mix(in srgb, var(--accent) 30%, transparent);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--accent);
+    flex-shrink: 0;
+  }
+  .approach-title {
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--foreground);
+  }
+  .approach-subtitle {
+    font-size: 12px;
+    color: var(--muted-foreground);
+    margin-top: 2px;
+  }
+
+  .approach-body {
+    padding: 28px 24px;
+    background: var(--surface);
+  }
+
+  /* ── Section label (matches PF design) ── */
+  .section-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+  .section-label .bar {
+    width: 14px;
+    height: 3px;
+    background: var(--accent);
+    border-radius: 2px;
+  }
+  .section-label span {
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted-foreground);
+  }
+
+  /* ── APPROACH A: Risk Dossier Cards ── */
+  .dossier-stack { display: flex; flex-direction: column; gap: 10px; }
+
+  .dossier-card {
+    display: grid;
+    grid-template-columns: 72px 1fr auto;
+    gap: 0;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+    background: var(--surface);
+  }
+
+  .dossier-risk-zone {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    padding: 16px 0;
+    border-right: 1px solid var(--border);
+    background: var(--surface-raised);
+  }
+  .dossier-risk-zone .prob-label {
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--muted);
+  }
+  .dossier-risk-zone .prob-value {
+    font-size: 20px;
+    font-weight: 700;
+    font-family: 'JetBrains Mono', 'SF Mono', monospace;
+    font-variant-numeric: tabular-nums;
+  }
+  .dossier-risk-zone .horizon-tag {
+    font-size: 9px;
+    padding: 2px 6px;
+    border-radius: 3px;
+    background: color-mix(in srgb, var(--muted) 20%, transparent);
+    color: var(--muted-foreground);
+    margin-top: 2px;
+  }
+
+  .dossier-content {
+    padding: 14px 16px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 6px;
+  }
+  .dossier-content .scenario-title {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--foreground);
+    line-height: 1.3;
+  }
+  .dossier-content .scenario-class {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 11px;
+    color: var(--muted-foreground);
+  }
+  .dossier-content .scenario-class .dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .dossier-content .trigger-text {
+    font-size: 12px;
+    color: var(--muted);
+    line-height: 1.4;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .dossier-meta {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    justify-content: center;
+    gap: 6px;
+    padding: 14px 16px;
+    min-width: 160px;
+  }
+  .region-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    justify-content: flex-end;
+  }
+  .region-chip {
+    font-size: 10px;
+    padding: 2px 8px;
+    border-radius: 4px;
+    border: 1px solid var(--border);
+    color: var(--muted-foreground);
+    background: var(--surface-raised);
+    white-space: nowrap;
+  }
+  .actor-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    justify-content: flex-end;
+  }
+  .actor-chip {
+    font-size: 10px;
+    padding: 2px 8px;
+    border-radius: 4px;
+    background: color-mix(in srgb, var(--accent) 10%, transparent);
+    border: 1px solid color-mix(in srgb, var(--accent) 20%, transparent);
+    color: var(--accent);
+    white-space: nowrap;
+  }
+
+  /* ── APPROACH B: Vertical Situation Cards ── */
+  .situation-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+  }
+
+  .situation-card {
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+    background: var(--surface);
+    display: flex;
+    flex-direction: column;
+  }
+
+  .situation-top {
+    padding: 16px 16px 12px;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 10px;
+  }
+  .situation-top .class-badge {
+    font-size: 10px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 3px 8px;
+    border-radius: 4px;
+    white-space: nowrap;
+  }
+  .situation-top .prob-pill {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 13px;
+    font-weight: 600;
+    font-family: 'JetBrains Mono', 'SF Mono', monospace;
+    font-variant-numeric: tabular-nums;
+    padding: 4px 10px;
+    border-radius: 6px;
+  }
+  .situation-top .prob-pill .dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+  }
+
+  .situation-body {
+    padding: 0 16px 14px;
+    flex: 1;
+  }
+  .situation-body .title {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--foreground);
+    line-height: 1.35;
+    margin-bottom: 8px;
+  }
+  .situation-body .trigger {
+    font-size: 11.5px;
+    color: var(--muted);
+    line-height: 1.45;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .situation-footer {
+    padding: 10px 16px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px;
+  }
+  .situation-footer .regions {
+    display: flex;
+    gap: 4px;
+    flex-wrap: wrap;
+  }
+  .situation-footer .region-dot {
+    width: 18px;
+    height: 18px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 8px;
+    font-weight: 600;
+    background: var(--surface-raised);
+    border: 1px solid var(--border);
+    color: var(--muted-foreground);
+  }
+  .situation-footer .horizon {
+    font-size: 10px;
+    color: var(--muted);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .situation-footer .horizon svg {
+    width: 12px;
+    height: 12px;
+    opacity: 0.5;
+  }
+
+  .situation-actors {
+    padding: 0 16px 12px;
+    display: flex;
+    gap: 4px;
+    flex-wrap: wrap;
+  }
+
+  /* ── APPROACH C: Compact Risk Matrix Rows ── */
+  .risk-table {
+    width: 100%;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+  .risk-row {
+    display: grid;
+    grid-template-columns: 4px 54px 1fr 120px 140px 100px;
+    align-items: center;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+    transition: background 0.15s;
+  }
+  .risk-row:last-child { border-bottom: none; }
+  .risk-row:hover { background: var(--surface-raised); }
+
+  .risk-row .edge {
+    width: 4px;
+    height: 100%;
+    min-height: 56px;
+  }
+  .risk-row .prob-cell {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    font-weight: 700;
+    font-family: 'JetBrains Mono', 'SF Mono', monospace;
+    font-variant-numeric: tabular-nums;
+    padding: 12px 0;
+  }
+  .risk-row .name-cell {
+    padding: 12px 16px;
+  }
+  .risk-row .name-cell .name {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--foreground);
+    margin-bottom: 2px;
+  }
+  .risk-row .name-cell .trigger {
+    font-size: 11px;
+    color: var(--muted);
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .risk-row .class-cell {
+    font-size: 11px;
+    color: var(--muted-foreground);
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+  .risk-row .class-cell .dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .risk-row .regions-cell {
+    display: flex;
+    gap: 4px;
+    flex-wrap: wrap;
+  }
+  .risk-row .horizon-cell {
+    font-size: 11px;
+    color: var(--muted);
+    text-align: right;
+    padding-right: 14px;
+  }
+
+  /* ── Color helpers ── */
+  .risk-high { color: var(--delta-down); }
+  .risk-mid { color: var(--score-mid); }
+  .risk-low { color: var(--muted-foreground); }
+  .bg-high { background: var(--delta-down); }
+  .bg-mid { background: var(--score-mid); }
+  .bg-low { background: var(--muted-foreground); }
+  .bg-high-subtle { background: color-mix(in srgb, var(--delta-down) 10%, transparent); border-color: color-mix(in srgb, var(--delta-down) 25%, transparent); color: var(--delta-down); }
+  .bg-mid-subtle { background: color-mix(in srgb, var(--score-mid) 10%, transparent); border-color: color-mix(in srgb, var(--score-mid) 25%, transparent); color: var(--score-mid); }
+  .bg-low-subtle { background: color-mix(in srgb, var(--muted-foreground) 10%, transparent); border-color: color-mix(in srgb, var(--muted-foreground) 25%, transparent); color: var(--muted-foreground); }
+  .bg-escalation { background: color-mix(in srgb, var(--delta-down) 12%, transparent); border: 1px solid color-mix(in srgb, var(--delta-down) 25%, transparent); color: var(--delta-down); }
+  .bg-transition { background: color-mix(in srgb, var(--score-mid) 12%, transparent); border: 1px solid color-mix(in srgb, var(--score-mid) 25%, transparent); color: var(--score-mid); }
+  .bg-drift { background: color-mix(in srgb, var(--accent) 12%, transparent); border: 1px solid color-mix(in srgb, var(--accent) 25%, transparent); color: var(--accent); }
+
+  /* ── Selection indicator ── */
+  .selection-bar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: var(--surface-raised);
+    border-top: 1px solid var(--border);
+    padding: 14px 24px;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    font-size: 13px;
+    color: var(--accent);
+    z-index: 100;
+  }
+  .selection-bar.visible { display: flex; }
+</style>
+</head>
+<body>
+
+<div class="page-header">
+  <h1>Active Scenarios — 3 Design Approaches</h1>
+  <p>Click any approach card to select it. Each uses the same data fields: probability, scenario class, trigger condition, regions, actors, and time horizon.</p>
+</div>
+
+<!-- ════════════ APPROACH A ════════════ -->
+<div class="approach" data-choice="a" onclick="selectApproach(this)">
+  <div class="approach-header">
+    <div class="approach-letter">A</div>
+    <div>
+      <div class="approach-title">Risk Dossier Rows</div>
+      <div class="approach-subtitle">Horizontal 3-zone cards — risk signal | scenario content | contextual metadata</div>
+    </div>
+  </div>
+  <div class="approach-body">
+    <div class="section-label"><div class="bar"></div><span>Active scenarios</span></div>
+    <div class="dossier-stack">
+      <!-- Card 1 -->
+      <div class="dossier-card">
+        <div class="dossier-risk-zone">
+          <span class="prob-label">Prob</span>
+          <span class="prob-value risk-high">68%</span>
+          <span class="horizon-tag">0–6 mo</span>
+        </div>
+        <div class="dossier-content">
+          <div class="scenario-class">
+            <span class="dot bg-high"></span>
+            Escalation
+          </div>
+          <div class="scenario-title">Israeli Ground Incursion into Southern Lebanon</div>
+          <div class="trigger-text">Hezbollah rocket barrage exceeds 50 per day sustained over 72h or confirmed anti-ship missile launch against Israeli naval asset</div>
+        </div>
+        <div class="dossier-meta">
+          <div class="region-chips">
+            <span class="region-chip">Middle East</span>
+          </div>
+          <div class="actor-chips">
+            <span class="actor-chip">Israel</span>
+            <span class="actor-chip">Hezbollah</span>
+            <span class="actor-chip">Iran</span>
+          </div>
+        </div>
+      </div>
+      <!-- Card 2 -->
+      <div class="dossier-card">
+        <div class="dossier-risk-zone">
+          <span class="prob-label">Prob</span>
+          <span class="prob-value risk-mid">42%</span>
+          <span class="horizon-tag">6–18 mo</span>
+        </div>
+        <div class="dossier-content">
+          <div class="scenario-class">
+            <span class="dot bg-mid"></span>
+            Power Transition
+          </div>
+          <div class="scenario-title">Saudi–Iran Normalization Collapse</div>
+          <div class="trigger-text">Proxy escalation in Yemen or confirmed Iranian nuclear enrichment beyond 60% threshold</div>
+        </div>
+        <div class="dossier-meta">
+          <div class="region-chips">
+            <span class="region-chip">Middle East</span>
+            <span class="region-chip">Global</span>
+          </div>
+          <div class="actor-chips">
+            <span class="actor-chip">Saudi Arabia</span>
+            <span class="actor-chip">Iran</span>
+          </div>
+        </div>
+      </div>
+      <!-- Card 3 -->
+      <div class="dossier-card">
+        <div class="dossier-risk-zone">
+          <span class="prob-label">Prob</span>
+          <span class="prob-value risk-low">18%</span>
+          <span class="horizon-tag">1–3 yr</span>
+        </div>
+        <div class="dossier-content">
+          <div class="scenario-class">
+            <span class="dot bg-low"></span>
+            Structural Drift
+          </div>
+          <div class="scenario-title">EU Defense Autonomy Breakout</div>
+          <div class="trigger-text">NATO credibility shock triggers Franco-German joint procurement framework bypassing US interoperability standards</div>
+        </div>
+        <div class="dossier-meta">
+          <div class="region-chips">
+            <span class="region-chip">Europe</span>
+            <span class="region-chip">Americas</span>
+          </div>
+          <div class="actor-chips">
+            <span class="actor-chip">France</span>
+            <span class="actor-chip">Germany</span>
+            <span class="actor-chip">United States</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════ APPROACH B ════════════ -->
+<div class="approach" data-choice="b" onclick="selectApproach(this)">
+  <div class="approach-header">
+    <div class="approach-letter">B</div>
+    <div>
+      <div class="approach-title">Situation Cards (Vertical Grid)</div>
+      <div class="approach-subtitle">Vertical card grid — each scenario as a self-contained monitoring tile with layered zones</div>
+    </div>
+  </div>
+  <div class="approach-body">
+    <div class="section-label"><div class="bar"></div><span>Active scenarios</span></div>
+    <div class="situation-grid">
+      <!-- Card 1 -->
+      <div class="situation-card">
+        <div class="situation-top">
+          <span class="class-badge bg-escalation">Escalation</span>
+          <div class="prob-pill bg-high-subtle">
+            <span class="dot bg-high" style="width:7px;height:7px;border-radius:50%;"></span>
+            68%
+          </div>
+        </div>
+        <div class="situation-body">
+          <div class="title">Israeli Ground Incursion into Southern Lebanon</div>
+          <div class="trigger">Hezbollah rocket barrage exceeds 50 per day sustained over 72h or confirmed anti-ship missile launch against Israeli naval asset</div>
+        </div>
+        <div class="situation-actors">
+          <span class="actor-chip">Israel</span>
+          <span class="actor-chip">Hezbollah</span>
+          <span class="actor-chip">Iran</span>
+        </div>
+        <div class="situation-footer">
+          <div class="regions">
+            <span class="region-dot">ME</span>
+          </div>
+          <div class="horizon">
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="6"/><path d="M8 4.5V8l2.5 1.5"/></svg>
+            0–6 months
+          </div>
+        </div>
+      </div>
+      <!-- Card 2 -->
+      <div class="situation-card">
+        <div class="situation-top">
+          <span class="class-badge bg-transition">Power Transition</span>
+          <div class="prob-pill bg-mid-subtle">
+            <span class="dot bg-mid" style="width:7px;height:7px;border-radius:50%;"></span>
+            42%
+          </div>
+        </div>
+        <div class="situation-body">
+          <div class="title">Saudi–Iran Normalization Collapse</div>
+          <div class="trigger">Proxy escalation in Yemen or confirmed Iranian nuclear enrichment beyond 60% threshold</div>
+        </div>
+        <div class="situation-actors">
+          <span class="actor-chip">Saudi Arabia</span>
+          <span class="actor-chip">Iran</span>
+        </div>
+        <div class="situation-footer">
+          <div class="regions">
+            <span class="region-dot">ME</span>
+            <span class="region-dot">GL</span>
+          </div>
+          <div class="horizon">
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="6"/><path d="M8 4.5V8l2.5 1.5"/></svg>
+            6–18 months
+          </div>
+        </div>
+      </div>
+      <!-- Card 3 -->
+      <div class="situation-card">
+        <div class="situation-top">
+          <span class="class-badge bg-drift">Structural Drift</span>
+          <div class="prob-pill bg-low-subtle">
+            <span class="dot bg-low" style="width:7px;height:7px;border-radius:50%;"></span>
+            18%
+          </div>
+        </div>
+        <div class="situation-body">
+          <div class="title">EU Defense Autonomy Breakout</div>
+          <div class="trigger">NATO credibility shock triggers Franco-German joint procurement framework bypassing US interoperability standards</div>
+        </div>
+        <div class="situation-actors">
+          <span class="actor-chip">France</span>
+          <span class="actor-chip">Germany</span>
+          <span class="actor-chip">United States</span>
+        </div>
+        <div class="situation-footer">
+          <div class="regions">
+            <span class="region-dot">EU</span>
+            <span class="region-dot">AM</span>
+          </div>
+          <div class="horizon">
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="6"/><path d="M8 4.5V8l2.5 1.5"/></svg>
+            1–3 years
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════ APPROACH C ════════════ -->
+<div class="approach" data-choice="c" onclick="selectApproach(this)">
+  <div class="approach-header">
+    <div class="approach-letter">C</div>
+    <div>
+      <div class="approach-title">Compact Risk Matrix</div>
+      <div class="approach-subtitle">Dense tabular rows with color-coded risk edge — maximum density, minimum chrome</div>
+    </div>
+  </div>
+  <div class="approach-body">
+    <div class="section-label"><div class="bar"></div><span>Active scenarios</span></div>
+    <div class="risk-table">
+      <div class="risk-row">
+        <div class="edge bg-high"></div>
+        <div class="prob-cell risk-high">68%</div>
+        <div class="name-cell">
+          <div class="name">Israeli Ground Incursion into Southern Lebanon</div>
+          <div class="trigger">Hezbollah rocket barrage exceeds 50/day sustained over 72h or confirmed anti-ship missile launch</div>
+        </div>
+        <div class="class-cell"><span class="dot bg-high"></span>Escalation</div>
+        <div class="regions-cell">
+          <span class="region-chip">Middle East</span>
+        </div>
+        <div class="horizon-cell">0–6 mo</div>
+      </div>
+      <div class="risk-row">
+        <div class="edge bg-mid"></div>
+        <div class="prob-cell risk-mid">42%</div>
+        <div class="name-cell">
+          <div class="name">Saudi–Iran Normalization Collapse</div>
+          <div class="trigger">Proxy escalation in Yemen or confirmed Iranian nuclear enrichment beyond 60% threshold</div>
+        </div>
+        <div class="class-cell"><span class="dot bg-mid"></span>Power Transition</div>
+        <div class="regions-cell">
+          <span class="region-chip">Middle East</span>
+          <span class="region-chip">Global</span>
+        </div>
+        <div class="horizon-cell">6–18 mo</div>
+      </div>
+      <div class="risk-row">
+        <div class="edge bg-low"></div>
+        <div class="prob-cell risk-low">18%</div>
+        <div class="name-cell">
+          <div class="name">EU Defense Autonomy Breakout</div>
+          <div class="trigger">NATO credibility shock triggers Franco-German joint procurement framework</div>
+        </div>
+        <div class="class-cell"><span class="dot bg-low"></span>Structural Drift</div>
+        <div class="regions-cell">
+          <span class="region-chip">Europe</span>
+          <span class="region-chip">Americas</span>
+        </div>
+        <div class="horizon-cell">1–3 yr</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="selection-bar" id="selectionBar">
+  <span id="selectionText"></span>
+</div>
+
+<script>
+  let selected = null;
+  function selectApproach(el) {
+    document.querySelectorAll('.approach').forEach(a => a.classList.remove('selected'));
+    el.classList.add('selected');
+    selected = el.dataset.choice;
+    const names = { a: 'Risk Dossier Rows', b: 'Situation Cards (Vertical Grid)', c: 'Compact Risk Matrix' };
+    document.getElementById('selectionText').textContent = 'Selected: ' + names[selected];
+    document.getElementById('selectionBar').classList.add('visible');
+
+    // Write event for the companion system
+    const event = { type: 'click', choice: selected, text: names[selected], timestamp: Math.floor(Date.now()/1000) };
+    fetch('/event', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(event) }).catch(()=>{});
+  }
+</script>
+
+</body>
+</html>
