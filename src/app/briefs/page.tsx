@@ -1,5 +1,6 @@
 import { getAllPublicBriefs } from "@/lib/briefs";
 import BriefCard from "@/components/BriefCard";
+import LogoMark from "@/components/LogoMark";
 
 export const revalidate = 300;
 
@@ -16,7 +17,7 @@ export default async function BriefsPage() {
       <div className="border-b border-[#1f2937] py-10">
         <div className="max-w-7xl mx-auto px-6">
           <div className="flex items-center gap-2 mb-2">
-            <span className="w-1.5 h-1.5 rounded-full bg-[#3b82f6]" />
+            <LogoMark size={10} />
             <span className="text-xs font-semibold uppercase tracking-widest text-[#3b82f6]">
               PowerFlow Lab
             </span>

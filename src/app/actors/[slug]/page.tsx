@@ -8,6 +8,7 @@ import type { NotionEvent } from "@/lib/events";
 import { getLatestAssessment } from "@/lib/assessments";
 import { getActorRelationships } from "@/lib/relationships";
 import type { ActorRelationships } from "@/lib/types";
+import LogoMark from "@/components/LogoMark";
 import { calcPFScore } from "@/lib/notion";
 import ScoreDelta from "@/components/ScoreDelta";
 import ScoreChart from "@/components/ScoreChart";
@@ -40,7 +41,7 @@ function MetaBadge({ children }: { children: React.ReactNode }) {
 function SectionLabel({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex items-center gap-2 mb-4">
-      <span className="w-1 h-4 rounded-full" style={{ backgroundColor: "var(--accent)" }} />
+      <LogoMark size={16} />
       <h2 className="text-xs font-semibold uppercase tracking-widest" style={{ color: "var(--muted)" }}>
         {children}
       </h2>

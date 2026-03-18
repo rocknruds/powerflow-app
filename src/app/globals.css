@@ -193,3 +193,7 @@ header {
 .light ::-webkit-scrollbar-track { background: #f5f4f0; }
 .light ::-webkit-scrollbar-thumb { background: #d0cdc8; }
 .light ::-webkit-scrollbar-thumb:hover { background: #b8b5b0; }
+
+/* Hide scrollbar utility */
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }

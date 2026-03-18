@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import type { Assessment } from "@/lib/assessments";
+import LogoMark from "@/components/LogoMark";
 
 function getTwoSentences(text: string): string {
   const matches = text.match(/[^.!?]*[.!?]+/g) ?? [];
@@ -43,7 +44,7 @@ export default function AssessmentCard({ assessment }: { assessment: Assessment 
         className="w-full text-left px-6 pt-5 pb-4"
       >
         <div className="flex items-center gap-2 mb-3">
-          <span className="w-1 h-4 rounded-full" style={{ backgroundColor: "var(--accent)" }} />
+          <LogoMark size={16} />
           <span className="text-xs font-semibold uppercase tracking-widest" style={{ color: "var(--muted)" }}>
             Latest Assessment
           </span>

@@ -1,21 +1,5 @@
 import type { BriefContent, BriefSection } from "@/lib/parseBriefContent"
-
-// ─── Shared section chrome ──────────────────────────────────────────────────
-
-function SectionLabel({ children }: { children: React.ReactNode }) {
-  return (
-    <div className="flex items-center gap-2 mb-4">
-      <span className="w-1 h-4 rounded-full" style={{ backgroundColor: "var(--accent)" }} />
-      <h2 className="text-xs font-semibold uppercase tracking-widest" style={{ color: "var(--muted)" }}>
-        {children}
-      </h2>
-    </div>
-  )
-}
-
-function SectionWrapper({ children }: { children: React.ReactNode }) {
-  return <div className="space-y-0">{children}</div>
-}
+import CollapsibleSection from "@/components/CollapsibleSection"
 
 // ─── Inline markdown rendering ──────────────────────────────────────────────
 
@@ -50,13 +34,13 @@ function stripDividers(text: string): string {
 function Prose({ text }: { text: string }) {
   const paragraphs = stripDividers(text).split(/\n\s*\n/).filter(Boolean)
   return (
-    <>
+    <div className="max-w-[72ch]">
       {paragraphs.map((p, i) => (
-        <p key={i} className="text-sm leading-relaxed mb-4" style={{ color: "var(--muted-foreground)" }}>
+        <p key={i} className="text-base leading-[1.8] mb-5" style={{ color: "var(--muted-foreground)" }}>
           {renderInline(p.trim())}
         </p>
       ))}
-    </>
+    </div>
   )
 }
 
@@ -97,23 +81,25 @@ function KeyMovementsSection({ raw }: { raw: string }) {
 
   return (
     <>
-      {items.map((item, i) => (
-        <div
-          key={i}
-          className="rounded-lg p-4 mb-3"
-          style={{ backgroundColor: "var(--surface)", border: "1px solid var(--border)" }}
-        >
-          <div className="flex items-center gap-2 mb-1.5">
-            <span className="text-sm font-semibold" style={{ color: "var(--foreground)" }}>
-              {item.actor}
-            </span>
-            <DeltaBadge delta={item.delta} />
+      <div className="space-y-8">
+        {items.map((item, i) => (
+          <div
+            key={i}
+            className="rounded-lg p-4"
+            style={{ backgroundColor: "var(--surface)", border: "1px solid var(--border)" }}
+          >
+            <div className="flex items-center gap-2 mb-1.5">
+              <span className="text-sm font-semibold" style={{ color: "var(--foreground)" }}>
+                {item.actor}
+              </span>
+              <DeltaBadge delta={item.delta} />
+            </div>
+            <p className="text-base leading-[1.8]" style={{ color: "var(--muted-foreground)" }}>
+              {renderInline(item.body)}
+            </p>
           </div>
-          <p className="text-sm leading-relaxed" style={{ color: "var(--muted-foreground)" }}>
-            {renderInline(item.body)}
-          </p>
-        </div>
-      ))}
+        ))}
+      </div>
       {fallbackLines.length > 0 && <Prose text={fallbackLines.join("\n")} />}
     </>
   )
@@ -188,7 +174,7 @@ function ScenariosSection({ raw }: { raw: string }) {
             <ActivePill />
           </div>
           {item.body && (
-            <p className="text-sm leading-relaxed" style={{ color: "var(--muted-foreground)" }}>
+            <p className="text-base leading-[1.8]" style={{ color: "var(--muted-foreground)" }}>
               {renderInline(item.body)}
             </p>
           )}
@@ -268,6 +254,16 @@ function renderSection(section: BriefSection) {
   }
 }
 
+// ─── Display labels (title case for CollapsibleSection) ─────────────────────
+
+const DISPLAY_LABELS: Record<string, string> = {
+  "THE HEADLINE": "The Headline",
+  "KEY MOVEMENTS": "Key Movements",
+  "ANALYTICAL SYNTHESIS": "Analytical Synthesis",
+  "SCENARIOS TO WATCH": "Scenarios to Watch",
+  "SCORE LEDGER": "Score Ledger",
+}
+
 // ─── Main component ─────────────────────────────────────────────────────────
 
 export default function BriefRenderer({ content }: { content: BriefContent }) {
@@ -283,18 +279,31 @@ export default function BriefRenderer({ content }: { content: BriefContent }) {
   }
 
   return (
-    <div className="space-y-8">
-      {content.sections.map((section, i) => (
-        <div key={i}>
-          {i > 0 && <div className="h-px mb-8" style={{ backgroundColor: "var(--border)" }} />}
-          {section.title && (
-            <SectionLabel>{section.title}</SectionLabel>
-          )}
-          <SectionWrapper>
-            {renderSection(section)}
-          </SectionWrapper>
-        </div>
-      ))}
+    <div className="space-y-12">
+      {content.sections.map((section, i) => {
+        const label = DISPLAY_LABELS[section.title] || section.title
+
+        // Sections without a title (preamble) render as plain prose
+        if (!section.title) {
+          return (
+            <div key={i}>
+              {renderSection(section)}
+            </div>
+          )
+        }
+
+        return (
+          <section
+            key={i}
+            style={{ borderBottom: "1px solid var(--border)" }}
+            className="pb-10"
+          >
+            <CollapsibleSection label={label} headerGap="mb-3">
+              {renderSection(section)}
+            </CollapsibleSection>
+          </section>
+        )
+      })}
     </div>
   )
 }

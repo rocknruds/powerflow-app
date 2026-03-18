@@ -26,9 +26,10 @@ const SECTION_HEADINGS: Record<string, string> = {
 function isPreambleJunk(line: string): boolean {
   const trimmed = line.trim()
   if (!trimmed) return true
-  // "# POWERFLOW WEEKLY BRIEF" (exact h1)
-  if (/^#\s+POWERFLOW WEEKLY BRIEF\s*$/i.test(trimmed)) return true
-  // Standalone date string like "Mar 1 – Mar 8, 2026"
+  // Any markdown heading that isn't a recognized section (e.g. "# POWERFLOW WEEKLY BRIEF",
+  // "## Mar 1 – Mar 8, 2026") — checked AFTER the caller already tested for section headings
+  if (/^#{1,3}\s/.test(trimmed)) return true
+  // Standalone date string like "Mar 1 – Mar 8, 2026" (no heading prefix)
   if (/^[A-Z][a-z]{2}\s+\d{1,2}\s*[–—-]\s*[A-Z][a-z]{2}\s+\d{1,2},?\s*\d{4}$/.test(trimmed)) return true
   // Raw horizontal rule
   if (/^-{3,}$/.test(trimmed)) return true

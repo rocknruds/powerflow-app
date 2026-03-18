@@ -95,6 +95,44 @@ export async function getAssessmentById(id: string): Promise<Assessment | null> 
   };
 }
 
+export async function getLatestPublicAssessment(): Promise<(AssessmentSummary & { actorSlug: string | null }) | null> {
+  const pages = await queryDatabase(
+    ASSESSMENTS_DB_ID,
+    { property: "Visibility", select: { equals: "Public" } },
+    [{ timestamp: "created_time", direction: "descending" }],
+    300
+  );
+
+  if (pages.length === 0) return null;
+
+  const page = pages[0];
+  const p = page.properties ?? {};
+
+  const actorIds = getRelationIds(p, "Actor");
+  let actorSlug: string | null = null;
+  if (actorIds.length > 0) {
+    const { getActorById } = await import("./actors");
+    const actor = await getActorById(actorIds[0]);
+    if (actor) actorSlug = actor.slug;
+  }
+
+  return {
+    id: page.id as string,
+    title: getTitle(p, "Name") || getTitle(p, "Title"),
+    region: getSelect(p, "Region"),
+    pfSignal: getSelect(p, "PF Signal"),
+    pfScore: getNumber(p, "PF Score (0-100)"),
+    confidenceLevel: getSelect(p, "Confidence Level"),
+    timePeriod: getDate(p, "Time Period"),
+    generatedOn: getDate(p, "Generated On") ?? page.created_time?.slice(0, 10) ?? null,
+    analystCommentary: getText(p, "Analyst Commentary"),
+    currentPosition: getText(p, "Current Position"),
+    notionUrl: (page.url as string) ?? "",
+    actorIds,
+    actorSlug,
+  };
+}
+
 export async function getAllAssessments(): Promise<AssessmentSummary[]> {
   const pages = await queryDatabase(
     ASSESSMENTS_DB_ID,

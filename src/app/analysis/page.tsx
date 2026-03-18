@@ -1,6 +1,7 @@
 import { getAllAssessments } from "@/lib/assessments";
 import type { AssessmentSummary } from "@/lib/assessments";
 import Link from "next/link";
+import LogoMark from "@/components/LogoMark";
 
 export const revalidate = 300;
 export const metadata = { title: "Analysis" };
@@ -110,7 +111,7 @@ export default async function AnalysisPage() {
       <div className="py-10" style={{ borderBottom: "1px solid var(--border)" }}>
         <div className="max-w-7xl mx-auto px-6">
           <div className="flex items-center gap-2 mb-2">
-            <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: "var(--accent)" }} />
+            <LogoMark size={10} />
             <span className="text-xs font-semibold uppercase tracking-widest" style={{ color: "var(--accent)" }}>
               PowerFlow Lab
             </span>

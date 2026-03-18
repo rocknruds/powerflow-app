@@ -2,18 +2,21 @@ import Link from "next/link";
 import { getAllPublicActors, enrichActorsWithDeltas } from "@/lib/actors";
 import { getLatestDeltaByActor, computeScoreMovers } from "@/lib/scores";
 import { getLatestBrief } from "@/lib/briefs";
+import { getLatestPublicAssessment } from "@/lib/assessments";
 import { getActiveScenarios } from "@/lib/scenarios";
 import ScoreDelta from "@/components/ScoreDelta";
 import { pfScoreColor } from "@/components/ActorCard";
 import CollapsibleSection from "@/components/CollapsibleSection";
 
+
 export const revalidate = 300;
 
 export default async function HomePage() {
-  const [actors, deltaMap, latestBrief, scenarios] = await Promise.all([
+  const [actors, deltaMap, latestBrief, latestAssessment, scenarios] = await Promise.all([
     getAllPublicActors(),
     getLatestDeltaByActor(),
     getLatestBrief(),
+    getLatestPublicAssessment(),
     getActiveScenarios(),
   ]);
 
@@ -26,15 +29,15 @@ export default async function HomePage() {
   }
 
   const { gainers, fallers } = computeScoreMovers(enrichedActors, 3);
-  const topFallers = fallers.slice(0, 3);
-  const topGainers = gainers.slice(0, 3);
+  const topGainers = gainers.slice(0, 3).sort((a, b) => b.delta - a.delta);
+  const topFallers = fallers.slice(0, 3).sort((a, b) => b.delta - a.delta);
 
   return (
     <div
       className="min-h-screen"
       style={{ backgroundColor: "var(--background)", color: "var(--foreground)" }}
     >
-      <div className="max-w-4xl mx-auto px-6">
+      <div className="max-w-[1280px] mx-auto px-6">
 
         {/* ── Hero ── */}
         <section
@@ -84,141 +87,137 @@ export default async function HomePage() {
             {actors.length} actors tracked &nbsp;•&nbsp; Authority + Reach scoring &nbsp;•&nbsp; Dependency networks &nbsp;•&nbsp; Updated daily
           </p>
 
-          {(topFallers.length > 0 || topGainers.length > 0) && (
+          {(topGainers.length > 0 || topFallers.length > 0) && (
             <div className="flex flex-col items-center">
               <div
                 className="flex items-center gap-1.5 mb-3 text-[10px] font-medium uppercase tracking-[0.12em]"
                 style={{ color: "var(--muted)" }}
               >
                 <span
-                  className="w-1.5 h-1.5 rounded-full"
-                  style={{ backgroundColor: "var(--delta-up)" }}
+                  className="inline-block w-1.5 h-1.5 rounded-full"
+                  style={{ backgroundColor: "var(--accent)" }}
                 />
                 Score movers — last 30 days
               </div>
-              <div className="flex items-center gap-2.5">
-                {/* Biggest gains */}
-                <div className="flex flex-wrap justify-center gap-2.5">
-                  {topGainers.map((m) => (
-                    <Link
-                      key={m.actorId}
-                      href={`/actors/${m.actorSlug}`}
-                      className="flex items-center gap-1 px-3 py-1.5 rounded-md transition-colors"
-                      style={{
-                        border: "1px solid var(--border)",
-                        backgroundColor: "var(--surface)",
-                      }}
+              <div className="flex items-center gap-2.5 flex-nowrap overflow-x-auto no-scrollbar">
+                {topGainers.map((m) => (
+                  <Link
+                    key={m.actorId}
+                    href={`/actors/${m.actorSlug}`}
+                    className="flex items-center gap-1 px-3 py-1.5 rounded-md transition-colors shrink-0"
+                    style={{
+                      border: "1px solid var(--border)",
+                      backgroundColor: "var(--surface)",
+                    }}
+                  >
+                    <span
+                      className="text-xs font-medium"
+                      style={{ color: "var(--foreground)" }}
                     >
-                      <span
-                        className="text-xs font-medium"
-                        style={{ color: "var(--foreground)" }}
-                      >
-                        {m.actorName}
-                      </span>
-                      <span
-                        className="text-sm font-mono font-semibold tabular-nums"
-                        style={{ color: "var(--foreground)" }}
-                      >
-                        {Math.round(m.pfScore)}
-                      </span>
-                      <ScoreDelta delta={m.delta} />
-                    </Link>
-                  ))}
-                </div>
-
-                {/* Vertical separator */}
-                <div
-                  className="w-px self-stretch mx-1"
-                  style={{ backgroundColor: "var(--border)" }}
-                />
-
-                {/* Biggest drops */}
-                <div className="flex flex-wrap justify-center gap-2.5">
-                  {topFallers.map((m) => (
-                    <Link
-                      key={m.actorId}
-                      href={`/actors/${m.actorSlug}`}
-                      className="flex items-center gap-1 px-3 py-1.5 rounded-md transition-colors"
-                      style={{
-                        border: "1px solid var(--border)",
-                        backgroundColor: "var(--surface)",
-                      }}
+                      {m.actorName}
+                    </span>
+                    <span
+                      className="text-sm font-mono font-semibold tabular-nums"
+                      style={{ color: "var(--foreground)" }}
                     >
-                      <span
-                        className="text-xs font-medium"
-                        style={{ color: "var(--foreground)" }}
-                      >
-                        {m.actorName}
-                      </span>
-                      <span
-                        className="text-sm font-mono font-semibold tabular-nums"
-                        style={{ color: "var(--foreground)" }}
-                      >
-                        {Math.round(m.pfScore)}
-                      </span>
-                      <ScoreDelta delta={m.delta} />
-                    </Link>
-                  ))}
-                </div>
+                      {Math.round(m.pfScore)}
+                    </span>
+                    <ScoreDelta delta={m.delta} />
+                  </Link>
+                ))}
+                {topGainers.length > 0 && topFallers.length > 0 && (
+                  <div
+                    className="w-px h-5 shrink-0"
+                    style={{ backgroundColor: "var(--border)" }}
+                  />
+                )}
+                {topFallers.map((m) => (
+                  <Link
+                    key={m.actorId}
+                    href={`/actors/${m.actorSlug}`}
+                    className="flex items-center gap-1 px-3 py-1.5 rounded-md transition-colors shrink-0"
+                    style={{
+                      border: "1px solid var(--border)",
+                      backgroundColor: "var(--surface)",
+                    }}
+                  >
+                    <span
+                      className="text-xs font-medium"
+                      style={{ color: "var(--foreground)" }}
+                    >
+                      {m.actorName}
+                    </span>
+                    <span
+                      className="text-sm font-mono font-semibold tabular-nums"
+                      style={{ color: "var(--foreground)" }}
+                    >
+                      {Math.round(m.pfScore)}
+                    </span>
+                    <ScoreDelta delta={m.delta} />
+                  </Link>
+                ))}
               </div>
             </div>
           )}
         </section>
 
-        {/* ── Actor Leaderboard ── */}
+        {/* ── Leaderboard + Latest Brief (two-column) ── */}
         <section
           className="py-12"
           style={{ borderBottom: "1px solid var(--border)" }}
         >
-          <CollapsibleSection label="Actor leaderboard" action={{ label: "View all", href: "/actors" }}>
-            <div>
-              {top5.map((actor, idx) => {
-                const score = actor.pfScore !== null ? Math.round(actor.pfScore) : null;
-                const delta = deltaRecord[actor.id] ?? null;
-                const scoreColor = pfScoreColor(actor.pfScore ?? 0);
-                return (
-                  <Link
-                    key={actor.id}
-                    href={`/actors/${actor.slug}`}
-                    className="flex items-center justify-between py-3 transition-colors group"
-                    style={{ borderBottom: "1px solid var(--border)" }}
-                  >
-                    <div className="flex items-center gap-3">
-                      <span
-                        className="text-xs font-mono w-4 shrink-0"
-                        style={{ color: "var(--muted)" }}
+          <div className="flex flex-col md:flex-row md:items-start gap-12">
+            {/* Leaderboard — left column */}
+            <div className="md:w-[45%] md:shrink-0">
+              <CollapsibleSection label="Actor leaderboard" action={{ label: "View all", href: "/actors" }}>
+                <div>
+                  {top5.map((actor, idx) => {
+                    const score = actor.pfScore !== null ? Math.round(actor.pfScore) : null;
+                    const delta = deltaRecord[actor.id] ?? null;
+                    const scoreColor = pfScoreColor(actor.pfScore ?? 0);
+                    return (
+                      <Link
+                        key={actor.id}
+                        href={`/actors/${actor.slug}`}
+                        className="flex items-center justify-between py-3 transition-colors group"
+                        style={{ borderBottom: "1px solid var(--border)" }}
                       >
-                        {idx + 1}
-                      </span>
-                      <span
-                        className="text-sm font-medium group-hover:text-accent transition-colors"
-                        style={{ color: "var(--foreground)" }}
-                      >
-                        {actor.name}
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <span
-                        className="text-base font-mono font-medium tabular-nums"
-                        style={{ color: scoreColor }}
-                      >
-                        {score ?? "—"}
-                      </span>
-                      <ScoreDelta delta={delta} />
-                    </div>
-                  </Link>
-                );
-              })}
+                        <div className="flex items-center gap-3">
+                          <span
+                            className="text-xs font-mono w-4 shrink-0"
+                            style={{ color: "var(--muted)" }}
+                          >
+                            {idx + 1}
+                          </span>
+                          <span
+                            className="text-sm font-medium group-hover:text-accent transition-colors"
+                            style={{ color: "var(--foreground)" }}
+                          >
+                            {actor.name}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <span
+                            className="text-base font-mono font-medium tabular-nums"
+                            style={{ color: scoreColor }}
+                          >
+                            {score ?? "—"}
+                          </span>
+                          <ScoreDelta delta={delta} />
+                        </div>
+                      </Link>
+                    );
+                  })}
+                </div>
+
+                <p className="text-xs mt-4" style={{ color: "var(--muted)" }}>
+                  Showing 5 of {actors.length} tracked actors
+                </p>
+              </CollapsibleSection>
             </div>
 
-            <p className="text-xs mt-4" style={{ color: "var(--muted)" }}>
-              Showing 5 of {actors.length} tracked actors
-            </p>
-          </CollapsibleSection>
-        </section>
-
-        {/* ── Latest brief ── */}
-        <section className="py-12" style={{ borderBottom: "1px solid var(--border)" }}>
+            {/* Latest brief + assessment — right column */}
+            <div className="md:flex-1 min-w-0 space-y-10">
               <CollapsibleSection label="Latest brief" action={{ label: "All briefs", href: "/briefs" }}>
                 {!latestBrief ? (
                   <p className="text-sm" style={{ color: "var(--muted)" }}>
@@ -278,6 +277,81 @@ export default async function HomePage() {
                   </Link>
                 )}
               </CollapsibleSection>
+
+              <CollapsibleSection label="Latest assessment" action={{ label: "All assessments", href: "/analysis" }}>
+                {!latestAssessment ? (
+                  <p className="text-sm" style={{ color: "var(--muted)" }}>
+                    No assessments published yet.
+                  </p>
+                ) : (
+                  <Link
+                    href={latestAssessment.actorSlug ? `/actors/${latestAssessment.actorSlug}` : "/analysis"}
+                    className="block group"
+                  >
+                    <div
+                      className="p-5 rounded-lg transition-colors"
+                      style={{
+                        border: "1px solid var(--border)",
+                        backgroundColor: "var(--surface)",
+                      }}
+                    >
+                      <div className="flex items-center gap-2 mb-3 flex-wrap">
+                        {latestAssessment.pfSignal && (
+                          <span
+                            className="text-[11px] px-2 py-0.5 rounded font-medium"
+                            style={{
+                              color: "var(--accent)",
+                              border: "1px solid color-mix(in srgb, var(--accent) 30%, transparent)",
+                              backgroundColor: "color-mix(in srgb, var(--accent) 10%, transparent)",
+                            }}
+                          >
+                            {latestAssessment.pfSignal}
+                          </span>
+                        )}
+                        {latestAssessment.confidenceLevel && (
+                          <span
+                            className="text-[11px] px-2 py-0.5 rounded font-medium"
+                            style={{
+                              color: "var(--muted-foreground)",
+                              backgroundColor: "color-mix(in srgb, var(--muted-foreground) 10%, transparent)",
+                            }}
+                          >
+                            {latestAssessment.confidenceLevel}
+                          </span>
+                        )}
+                      </div>
+                      <p
+                        className="text-sm font-medium leading-snug mb-1 group-hover:text-accent transition-colors"
+                        style={{ color: "var(--foreground)" }}
+                      >
+                        {latestAssessment.title || "Untitled Assessment"}
+                      </p>
+                      {latestAssessment.generatedOn && (
+                        <p
+                          className="text-[11px] font-mono mb-2"
+                          style={{ color: "var(--muted)" }}
+                        >
+                          {new Date(latestAssessment.generatedOn).toLocaleDateString("en-US", {
+                            year: "numeric",
+                            month: "short",
+                            day: "numeric",
+                          })}
+                        </p>
+                      )}
+                      <p
+                        className="text-xs leading-relaxed line-clamp-2"
+                        style={{ color: "var(--muted-foreground)" }}
+                      >
+                        {latestAssessment.analystCommentary
+                          || latestAssessment.currentPosition
+                          || "Structured analytical assessment \u2014 doctrine, trajectory, and scenario outlook."}
+                      </p>
+                    </div>
+                  </Link>
+                )}
+              </CollapsibleSection>
+            </div>
+          </div>
         </section>
 
         {/* ── Active scenarios ── */}

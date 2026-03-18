@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { getAllAssessments, getAssessmentById } from "@/lib/assessments";
 import { pfScoreColor } from "@/components/ActorCard";
+import LogoMark from "@/components/LogoMark";
 
 export const revalidate = 300;
 
@@ -30,7 +31,7 @@ function MetaBadge({ children }: { children: React.ReactNode }) {
 function SectionLabel({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex items-center gap-2 mb-4">
-      <span className="w-1 h-4 rounded-full" style={{ backgroundColor: "var(--accent)" }} />
+      <LogoMark size={16} />
       <h2 className="text-xs font-semibold uppercase tracking-widest" style={{ color: "var(--muted)" }}>
         {children}
       </h2>

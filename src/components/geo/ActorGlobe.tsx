@@ -90,7 +90,7 @@ export default function ActorGlobe({ isoCode, size = 280 }: ActorGlobeProps) {
         <ComposableMap
           projection="geoOrthographic"
           projectionConfig={{
-            scale: size / 2.2,
+            scale: size,
             center: [0, 0],
             rotate: [-lon, -lat, 0],
           }}

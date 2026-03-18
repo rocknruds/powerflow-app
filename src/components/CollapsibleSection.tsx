@@ -7,6 +7,7 @@ interface CollapsibleSectionProps {
   label: string;
   action?: { label: string; href: string };
   defaultOpen?: boolean;
+  headerGap?: string;
   children: React.ReactNode;
 }
 
@@ -44,13 +45,14 @@ export default function CollapsibleSection({
   label,
   action,
   defaultOpen = true,
+  headerGap = "mb-5",
   children,
 }: CollapsibleSectionProps) {
   const [open, setOpen] = useState(defaultOpen);
 
   return (
     <div>
-      <div className="flex items-center gap-2 mb-5">
+      <div className={`flex items-center gap-2 ${headerGap}`}>
         <button
           onClick={() => setOpen((v) => !v)}
           className="flex items-center gap-2 group/toggle focus:outline-none"
@@ -58,7 +60,7 @@ export default function CollapsibleSection({
         >
           <SectionBars open={open} />
           <span
-            className="text-[14px] font-medium uppercase tracking-[0.14em] group-hover/toggle:opacity-70 transition-opacity"
+            className="text-[13px] font-semibold uppercase tracking-[0.18em] group-hover/toggle:opacity-70 transition-opacity"
             style={{ color: "var(--muted-foreground)" }}
           >
             {label}

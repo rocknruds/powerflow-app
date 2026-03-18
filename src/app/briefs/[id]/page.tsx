@@ -112,9 +112,23 @@ export default async function BriefPage({
             )}
           </div>
 
-          <h1 className="text-3xl font-bold leading-tight" style={{ color: "var(--foreground)" }}>
-            {brief.title || "Untitled Brief"}
-          </h1>
+          {(() => {
+            const parts = (brief.title || "Untitled Brief").split(" — ");
+            const name = parts[0];
+            const datePart = parts.length > 1 ? parts.slice(1).join(" — ") : null;
+            return (
+              <>
+                <h1 className="text-3xl font-bold leading-tight" style={{ color: "var(--foreground)" }}>
+                  {name}
+                </h1>
+                {datePart && (
+                  <p className="text-lg mt-1" style={{ color: "var(--muted)" }}>
+                    {datePart}
+                  </p>
+                )}
+              </>
+            );
+          })()}
         </div>
       </div>
 
