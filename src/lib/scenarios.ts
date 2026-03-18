@@ -58,3 +58,26 @@ export async function getActorScenarios(actorId: string): Promise<Scenario[]> {
   });
   return pages.map(parseScenario);
 }
+
+export type ScenarioWithActors = Scenario & { actorNames: string[] };
+
+/**
+ * Fetch active public scenarios with resolved actor names.
+ * Used on the homepage where actor chips need display names.
+ */
+export async function getActiveScenariosWithActors(): Promise<ScenarioWithActors[]> {
+  const { getActorsByIds } = await import("./actors");
+  const scenarios = await getActiveScenarios();
+
+  // Collect all unique actor IDs across scenarios
+  const allIds = [...new Set(scenarios.flatMap((s) => s.actorIds))];
+  const actors = await getActorsByIds(allIds);
+  const nameMap = new Map(actors.map((a) => [a.id, a.name]));
+
+  return scenarios.map((s) => ({
+    ...s,
+    actorNames: s.actorIds
+      .map((id) => nameMap.get(id))
+      .filter((name): name is string => !!name),
+  }));
+}
