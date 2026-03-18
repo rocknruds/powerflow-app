@@ -1,6 +1,7 @@
 import {
   queryDatabase,
   getTitle,
+  getText,
   getNumber,
   getSelect,
   getDate,
@@ -38,6 +39,7 @@ function parsePage(page: any, direction: 'outgoing' | 'incoming'): ActorRelation
     leverageScore: getNumber(props, 'Leverage Score'),
     dependencyScore: getNumber(props, 'Dependency Score'),
     lastScored: getDate(props, 'Last Scored'),
+    notes: getText(props, 'Notes') || null,
   }
 }
 

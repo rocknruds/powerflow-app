@@ -8,6 +8,8 @@ import type { NotionEvent } from "@/lib/events";
 import { getLatestAssessment } from "@/lib/assessments";
 import { getActorRelationships } from "@/lib/relationships";
 import type { ActorRelationships } from "@/lib/types";
+import { getActorIntelFeeds } from "@/lib/intel-feeds";
+import type { IntelFeedItem } from "@/lib/intel-feeds";
 import LogoMark from "@/components/LogoMark";
 import { calcPFScore } from "@/lib/notion";
 import ScoreDelta from "@/components/ScoreDelta";
@@ -68,12 +70,17 @@ function PFSignalBadge({ signal }: { signal: string | null }) {
 }
 
 
+// Keys match the extractor's exact event_type enum values
 const EVENT_TYPE_COLORS: Record<string, string> = {
-  "Military Action": "var(--delta-down)",
-  "Diplomatic": "var(--accent)",
-  "Economic": "var(--score-mid)",
-  "Political": "var(--score-authority)",
-  "Humanitarian": "var(--delta-up)",
+  "Military or coercive action": "var(--delta-down)",
+  "Diplomatic exchange": "var(--accent)",
+  "Sanctions or economic measure": "var(--score-mid)",
+  "Political transition": "var(--score-authority)",
+  "Legal change": "var(--score-authority)",
+  "Institutional reform": "var(--score-authority)",
+  "Alliance or treaty shift": "var(--accent)",
+  "Information-cyber": "var(--delta-down)",
+  "Other": "var(--muted)",
 };
 
 function EventTypeBadge({ type }: { type: string | null }) {
@@ -97,11 +104,12 @@ export default async function ActorProfilePage({ params }: { params: Promise<{ s
   const actor = await getActorBySlug(slug);
   if (!actor) notFound();
 
-  const [history, assessment, events, relationships] = await Promise.all([
+  const [history, assessment, events, relationships, intelFeeds] = await Promise.all([
     getActorScoreHistory(actor.id),
     getLatestAssessment(actor.id).catch(() => null),
     getActorEvents(actor.id, 6).catch((): NotionEvent[] => []),
     getActorRelationships(actor.id).catch((): ActorRelationships => ({ outgoing: [], incoming: [] })),
+    getActorIntelFeeds(actor.id, 5).catch((): IntelFeedItem[] => []),
   ]);
 
   const [patronActors, dependentOnActors] = await Promise.all([
@@ -265,10 +273,70 @@ export default async function ActorProfilePage({ params }: { params: Promise<{ s
           </div>
         )}
 
-        {/* SECTION 3: Latest Assessment (full width) */}
+        {/* SECTION 3: Recent Intelligence */}
+        {intelFeeds.length > 0 && (
+          <div>
+            <SectionLabel>Recent Intelligence</SectionLabel>
+            <div className="space-y-2">
+              {intelFeeds.map((feed: IntelFeedItem) => (
+                <div
+                  key={feed.id}
+                  className="rounded-lg px-4 py-3"
+                  style={{ border: "1px solid var(--border)", backgroundColor: "var(--surface)" }}
+                >
+                  <div className="flex items-center gap-2 flex-wrap mb-1.5">
+                    {(feed.dateIngested || feed.publicationDate) && (
+                      <span
+                        className="text-[10px] font-mono px-1.5 py-0.5 rounded tabular-nums"
+                        style={{ backgroundColor: "var(--surface-raised)", color: "var(--muted)" }}
+                      >
+                        {new Date(feed.dateIngested ?? feed.publicationDate!).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+                      </span>
+                    )}
+                    <PFSignalBadge signal={feed.pfSignal} />
+                    {feed.confidenceShift && (
+                      <span
+                        className="text-[10px] px-1.5 py-0.5 rounded"
+                        style={{
+                          color: "var(--muted)",
+                          backgroundColor: "color-mix(in srgb, var(--muted) 10%, transparent)",
+                          border: "1px solid color-mix(in srgb, var(--border) 60%, transparent)",
+                        }}
+                      >
+                        {feed.confidenceShift}
+                      </span>
+                    )}
+                    {feed.publication && (
+                      <span className="text-[10px] italic ml-auto" style={{ color: "var(--muted)" }}>
+                        {feed.publication}
+                      </span>
+                    )}
+                  </div>
+                  {feed.soWhatSummary && (
+                    <p className="text-sm leading-relaxed mb-1.5" style={{ color: "var(--foreground)" }}>
+                      {feed.soWhatSummary}
+                    </p>
+                  )}
+                  {feed.mechanism && (
+                    <p className="text-[11px] leading-relaxed italic" style={{ color: "var(--muted-foreground)" }}>
+                      {feed.mechanism}
+                    </p>
+                  )}
+                  {feed.cascadeEffects && (
+                    <p className="text-[11px] leading-relaxed mt-1.5 pt-1.5 italic" style={{ color: "var(--muted)", borderTop: "1px solid var(--border)" }}>
+                      ↳ {feed.cascadeEffects}
+                    </p>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* SECTION 4: Latest Assessment (full width) */}
         <AssessmentCard assessment={assessment} />
 
-        {/* SECTION 4: Relationships (full width) */}
+        {/* SECTION 5: Relationships (full width) */}
         {relationships.outgoing.length + relationships.incoming.length > 0 && (
           <div>
             <SectionLabel>Relationships</SectionLabel>
@@ -288,7 +356,9 @@ export default async function ActorProfilePage({ params }: { params: Promise<{ s
                   </tr>
                 </thead>
                 <tbody>
-                  {[...relationships.outgoing, ...relationships.incoming].slice(0, 8).map((rel) => {
+                  {[...relationships.outgoing, ...relationships.incoming]
+                    .sort((a, b) => Math.abs(b.alignmentScore ?? 0) - Math.abs(a.alignmentScore ?? 0))
+                    .slice(0, 8).map((rel) => {
                     const alignment = rel.alignmentScore
                     const alignColor =
                       alignment === null || alignment === 0
@@ -307,14 +377,19 @@ export default async function ActorProfilePage({ params }: { params: Promise<{ s
                         key={rel.id}
                         style={{ borderBottom: "1px solid var(--border)" }}
                       >
-                        <td className="px-4 py-2.5 font-medium" style={{ color: "var(--foreground)" }}>
+                        <td className="px-4 py-2.5" style={{ color: "var(--foreground)" }}>
                           <Link
                             href={`/actors/${toSlug(rel.counterpartyName)}`}
-                            className="transition-opacity hover:opacity-70"
+                            className="font-medium transition-opacity hover:opacity-70"
                             style={{ color: "var(--foreground)" }}
                           >
                             {rel.counterpartyName || "—"}
                           </Link>
+                          {rel.notes && (
+                            <p className="text-[11px] leading-relaxed mt-0.5 italic" style={{ color: "var(--muted)" }}>
+                              {rel.notes}
+                            </p>
+                          )}
                         </td>
                         <td className="px-4 py-2.5">
                           {rel.relationshipType ? (
@@ -354,7 +429,7 @@ export default async function ActorProfilePage({ params }: { params: Promise<{ s
           </div>
         )}
 
-        {/* SECTION 5: Recent Events (full width) */}
+        {/* SECTION 6: Recent Events (full width) */}
         {events.length > 0 && (
           <div>
             <SectionLabel>Recent Events</SectionLabel>
@@ -365,7 +440,7 @@ export default async function ActorProfilePage({ params }: { params: Promise<{ s
                   className="rounded-lg px-4 py-3"
                   style={{ border: "1px solid var(--border)", backgroundColor: "var(--surface)" }}
                 >
-                  <div className="flex items-center gap-2 flex-wrap mb-1">
+                  <div className="flex items-center gap-2 flex-wrap mb-1.5">
                     {event.date && (
                       <span
                         className="text-[10px] font-mono px-1.5 py-0.5 rounded tabular-nums"
@@ -375,15 +450,21 @@ export default async function ActorProfilePage({ params }: { params: Promise<{ s
                       </span>
                     )}
                     <EventTypeBadge type={event.eventType} />
+                    <PFSignalBadge signal={event.pfSignal} />
                   </div>
-                  <p className="text-sm font-medium leading-snug mb-1" style={{ color: "var(--foreground)" }}>
+                  <p className="text-sm font-medium leading-snug mb-1.5" style={{ color: "var(--foreground)" }}>
                     {event.name || "—"}
                   </p>
                   {event.description && (
-                    <p className="text-xs leading-relaxed" style={{ color: "var(--muted)" }}>
-                      {event.description.length > 100
-                        ? event.description.slice(0, 100) + "…"
+                    <p className="text-xs leading-relaxed mb-1" style={{ color: "var(--muted-foreground)" }}>
+                      {event.description.length > 220
+                        ? event.description.slice(0, 220) + "…"
                         : event.description}
+                    </p>
+                  )}
+                  {event.mechanism && (
+                    <p className="text-[11px] leading-relaxed mt-1.5 pt-1.5 italic" style={{ color: "var(--muted)", borderTop: "1px solid var(--border)" }}>
+                      {event.mechanism}
                     </p>
                   )}
                 </div>

@@ -138,6 +138,7 @@ export interface ActorRelationship {
   leverageScore: number | null
   dependencyScore: number | null
   lastScored: string | null
+  notes: string | null   // 1-2 sentence reasoning from the relationship scorer
 }
 
 export interface ActorRelationships {

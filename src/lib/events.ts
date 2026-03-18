@@ -9,6 +9,8 @@ export interface NotionEvent {
   eventType: string | null;
   pfSignal: string | null;
   description: string;
+  mechanism: string | null;
+  trajectory: string | null;
   actorIds: string[];
 }
 
@@ -21,6 +23,8 @@ function parseEvent(page: Record<string, unknown>): NotionEvent {
     eventType: getSelect(p, "Event Type"),
     pfSignal: getSelect(p, "PF Signal"),
     description: getText(p, "Description"),
+    mechanism: getText(p, "Mechanism") || null,
+    trajectory: getText(p, "Trajectory") || null,
     actorIds: getRelationIds(p, "Key Actors"),
   };
 }
