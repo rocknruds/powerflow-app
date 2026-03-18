@@ -10,10 +10,11 @@ function parsePage(page: any): BriefPublic {
     title: getTitle(props, 'Name') || getTitle(props, 'Title'),
     briefType: getSelect(props, 'Brief Type') ?? getSelect(props, 'Type'),
     status: getSelect(props, 'Status'),
-    dateRangeStart: getDate(props, 'Date Range'),
-    dateRangeEnd: props['Date Range']?.date?.end ?? null,
+    dateRangeStart: getDate(props, 'Period Start'),
+    dateRangeEnd: getDate(props, 'Period End'),
     editorialPriority: getText(props, 'Editorial Priority') || null,
-    leadThesis: getText(props, 'Lead Thesis') || null,
+    leadThesis: getText(props, 'lead_thesis') || null,
+    summaryDek: getText(props, 'summary_dek') || null,
     bodyPreview: null,
     visibility: getSelect(props, 'Visibility'),
   }
@@ -94,7 +95,13 @@ export async function getBriefWithContent(id: string): Promise<BriefFull | null>
 // ─── Block rendering ──────────────────────────────────────────────────────────
 
 function extractRichText(arr: any[]): string {
-  return arr?.map((t: any) => t.plain_text).join('') ?? ''
+  return arr?.map((t: any) => {
+    let text: string = t.plain_text
+    if (t.annotations?.bold && t.annotations?.italic) return `***${text}***`
+    if (t.annotations?.bold) return `**${text}**`
+    if (t.annotations?.italic) return `*${text}*`
+    return text
+  }).join('') ?? ''
 }
 
 function parseBlock(block: any): NotionBlock | null {

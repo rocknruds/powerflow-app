@@ -65,27 +65,29 @@ function DeltaBadge({ delta }: { delta: number }) {
 function KeyMovementsSection({ raw }: { raw: string }) {
   const cleaned = stripDividers(raw).trim()
 
-  // Split the (possibly single-blob) content into individual actor entries.
-  // Uses lookahead so the delimiter stays attached to each entry.
-  // Handles: "Iran (Current Conflict) — Δ -4 → ...", "North Korea — Δ +2 → ...", "IRGC — Δ +1 → ..."
-  // Also handles **bold**-wrapped actor names from well-formatted sources.
+  // Each actor entry is a separate paragraph block in Notion, joined with \n\n.
   const entryChunks = cleaned
-    .split(/(?=(?:\*\*)?[A-Z][^—]*?—\s*Δ)/)
+    .split(/\n\n+/)
     .map((s) => s.trim())
     .filter(Boolean)
 
-  // Parse each chunk into actor, delta, and body.
-  // Supports both **Actor** and plain Actor name formats.
+  // Handles all agent formats — optional parenthetical annotation between delta and separator:
+  //   Monthly:  **Actor** — Δ ±N (PF old → ~new) — body
+  //   Weekly:   **Actor** — Δ ±N → body
+  //   Annotated: **Actor** — Δ ±N (internal rebalance) → body
   const ENTRY_RE =
-    /^(?:\*\*(.+?)\*\*|([A-Z][^—]*?))\s*[—–-]\s*Δ\s*([+-]?\d+(?:\.\d+)?)\s*→\s*([\s\S]+)$/
+    /^(?:\*\*(.+?)\*\*|([A-Z][^—\n]*?))\s*[—–-]\s*Δ\s*([+-]?\d+(?:\.\d+)?)\s*(?:\([^)]*\))?\s*(?:[—–-]|→)\s*([\s\S]+)$/
   const items: { actor: string; delta: number; body: string }[] = []
   const fallbackLines: string[] = []
 
   for (const chunk of entryChunks) {
     const m = ENTRY_RE.exec(chunk)
     if (m) {
+      // Strip agent-appended context tags from actor names (e.g. "Iran (Current Conflict)")
+      const rawActor = (m[1] || m[2]).trim()
+      const actor = rawActor.replace(/\s*\(Current Conflict\)\s*/i, '').trim()
       items.push({
-        actor: (m[1] || m[2]).trim(),
+        actor,
         delta: parseFloat(m[3]),
         body: m[4].trim(),
       })
@@ -131,8 +133,12 @@ function KeyMovementsSection({ raw }: { raw: string }) {
 
 // ─── SCENARIOS TO WATCH renderer ────────────────────────────────────────────
 
-/** Pattern: **Scenario Title**, probability, status text */
-const SCENARIO_RE = /^\*\*(.+?)\*\*(?:\s*[,;]\s*|\s*[—–-]\s*)(?:p\s*=\s*)?(\d+%?)\s*[,;]?\s*(.*)$/i
+/**
+ * Format: **Scenario Title** p=55% (context). Body text.
+ * Groups: 1=title, 2=probability, 3=parenthetical context (optional), 4=body
+ */
+const SCENARIO_RE =
+  /^\*\*(.+?)\*\*\s*(?:[,;—–-]\s*)?p=(\d+%?)(?:\s*\(([^)]*)\))?\.\s*([\s\S]*)$/i
 
 function ProbabilityBadge({ p }: { p: string }) {
   const num = parseInt(p, 10)
@@ -157,28 +163,33 @@ function ProbabilityBadge({ p }: { p: string }) {
   )
 }
 
-function ActivePill() {
+function TriggeredPill({ context }: { context: string }) {
+  const isTriggered = /already triggered/i.test(context)
+  const isEscalating = /escalating/i.test(context)
+  if (!isTriggered) return null
+  const label = isEscalating ? "Active — Escalating" : "Active"
   return (
     <span
       className="text-[10px] font-semibold uppercase tracking-wider px-1.5 py-0.5 rounded"
-      style={{ color: "var(--score-mid)", backgroundColor: "color-mix(in srgb, var(--score-mid) 12%, transparent)" }}
+      style={{ color: "var(--delta-down)", backgroundColor: "color-mix(in srgb, var(--delta-down) 12%, transparent)" }}
     >
-      Active
+      {label}
     </span>
   )
 }
 
 function ScenariosSection({ raw }: { raw: string }) {
-  const lines = stripDividers(raw).split("\n").filter((l) => l.trim())
-  const items: { title: string; probability: string; body: string }[] = []
-  let fallbackLines: string[] = []
+  // Each scenario is a paragraph block → separated by \n\n
+  const entries = stripDividers(raw).split(/\n\n+/).map((s) => s.trim()).filter(Boolean)
+  const items: { title: string; probability: string; context: string; body: string }[] = []
+  const fallbackLines: string[] = []
 
-  for (const line of lines) {
-    const m = SCENARIO_RE.exec(line.trim())
+  for (const entry of entries) {
+    const m = SCENARIO_RE.exec(entry)
     if (m) {
-      items.push({ title: m[1], probability: m[2], body: m[3] })
+      items.push({ title: m[1], probability: m[2], context: m[3] ?? "", body: m[4] ?? "" })
     } else {
-      fallbackLines.push(line)
+      fallbackLines.push(entry)
     }
   }
 
@@ -195,7 +206,7 @@ function ScenariosSection({ raw }: { raw: string }) {
               {item.title}
             </span>
             <ProbabilityBadge p={item.probability} />
-            <ActivePill />
+            <TriggeredPill context={item.context} />
           </div>
           {item.body && (
             <p className="text-base leading-[1.8]" style={{ color: "var(--muted-foreground)" }}>
@@ -204,7 +215,7 @@ function ScenariosSection({ raw }: { raw: string }) {
           )}
         </div>
       ))}
-      {fallbackLines.length > 0 && <Prose text={fallbackLines.join("\n")} />}
+      {fallbackLines.length > 0 && <Prose text={fallbackLines.join("\n\n")} />}
     </>
   )
 }
@@ -215,9 +226,13 @@ function ScenariosSection({ raw }: { raw: string }) {
 const LEDGER_RE = /^\*\*(.+?)\*\*\s*Δ\s*([+-]?\d+(?:\.\d+)?)\s*(?:\(([^)]+)\))?\s*(?:[—–-]\s*)?(.*)$/
 
 function ScoreLedgerSection({ raw }: { raw: string }) {
-  const lines = stripDividers(raw).split("\n").filter((l) => l.trim())
+  // Each actor entry is a paragraph block → separated by \n\n
+  const entries = stripDividers(raw).split(/\n\n+/).map((s) => s.trim()).filter(Boolean)
+  // Also handle single-line-per-entry format (legacy)
+  const lines = entries.flatMap((e) => e.split("\n")).filter((l) => l.trim())
+
   const items: { actor: string; delta: number; range: string; note: string }[] = []
-  let fallbackLines: string[] = []
+  const fallbackLines: string[] = []
 
   for (const line of lines) {
     const m = LEDGER_RE.exec(line.trim())
@@ -238,22 +253,24 @@ function ScoreLedgerSection({ raw }: { raw: string }) {
         {items.map((item, i) => (
           <div
             key={i}
-            className="flex items-center gap-2 py-1.5 px-3 rounded text-sm"
+            className="py-3 px-3 rounded text-sm"
             style={{ backgroundColor: i % 2 === 0 ? "var(--surface)" : "transparent" }}
           >
-            <span className="font-medium shrink-0" style={{ color: "var(--foreground)" }}>
-              {item.actor}
-            </span>
-            <DeltaBadge delta={item.delta} />
-            {item.range && (
-              <span className="text-xs font-mono" style={{ color: "var(--muted)" }}>
-                {item.range}
+            <div className="flex items-center gap-2 mb-1 flex-wrap">
+              <span className="font-medium shrink-0" style={{ color: "var(--foreground)" }}>
+                {item.actor}
               </span>
-            )}
+              <DeltaBadge delta={item.delta} />
+              {item.range && (
+                <span className="text-xs font-mono" style={{ color: "var(--muted)" }}>
+                  {item.range}
+                </span>
+              )}
+            </div>
             {item.note && (
-              <span className="text-xs truncate" style={{ color: "var(--muted-foreground)" }}>
-                {item.note}
-              </span>
+              <p className="text-sm leading-[1.6]" style={{ color: "var(--muted-foreground)" }}>
+                {renderInline(item.note)}
+              </p>
             )}
           </div>
         ))}
@@ -303,14 +320,15 @@ export default function BriefRenderer({ content }: { content: BriefContent }) {
   }
 
   return (
-    <div className="space-y-12">
+    <div className="space-y-0">
       {content.sections.map((section, i) => {
         const label = DISPLAY_LABELS[section.title] || section.title
+        const isLast = i === content.sections.length - 1
 
         // Sections without a title (preamble) render as plain prose
         if (!section.title) {
           return (
-            <div key={i}>
+            <div key={i} className="pb-12">
               {renderSection(section)}
             </div>
           )
@@ -319,10 +337,10 @@ export default function BriefRenderer({ content }: { content: BriefContent }) {
         return (
           <section
             key={i}
-            style={{ borderBottom: "1px solid var(--border)" }}
-            className="pb-10"
+            className="pt-2 pb-12"
+            style={{ borderBottom: isLast ? "none" : "1px solid var(--border)" }}
           >
-            <CollapsibleSection label={label} headerGap="mb-3">
+            <CollapsibleSection label={label} headerGap="mb-8">
               {renderSection(section)}
             </CollapsibleSection>
           </section>

@@ -88,14 +88,7 @@ export default async function HomePage() {
 
         {/* ── Score Movers Band ── */}
         {(topGainers.length > 0 || topFallers.length > 0) && (
-          <div
-            className="py-5 -mx-6 px-6 rounded-lg"
-            style={{
-              backgroundColor: "var(--surface-raised)",
-              borderTop: "1px solid var(--border)",
-              borderBottom: "1px solid var(--border)",
-            }}
-          >
+          <div className="py-5">
             <div className="flex items-center justify-center gap-2 mb-3">
               <span
                 className="inline-block w-1.5 h-1.5 rounded-full animate-pulse"

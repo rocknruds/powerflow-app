@@ -107,6 +107,7 @@ export interface BriefPublic {
   dateRangeEnd: string | null
   editorialPriority: string | null
   leadThesis: string | null
+  summaryDek: string | null      // short 1-2 sentence summary for card display
   bodyPreview: string | null     // truncated first paragraph, used as card fallback
   visibility: string | null
 }
