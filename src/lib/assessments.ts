@@ -133,6 +133,47 @@ export async function getLatestPublicAssessment(): Promise<(AssessmentSummary & 
   };
 }
 
+export async function getLatestPublicAssessments(
+  count = 3
+): Promise<(AssessmentSummary & { actorSlug: string | null })[]> {
+  const pages = await queryDatabase(
+    ASSESSMENTS_DB_ID,
+    { property: "Visibility", select: { equals: "Public" } },
+    [{ timestamp: "created_time", direction: "descending" }],
+    300
+  );
+
+  const results: (AssessmentSummary & { actorSlug: string | null })[] = [];
+  const { getActorById } = await import("./actors");
+
+  for (const page of pages.slice(0, count)) {
+    const p = page.properties ?? {};
+    const actorIds = getRelationIds(p, "Actor");
+    let actorSlug: string | null = null;
+    if (actorIds.length > 0) {
+      const actor = await getActorById(actorIds[0]);
+      if (actor) actorSlug = actor.slug;
+    }
+    results.push({
+      id: page.id as string,
+      title: getTitle(p, "Name") || getTitle(p, "Title"),
+      region: getSelect(p, "Region"),
+      pfSignal: getSelect(p, "PF Signal"),
+      pfScore: getNumber(p, "PF Score (0-100)"),
+      confidenceLevel: getSelect(p, "Confidence Level"),
+      timePeriod: getDate(p, "Time Period"),
+      generatedOn: getDate(p, "Generated On") ?? page.created_time?.slice(0, 10) ?? null,
+      analystCommentary: getText(p, "Analyst Commentary"),
+      currentPosition: getText(p, "Current Position"),
+      notionUrl: (page.url as string) ?? "",
+      actorIds,
+      actorSlug,
+    });
+  }
+
+  return results;
+}
+
 export async function getAllAssessments(): Promise<AssessmentSummary[]> {
   const pages = await queryDatabase(
     ASSESSMENTS_DB_ID,

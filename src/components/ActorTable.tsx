@@ -29,14 +29,14 @@ function ActorTypeBadge({ type }: { type: string }) {
 }
 
 function SortHeader({
-  label, field, sortBy, sortDir, onClick,
+  label, field, sortBy, sortDir, onClick, center,
 }: {
-  label: string; field: SortKey; sortBy: SortKey; sortDir: "asc" | "desc"; onClick: (f: SortKey) => void;
+  label: string; field: SortKey; sortBy: SortKey; sortDir: "asc" | "desc"; onClick: (f: SortKey) => void; center?: boolean;
 }) {
   const active = sortBy === field;
   return (
     <th
-      className="pb-3 pr-4 cursor-pointer select-none whitespace-nowrap transition-colors"
+      className={`pb-3 pr-4 cursor-pointer select-none whitespace-nowrap transition-colors${center ? " text-center" : ""}`}
       style={{ color: active ? "var(--foreground)" : "var(--muted)" }}
       onClick={() => onClick(field)}
     >
@@ -112,13 +112,13 @@ export default function ActorTable({ actors, snapshotDeltaMap }: ActorTableProps
             <tr className="text-left text-xs" style={{ borderBottom: "1px solid var(--border)" }}>
               <th className="pb-3 pr-4" style={{ color: "var(--muted)" }}>Rank</th>
               <SortHeader label="Name" field="name" sortBy={sortBy} sortDir={sortDir} onClick={toggleSort} />
-              <th className="pb-3 pr-4" style={{ color: "var(--muted)" }}>Type</th>
-              <SortHeader label="Authority" field="authorityScore" sortBy={sortBy} sortDir={sortDir} onClick={toggleSort} />
-              <SortHeader label="Reach" field="reachScore" sortBy={sortBy} sortDir={sortDir} onClick={toggleSort} />
-              <SortHeader label="PF Score" field="pfScore" sortBy={sortBy} sortDir={sortDir} onClick={toggleSort} />
-              <th className="pb-3 pr-4" style={{ color: "var(--muted)" }} title="Directional posture — how this actor is currently exercising power (Defender, Challenger, External Pressure, Neutral)">Signal</th>
-              <th className="pb-3 pr-4" style={{ color: "var(--muted)" }}>Region</th>
-              <th className="pb-3" style={{ color: "var(--muted)" }}>Δ</th>
+              <th className="pb-3 pr-4 text-center" style={{ color: "var(--muted)" }}>Type</th>
+              <SortHeader label="Authority" field="authorityScore" sortBy={sortBy} sortDir={sortDir} onClick={toggleSort} center />
+              <SortHeader label="Reach" field="reachScore" sortBy={sortBy} sortDir={sortDir} onClick={toggleSort} center />
+              <SortHeader label="PF Score" field="pfScore" sortBy={sortBy} sortDir={sortDir} onClick={toggleSort} center />
+              <th className="pb-3 pr-4 text-center" style={{ color: "var(--muted)" }} title="Directional posture — how this actor is currently exercising power (Defender, Challenger, External Pressure, Neutral)">Signal</th>
+              <th className="pb-3 pr-4 text-center" style={{ color: "var(--muted)" }}>Region</th>
+              <th className="pb-3 text-center" style={{ color: "var(--muted)" }}>Δ</th>
             </tr>
           </thead>
           <tbody style={{ borderColor: "var(--border)" }}>
@@ -140,15 +140,15 @@ export default function ActorTable({ actors, snapshotDeltaMap }: ActorTableProps
                         {actor.name || "—"}
                       </Link>
                     </td>
-                    <td className="py-3 pr-4"><ActorTypeBadge type={actor.actorType} /></td>
-                    <td className="py-3 pr-4 tabular-nums" style={{ color: "var(--muted-foreground)" }}>{actor.authorityScore ?? "—"}</td>
-                    <td className="py-3 pr-4 tabular-nums" style={{ color: "var(--muted-foreground)" }}>{actor.reachScore ?? "—"}</td>
-                    <td className="py-3 pr-4">
+                    <td className="py-3 pr-4 text-center"><ActorTypeBadge type={actor.actorType} /></td>
+                    <td className="py-3 pr-4 tabular-nums text-center" style={{ color: "var(--muted-foreground)" }}>{actor.authorityScore ?? "—"}</td>
+                    <td className="py-3 pr-4 tabular-nums text-center" style={{ color: "var(--muted-foreground)" }}>{actor.reachScore ?? "—"}</td>
+                    <td className="py-3 pr-4 text-center">
                       <span className="font-bold text-base tabular-nums" style={{ color: scoreColor }}>{actor.pfScore != null ? Math.round(actor.pfScore) : "—"}</span>
                     </td>
-                    <td className="py-3 pr-4 text-xs" style={{ color: "var(--muted)" }}>{actor.pfVector === "From Above (External Pressure)" ? "Ext. Pressure" : actor.pfVector === "From Below (Challenger)" ? "Challenger" : actor.pfVector || "—"}</td>
-                    <td className="py-3 pr-4 text-xs" style={{ color: "var(--muted)" }}>{actor.region || "—"}</td>
-                    <td className="py-3"><ScoreDelta delta={delta} /></td>
+                    <td className="py-3 pr-4 text-xs text-center" style={{ color: "var(--muted)" }}>{actor.pfVector === "From Above (External Pressure)" ? "Ext. Pressure" : actor.pfVector === "From Below (Challenger)" ? "Challenger" : actor.pfVector || "—"}</td>
+                    <td className="py-3 pr-4 text-xs text-center" style={{ color: "var(--muted)" }}>{actor.region || "—"}</td>
+                    <td className="py-3 text-center"><ScoreDelta delta={delta} /></td>
                   </tr>
                 );
               })

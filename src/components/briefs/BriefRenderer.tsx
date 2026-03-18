@@ -46,9 +46,6 @@ function Prose({ text }: { text: string }) {
 
 // ─── KEY MOVEMENTS renderer ─────────────────────────────────────────────────
 
-/** Pattern: **Actor Name** — Δ +5 → analytical clause */
-const MOVEMENT_RE = /^\*\*(.+?)\*\*\s*[—–-]\s*Δ\s*([+-]?\d+(?:\.\d+)?)\s*→\s*(.+)$/
-
 function DeltaBadge({ delta }: { delta: number }) {
   const isPositive = delta > 0
   const color = isPositive ? "var(--delta-up)" : "var(--delta-down)"
@@ -66,35 +63,62 @@ function DeltaBadge({ delta }: { delta: number }) {
 }
 
 function KeyMovementsSection({ raw }: { raw: string }) {
-  const lines = stripDividers(raw).split("\n").filter((l) => l.trim())
-  const items: { actor: string; delta: number; body: string }[] = []
-  let fallbackLines: string[] = []
+  const cleaned = stripDividers(raw).trim()
 
-  for (const line of lines) {
-    const m = MOVEMENT_RE.exec(line.trim())
+  // Split the (possibly single-blob) content into individual actor entries.
+  // Uses lookahead so the delimiter stays attached to each entry.
+  // Handles: "Iran (Current Conflict) — Δ -4 → ...", "North Korea — Δ +2 → ...", "IRGC — Δ +1 → ..."
+  // Also handles **bold**-wrapped actor names from well-formatted sources.
+  const entryChunks = cleaned
+    .split(/(?=(?:\*\*)?[A-Z][^—]*?—\s*Δ)/)
+    .map((s) => s.trim())
+    .filter(Boolean)
+
+  // Parse each chunk into actor, delta, and body.
+  // Supports both **Actor** and plain Actor name formats.
+  const ENTRY_RE =
+    /^(?:\*\*(.+?)\*\*|([A-Z][^—]*?))\s*[—–-]\s*Δ\s*([+-]?\d+(?:\.\d+)?)\s*→\s*([\s\S]+)$/
+  const items: { actor: string; delta: number; body: string }[] = []
+  const fallbackLines: string[] = []
+
+  for (const chunk of entryChunks) {
+    const m = ENTRY_RE.exec(chunk)
     if (m) {
-      items.push({ actor: m[1], delta: parseFloat(m[2]), body: m[3] })
+      items.push({
+        actor: (m[1] || m[2]).trim(),
+        delta: parseFloat(m[3]),
+        body: m[4].trim(),
+      })
     } else {
-      fallbackLines.push(line)
+      fallbackLines.push(chunk)
     }
   }
 
   return (
     <>
-      <div className="space-y-8">
+      <div>
         {items.map((item, i) => (
           <div
             key={i}
-            className="rounded-lg p-4"
-            style={{ backgroundColor: "var(--surface)", border: "1px solid var(--border)" }}
+            style={{
+              marginTop: i > 0 ? 24 : 0,
+              paddingTop: i > 0 ? 24 : 0,
+              borderTop: i > 0 ? "1px solid var(--border)" : "none",
+            }}
           >
             <div className="flex items-center gap-2 mb-1.5">
-              <span className="text-sm font-semibold" style={{ color: "var(--foreground)" }}>
+              <span
+                className="text-sm"
+                style={{ color: "var(--foreground)", fontWeight: 600 }}
+              >
                 {item.actor}
               </span>
               <DeltaBadge delta={item.delta} />
             </div>
-            <p className="text-base leading-[1.8]" style={{ color: "var(--muted-foreground)" }}>
+            <p
+              className="text-base leading-[1.8]"
+              style={{ color: "var(--muted-foreground)" }}
+            >
               {renderInline(item.body)}
             </p>
           </div>

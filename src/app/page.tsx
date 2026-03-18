@@ -2,7 +2,7 @@ import Link from "next/link";
 import { getAllPublicActors, enrichActorsWithDeltas } from "@/lib/actors";
 import { getLatestDeltaByActor, computeScoreMovers } from "@/lib/scores";
 import { getLatestBrief } from "@/lib/briefs";
-import { getLatestPublicAssessment } from "@/lib/assessments";
+import { getLatestPublicAssessments } from "@/lib/assessments";
 import { getActiveScenarios } from "@/lib/scenarios";
 import ScoreDelta from "@/components/ScoreDelta";
 import { pfScoreColor } from "@/components/ActorCard";
@@ -12,11 +12,11 @@ import CollapsibleSection from "@/components/CollapsibleSection";
 export const revalidate = 300;
 
 export default async function HomePage() {
-  const [actors, deltaMap, latestBrief, latestAssessment, scenarios] = await Promise.all([
+  const [actors, deltaMap, latestBrief, latestAssessments, scenarios] = await Promise.all([
     getAllPublicActors(),
     getLatestDeltaByActor(),
     getLatestBrief(),
-    getLatestPublicAssessment(),
+    getLatestPublicAssessments(3),
     getActiveScenarios(),
   ]);
 
@@ -159,7 +159,7 @@ export default async function HomePage() {
           )}
         </section>
 
-        {/* ── Leaderboard + Latest Brief (two-column) ── */}
+        {/* ── Leaderboard + Latest Briefs (two-column) ── */}
         <section
           className="py-12"
           style={{ borderBottom: "1px solid var(--border)" }}
@@ -214,87 +214,142 @@ export default async function HomePage() {
               </CollapsibleSection>
             </div>
 
-            {/* Latest brief + assessment — right column */}
-            <div className="md:flex-1 min-w-0 space-y-10">
-              <CollapsibleSection label="Latest brief" action={{ label: "All briefs", href: "/briefs" }}>
-                {!latestBrief ? (
-                  <p className="text-sm" style={{ color: "var(--muted)" }}>
-                    No briefs published yet.
-                  </p>
-                ) : (
-                  <Link href={`/briefs/${latestBrief.id}`} className="block group">
-                    <div
-                      className="p-5 rounded-lg transition-colors"
-                      style={{
-                        border: "1px solid var(--border)",
-                        backgroundColor: "var(--surface)",
-                      }}
-                    >
-                      <div className="flex items-center gap-2 mb-3 flex-wrap">
-                        {latestBrief.briefType && (
-                          <span
-                            className="text-[11px] px-2 py-0.5 rounded font-medium"
-                            style={{
-                              color: "var(--accent)",
-                              border: "1px solid color-mix(in srgb, var(--accent) 30%, transparent)",
-                              backgroundColor: "color-mix(in srgb, var(--accent) 10%, transparent)",
-                            }}
+            {/* Latest briefs — right column */}
+            <div className="md:flex-1 min-w-0">
+              <CollapsibleSection label="Latest briefs" action={{ label: "All briefs", href: "/briefs" }}>
+                <div className="space-y-3">
+                  {/* Weekly brief */}
+                  {!latestBrief ? (
+                    <p className="text-sm" style={{ color: "var(--muted)" }}>
+                      No briefs published yet.
+                    </p>
+                  ) : (
+                    <Link href={`/briefs/${latestBrief.id}`} className="block group">
+                      <div
+                        className="p-5 rounded-lg transition-colors"
+                        style={{
+                          border: "1px solid var(--border)",
+                          backgroundColor: "var(--surface)",
+                        }}
+                      >
+                        <div className="flex items-center gap-2 mb-3 flex-wrap">
+                          {latestBrief.briefType && (
+                            <span
+                              className="text-[11px] px-2 py-0.5 rounded font-medium"
+                              style={{
+                                color: "var(--accent)",
+                                border: "1px solid color-mix(in srgb, var(--accent) 30%, transparent)",
+                                backgroundColor: "color-mix(in srgb, var(--accent) 10%, transparent)",
+                              }}
+                            >
+                              {latestBrief.briefType}
+                            </span>
+                          )}
+                          {latestBrief.status && (
+                            <span
+                              className="text-[11px] px-2 py-0.5 rounded font-medium"
+                              style={{
+                                color: latestBrief.status === "Final" ? "var(--delta-up)" : "var(--score-mid)",
+                                backgroundColor: latestBrief.status === "Final"
+                                  ? "color-mix(in srgb, var(--delta-up) 10%, transparent)"
+                                  : "color-mix(in srgb, var(--score-mid) 10%, transparent)",
+                              }}
+                            >
+                              {latestBrief.status}
+                            </span>
+                          )}
+                        </div>
+                        <p
+                          className="text-sm font-medium leading-snug mb-2 group-hover:text-accent transition-colors"
+                          style={{ color: "var(--foreground)" }}
+                        >
+                          {latestBrief.title || "Untitled Brief"}
+                        </p>
+                        {latestBrief.editorialPriority && (
+                          <p
+                            className="text-xs leading-relaxed line-clamp-2"
+                            style={{ color: "var(--muted-foreground)" }}
                           >
-                            {latestBrief.briefType}
-                          </span>
-                        )}
-                        {latestBrief.status && (
-                          <span
-                            className="text-[11px] px-2 py-0.5 rounded font-medium"
-                            style={{
-                              color: latestBrief.status === "Final" ? "var(--delta-up)" : "var(--score-mid)",
-                              backgroundColor: latestBrief.status === "Final"
-                                ? "color-mix(in srgb, var(--delta-up) 10%, transparent)"
-                                : "color-mix(in srgb, var(--score-mid) 10%, transparent)",
-                            }}
-                          >
-                            {latestBrief.status}
-                          </span>
+                            {latestBrief.editorialPriority}
+                          </p>
                         )}
                       </div>
-                      <p
-                        className="text-sm font-medium leading-snug mb-2 group-hover:text-accent transition-colors"
-                        style={{ color: "var(--foreground)" }}
-                      >
-                        {latestBrief.title || "Untitled Brief"}
-                      </p>
-                      {latestBrief.editorialPriority && (
-                        <p
-                          className="text-xs leading-relaxed line-clamp-2"
-                          style={{ color: "var(--muted-foreground)" }}
-                        >
-                          {latestBrief.editorialPriority}
-                        </p>
-                      )}
-                    </div>
-                  </Link>
-                )}
-              </CollapsibleSection>
+                    </Link>
+                  )}
 
-              <CollapsibleSection label="Latest assessment" action={{ label: "All assessments", href: "/analysis" }}>
-                {!latestAssessment ? (
-                  <p className="text-sm" style={{ color: "var(--muted)" }}>
-                    No assessments published yet.
-                  </p>
-                ) : (
+                  {/* Monthly brief placeholder — mirrors weekly card layout */}
+                  <div
+                    className="p-5 rounded-lg"
+                    style={{
+                      border: "1px solid var(--border)",
+                      backgroundColor: "var(--surface)",
+                      opacity: 0.55,
+                    }}
+                  >
+                    <div className="flex items-center gap-2 mb-3 flex-wrap">
+                      <span
+                        className="text-[11px] px-2 py-0.5 rounded font-medium"
+                        style={{
+                          color: "var(--accent)",
+                          border: "1px solid color-mix(in srgb, var(--accent) 30%, transparent)",
+                          backgroundColor: "color-mix(in srgb, var(--accent) 10%, transparent)",
+                        }}
+                      >
+                        Monthly
+                      </span>
+                      <span
+                        className="text-[11px] px-2 py-0.5 rounded font-medium"
+                        style={{
+                          color: "var(--muted-foreground)",
+                          backgroundColor: "color-mix(in srgb, var(--muted-foreground) 10%, transparent)",
+                        }}
+                      >
+                        Coming soon
+                      </span>
+                    </div>
+                    <p
+                      className="text-sm font-medium leading-snug mb-2"
+                      style={{ color: "var(--foreground)" }}
+                    >
+                      Monthly Brief — coming soon
+                    </p>
+                    <p
+                      className="text-xs leading-relaxed"
+                      style={{ color: "var(--muted-foreground)" }}
+                    >
+                      A monthly synthesis of power shifts, emerging trends, and strategic outlook across all tracked actors.
+                    </p>
+                  </div>
+                </div>
+              </CollapsibleSection>
+            </div>
+          </div>
+        </section>
+
+        {/* ── Latest Assessments (full-width row) ── */}
+        <section className="py-12" style={{ borderBottom: "1px solid var(--border)" }}>
+          <CollapsibleSection label="Latest assessments" action={{ label: "All assessments", href: "/analysis" }}>
+            {latestAssessments.length === 0 ? (
+              <p className="text-sm" style={{ color: "var(--muted)" }}>
+                No assessments published yet.
+              </p>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {latestAssessments.map((assessment) => (
                   <Link
-                    href={latestAssessment.actorSlug ? `/actors/${latestAssessment.actorSlug}` : "/analysis"}
+                    key={assessment.id}
+                    href={assessment.actorSlug ? `/actors/${assessment.actorSlug}` : "/analysis"}
                     className="block group"
                   >
                     <div
-                      className="p-5 rounded-lg transition-colors"
+                      className="p-5 rounded-lg transition-colors h-full"
                       style={{
                         border: "1px solid var(--border)",
                         backgroundColor: "var(--surface)",
                       }}
                     >
                       <div className="flex items-center gap-2 mb-3 flex-wrap">
-                        {latestAssessment.pfSignal && (
+                        {assessment.pfSignal && (
                           <span
                             className="text-[11px] px-2 py-0.5 rounded font-medium"
                             style={{
@@ -303,10 +358,10 @@ export default async function HomePage() {
                               backgroundColor: "color-mix(in srgb, var(--accent) 10%, transparent)",
                             }}
                           >
-                            {latestAssessment.pfSignal}
+                            {assessment.pfSignal}
                           </span>
                         )}
-                        {latestAssessment.confidenceLevel && (
+                        {assessment.confidenceLevel && (
                           <span
                             className="text-[11px] px-2 py-0.5 rounded font-medium"
                             style={{
@@ -314,7 +369,7 @@ export default async function HomePage() {
                               backgroundColor: "color-mix(in srgb, var(--muted-foreground) 10%, transparent)",
                             }}
                           >
-                            {latestAssessment.confidenceLevel}
+                            {assessment.confidenceLevel}
                           </span>
                         )}
                       </div>
@@ -322,14 +377,14 @@ export default async function HomePage() {
                         className="text-sm font-medium leading-snug mb-1 group-hover:text-accent transition-colors"
                         style={{ color: "var(--foreground)" }}
                       >
-                        {latestAssessment.title || "Untitled Assessment"}
+                        {assessment.title || "Untitled Assessment"}
                       </p>
-                      {latestAssessment.generatedOn && (
+                      {assessment.generatedOn && (
                         <p
                           className="text-[11px] font-mono mb-2"
                           style={{ color: "var(--muted)" }}
                         >
-                          {new Date(latestAssessment.generatedOn).toLocaleDateString("en-US", {
+                          {new Date(assessment.generatedOn).toLocaleDateString("en-US", {
                             year: "numeric",
                             month: "short",
                             day: "numeric",
@@ -340,16 +395,16 @@ export default async function HomePage() {
                         className="text-xs leading-relaxed line-clamp-2"
                         style={{ color: "var(--muted-foreground)" }}
                       >
-                        {latestAssessment.analystCommentary
-                          || latestAssessment.currentPosition
+                        {assessment.analystCommentary
+                          || assessment.currentPosition
                           || "Structured analytical assessment \u2014 doctrine, trajectory, and scenario outlook."}
                       </p>
                     </div>
                   </Link>
-                )}
-              </CollapsibleSection>
-            </div>
-          </div>
+                ))}
+              </div>
+            )}
+          </CollapsibleSection>
         </section>
 
         {/* ── Active scenarios ── */}
