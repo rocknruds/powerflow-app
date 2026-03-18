@@ -179,7 +179,7 @@ export default async function BriefPage({
                 <BriefRenderer content={briefContent} />
               </div>
               <div className="mt-10 lg:mt-0">
-                {scoreLedger && <ScoreLedgerSidebar raw={scoreLedger.raw} />}
+                {scoreLedger && scoreLedger.raw.trim() && <ScoreLedgerSidebar raw={scoreLedger.raw} />}
               </div>
             </div>
           )

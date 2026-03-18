@@ -1,3 +1,6 @@
+"use client"
+
+import { useState } from "react"
 import type { BriefContent, BriefSection } from "@/lib/parseBriefContent"
 
 // ─── Inline markdown rendering ──────────────────────────────────────────────
@@ -33,7 +36,22 @@ function Prose({ text }: { text: string }) {
   return (
     <div className="max-w-[72ch]">
       {paragraphs.map((p, i) => (
-        <p key={i} className="text-base leading-[1.8] mb-5" style={{ color: "var(--muted-foreground)" }}>
+        <p key={i} className="text-[1.0625rem] leading-[1.85] mb-6" style={{ color: "var(--muted-foreground)" }}>
+          {renderInline(p.trim())}
+        </p>
+      ))}
+    </div>
+  )
+}
+
+// ─── Headline Prose (larger text, foreground color) ──────────────────────────
+
+function HeadlineProse({ text }: { text: string }) {
+  const paragraphs = stripDividers(text).split(/\n\s*\n/).filter(Boolean)
+  return (
+    <div className="max-w-[72ch]">
+      {paragraphs.map((p, i) => (
+        <p key={i} className="text-lg leading-[1.85] mb-6" style={{ color: "var(--foreground)" }}>
           {renderInline(p.trim())}
         </p>
       ))}
@@ -45,8 +63,8 @@ function Prose({ text }: { text: string }) {
 
 function SectionHeader({ label, isFirst }: { label: string; isFirst: boolean }) {
   return (
-    <div className={`flex items-center gap-2 mb-6${isFirst ? "" : " pt-10"}`}>
-      <svg width="7" height="20" viewBox="0 0 18 44" fill="none" aria-hidden="true" className="shrink-0">
+    <div className={`flex items-center gap-2 mb-8${isFirst ? "" : " mt-14"}`}>
+      <svg width="10" height="24" viewBox="0 0 18 44" fill="none" aria-hidden="true" className="shrink-0">
         <path
           d="M5.2 8.6C5.2 7.16406 4.03594 6 2.6 6C1.16406 6 0 7.16406 0 8.6V35.4C0 36.8359 1.16406 38 2.6 38C4.03594 38 5.2 36.8359 5.2 35.4V8.6Z"
           fill="#60A5FA"
@@ -57,7 +75,7 @@ function SectionHeader({ label, isFirst }: { label: string; isFirst: boolean }) 
         />
       </svg>
       <span
-        className="text-sm font-semibold tracking-[0.18em] uppercase"
+        className="text-lg font-semibold tracking-[0.14em] uppercase"
         style={{ color: "var(--muted-foreground)" }}
       >
         {label}
@@ -76,7 +94,7 @@ function DeltaBadge({ delta }: { delta: number }) {
     : "color-mix(in srgb, var(--delta-down) 12%, transparent)"
   return (
     <span
-      className="text-xs font-mono px-1.5 py-0.5 rounded shrink-0"
+      className="text-xs font-mono font-semibold px-2 py-0.5 rounded-md min-w-[44px] text-center tabular-nums shrink-0"
       style={{ color, backgroundColor: bg }}
     >
       {isPositive ? "+" : ""}{delta}
@@ -90,6 +108,54 @@ function DeltaBadge({ delta }: { delta: number }) {
 const ENTRY_RE =
   /^(?:\*\*(.+?)\*\*|([A-Z][^—\n]*?))\s*[—–-]\s*Δ\s*([+-]?\d+(?:\.\d+)?)\s*(?:\(([^)]*)\))?\s*(?:[—–-]|→)\s*([\s\S]+)$/
 
+function KeyMovementEntry({
+  item,
+  isLast,
+}: {
+  item: { actor: string; delta: number; range: string; body: string }
+  isLast: boolean
+}) {
+  const [open, setOpen] = useState(true)
+  return (
+    <div
+      className="pl-4 mb-0"
+      style={{
+        borderLeft: "1px solid rgba(255,255,255,0.12)",
+        borderBottom: isLast ? "none" : "1px solid rgba(255,255,255,0.05)",
+        paddingBottom: isLast ? "0.5rem" : "1.25rem",
+        marginBottom: isLast ? "0" : "0.25rem",
+      }}
+    >
+      <button
+        onClick={() => setOpen((v) => !v)}
+        className="flex items-center gap-2.5 w-full text-left py-2 group"
+        style={{ cursor: "pointer" }}
+      >
+        <span className="text-base font-medium" style={{ color: "var(--foreground)" }}>
+          {item.actor}
+        </span>
+        <DeltaBadge delta={item.delta} />
+        {item.range && (
+          <span className="text-xs font-mono" style={{ color: "var(--muted)" }}>
+            {item.range}
+          </span>
+        )}
+        <span
+          className="ml-auto text-xs transition-transform duration-150"
+          style={{ color: "var(--muted)", transform: open ? "rotate(0deg)" : "rotate(-90deg)" }}
+        >
+          ▾
+        </span>
+      </button>
+      {open && (
+        <p className="text-[1.0625rem] leading-relaxed pb-1" style={{ color: "var(--muted-foreground)" }}>
+          {renderInline(item.body)}
+        </p>
+      )}
+    </div>
+  )
+}
+
 function KeyMovementsSection({ raw }: { raw: string }) {
   const cleaned = stripDividers(raw).trim()
   const entryChunks = cleaned.split(/\n\n+/).map((s) => s.trim()).filter(Boolean)
@@ -100,7 +166,7 @@ function KeyMovementsSection({ raw }: { raw: string }) {
     const m = ENTRY_RE.exec(chunk)
     if (m) {
       const rawActor = (m[1] || m[2]).trim()
-      const actor = rawActor.replace(/\s*\(Current Conflict\)\s*/i, "").trim()
+      const actor = rawActor.replace(/\s*\([^)→\d]+\)\s*/gi, "").trim()
       const parenthetical = m[4] ?? ""
       // Show parenthetical as score range only if it looks numeric (e.g. "50 → 26")
       const range =
@@ -117,30 +183,7 @@ function KeyMovementsSection({ raw }: { raw: string }) {
     <>
       <div>
         {items.map((item, i) => (
-          <div
-            key={i}
-            className="pl-4 py-2 mb-6"
-            style={{
-              borderLeft: "2px solid var(--accent)",
-              borderBottom: i < items.length - 1 ? "1px solid rgba(255,255,255,0.05)" : "none",
-              paddingBottom: i < items.length - 1 ? "1.5rem" : undefined,
-            }}
-          >
-            <div className="flex items-center gap-2 flex-wrap">
-              <span className="text-sm" style={{ color: "var(--foreground)", fontWeight: 500 }}>
-                {item.actor}
-              </span>
-              <DeltaBadge delta={item.delta} />
-              {item.range && (
-                <span className="text-xs font-mono ml-2" style={{ color: "var(--muted)" }}>
-                  {item.range}
-                </span>
-              )}
-            </div>
-            <p className="text-sm leading-relaxed mt-2" style={{ color: "var(--muted-foreground)" }}>
-              {renderInline(item.body)}
-            </p>
-          </div>
+          <KeyMovementEntry key={i} item={item} isLast={i === items.length - 1} />
         ))}
       </div>
       {fallbackLines.length > 0 && <Prose text={fallbackLines.join("\n")} />}
@@ -197,7 +240,7 @@ function ScenarioBody({ body }: { body: string }) {
   const idx = body.indexOf(TRIGGER)
   if (idx === -1) {
     return (
-      <p className="text-sm leading-relaxed" style={{ color: "var(--muted-foreground)" }}>
+      <p className="text-[1.0625rem] leading-relaxed" style={{ color: "var(--muted-foreground)" }}>
         {renderInline(body)}
       </p>
     )
@@ -207,11 +250,11 @@ function ScenarioBody({ body }: { body: string }) {
   return (
     <>
       {before && (
-        <p className="text-sm leading-relaxed" style={{ color: "var(--muted-foreground)" }}>
+        <p className="text-[1.0625rem] leading-relaxed" style={{ color: "var(--muted-foreground)" }}>
           {renderInline(before)}
         </p>
       )}
-      <p className="text-sm leading-relaxed mt-2" style={{ color: "var(--muted-foreground)" }}>
+      <p className="text-[1.0625rem] leading-relaxed mt-3 block" style={{ color: "var(--muted-foreground)" }}>
         <strong style={{ color: "var(--foreground)" }}>{TRIGGER}</strong>{" "}
         {renderInline(afterTrigger)}
       </p>
@@ -316,33 +359,34 @@ function ScoreLedgerSection({ raw }: { raw: string }) {
 // Sidebar version — sticky card, lg breakpoint only
 export function ScoreLedgerSidebar({ raw }: { raw: string }) {
   const { items, fallback } = parseLedgerItems(raw)
+  const sorted = [...items].sort((a, b) => Math.abs(b.delta) - Math.abs(a.delta)).slice(0, 6)
   return (
     <div
       className="rounded-lg p-5 lg:sticky lg:top-24 lg:max-h-[calc(100vh-8rem)] lg:overflow-y-auto"
       style={{ backgroundColor: "var(--surface)", border: "1px solid rgba(255,255,255,0.08)" }}
     >
       <div
-        className="text-xs tracking-[0.18em] uppercase font-semibold mb-4"
+        className="text-sm tracking-[0.14em] uppercase font-semibold mb-5"
         style={{ color: "var(--muted)" }}
       >
         Score Ledger
       </div>
       <div className="divide-y divide-white/5">
-        {items.map((item, i) => (
-          <div key={i} className="py-3 text-sm">
+        {sorted.map((item, i) => (
+          <div key={i} className="py-3.5">
             <div className="flex items-center gap-2 flex-wrap">
-              <span className="font-medium shrink-0" style={{ color: "var(--foreground)" }}>
+              <span className="text-base font-medium shrink-0" style={{ color: "var(--foreground)" }}>
                 {item.actor}
               </span>
               <DeltaBadge delta={item.delta} />
               {item.range && (
                 <span className="text-xs font-mono" style={{ color: "var(--muted)" }}>
-                  {item.range}
+                  {item.range.replace(/[~≈]/g, "").trim()}
                 </span>
               )}
             </div>
             {item.note && (
-              <p className="text-xs leading-[1.6] mt-1" style={{ color: "var(--muted)" }}>
+              <p className="text-sm leading-relaxed mt-1.5" style={{ color: "var(--muted)" }}>
                 {renderInline(item.note)}
               </p>
             )}
@@ -423,8 +467,13 @@ export default function BriefRenderer({
         // Untitled preamble — plain prose
         if (!section.title) {
           return (
-            <div key={i} className="pb-10">
-              {renderSection(section)}
+            <div key={i}>
+              {i > 0 && (
+                <div className="mb-12 mt-2" style={{ borderTop: "1px solid rgba(255,255,255,0.06)" }} />
+              )}
+              <div className="pb-10">
+                {renderSection(section)}
+              </div>
             </div>
           )
         }
@@ -432,8 +481,13 @@ export default function BriefRenderer({
         // THE HEADLINE — no section header label, just content
         if (section.type === "headline") {
           return (
-            <div key={i} className="pb-10">
-              <Prose text={section.raw} />
+            <div key={i}>
+              {i > 0 && (
+                <div className="mb-12 mt-2" style={{ borderTop: "1px solid rgba(255,255,255,0.06)" }} />
+              )}
+              <div className="pb-10">
+                <HeadlineProse text={section.raw} />
+              </div>
             </div>
           )
         }
@@ -443,10 +497,15 @@ export default function BriefRenderer({
         firstHeader = false
 
         return (
-          <section key={i} className="pb-10">
-            <SectionHeader label={label} isFirst={isFirst} />
-            {renderSection(section)}
-          </section>
+          <div key={i}>
+            {i > 0 && (
+              <div className="mb-12 mt-2" style={{ borderTop: "1px solid rgba(255,255,255,0.06)" }} />
+            )}
+            <section className="pb-10">
+              <SectionHeader label={label} isFirst={isFirst} />
+              {renderSection(section)}
+            </section>
+          </div>
         )
       })}
     </div>
