@@ -95,67 +95,65 @@ export default async function HomePage() {
               >
                 <span
                   className="inline-block w-1.5 h-1.5 rounded-full"
-                  style={{ backgroundColor: "var(--accent)" }}
+                  style={{ backgroundColor: "var(--score-mid)" }}
                 />
                 Score movers — last 30 days
               </div>
-              <div className="flex items-center gap-2.5 flex-nowrap overflow-x-auto no-scrollbar">
-                {topGainers.map((m) => (
-                  <Link
-                    key={m.actorId}
-                    href={`/actors/${m.actorSlug}`}
-                    className="flex items-center gap-1 px-3 py-1.5 rounded-md transition-colors shrink-0"
-                    style={{
-                      border: "1px solid var(--border)",
-                      backgroundColor: "var(--surface)",
-                    }}
-                  >
-                    <span
-                      className="text-xs font-medium"
-                      style={{ color: "var(--foreground)" }}
+              <div className="flex items-center w-full overflow-x-auto no-scrollbar">
+                <div className="flex-1 flex items-center justify-center gap-5">
+                  {topGainers.map((m) => (
+                    <Link
+                      key={m.actorId}
+                      href={`/actors/${m.actorSlug}`}
+                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-md transition-colors shrink-0"
+                      style={{
+                        border: "1px solid var(--border)",
+                        backgroundColor: "var(--surface)",
+                      }}
                     >
-                      {m.actorName}
-                    </span>
-                    <span
-                      className="text-sm font-mono font-semibold tabular-nums"
-                      style={{ color: "var(--foreground)" }}
+                      <span
+                        className="text-xs font-medium"
+                        style={{ color: "var(--foreground)" }}
+                      >
+                        {m.actorName}
+                      </span>
+                      <span
+                        className="text-sm font-mono font-semibold tabular-nums"
+                        style={{ color: "var(--foreground)" }}
+                      >
+                        {Math.round(m.pfScore)}
+                      </span>
+                      <ScoreDelta delta={m.delta} />
+                    </Link>
+                  ))}
+                </div>
+                <div className="flex-1 flex items-center justify-center gap-5">
+                  {topFallers.map((m) => (
+                    <Link
+                      key={m.actorId}
+                      href={`/actors/${m.actorSlug}`}
+                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-md transition-colors shrink-0"
+                      style={{
+                        border: "1px solid var(--border)",
+                        backgroundColor: "var(--surface)",
+                      }}
                     >
-                      {Math.round(m.pfScore)}
-                    </span>
-                    <ScoreDelta delta={m.delta} />
-                  </Link>
-                ))}
-                {topGainers.length > 0 && topFallers.length > 0 && (
-                  <div
-                    className="w-px h-5 shrink-0"
-                    style={{ backgroundColor: "var(--border)" }}
-                  />
-                )}
-                {topFallers.map((m) => (
-                  <Link
-                    key={m.actorId}
-                    href={`/actors/${m.actorSlug}`}
-                    className="flex items-center gap-1 px-3 py-1.5 rounded-md transition-colors shrink-0"
-                    style={{
-                      border: "1px solid var(--border)",
-                      backgroundColor: "var(--surface)",
-                    }}
-                  >
-                    <span
-                      className="text-xs font-medium"
-                      style={{ color: "var(--foreground)" }}
-                    >
-                      {m.actorName}
-                    </span>
-                    <span
-                      className="text-sm font-mono font-semibold tabular-nums"
-                      style={{ color: "var(--foreground)" }}
-                    >
-                      {Math.round(m.pfScore)}
-                    </span>
-                    <ScoreDelta delta={m.delta} />
-                  </Link>
-                ))}
+                      <span
+                        className="text-xs font-medium"
+                        style={{ color: "var(--foreground)" }}
+                      >
+                        {m.actorName}
+                      </span>
+                      <span
+                        className="text-sm font-mono font-semibold tabular-nums"
+                        style={{ color: "var(--foreground)" }}
+                      >
+                        {Math.round(m.pfScore)}
+                      </span>
+                      <ScoreDelta delta={m.delta} />
+                    </Link>
+                  ))}
+                </div>
               </div>
             </div>
           )}
