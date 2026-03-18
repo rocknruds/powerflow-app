@@ -16,6 +16,7 @@ const SECTION_HEADINGS: Record<string, string> = {
   "THE HEADLINE": "headline",
   "KEY MOVEMENTS": "key-movements",
   "ANALYTICAL SYNTHESIS": "analytical-synthesis",
+  "ANALYTICAL COMMENTARY": "analytical-synthesis",
   "SCENARIOS TO WATCH": "scenarios-to-watch",
   "SCORE LEDGER": "score-ledger",
 }

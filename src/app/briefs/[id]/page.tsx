@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { getAllPublicBriefs, getBriefWithContent } from "@/lib/briefs";
 import { parseBriefContent } from "@/lib/parseBriefContent";
-import BriefRenderer from "@/components/briefs/BriefRenderer";
+import BriefRenderer, { ScoreLedgerSidebar } from "@/components/briefs/BriefRenderer";
 import type { NotionBlock } from "@/lib/types";
 
 export const revalidate = 300;
@@ -169,8 +169,21 @@ export default async function BriefPage({
         </div>
       </div>
 
-      <div className="max-w-3xl mx-auto px-6 py-10">
-        <BriefRenderer content={parseBriefContent(blocksToBody(brief.blocks))} />
+      <div className="max-w-6xl mx-auto px-6 py-10">
+        {(() => {
+          const briefContent = parseBriefContent(blocksToBody(brief.blocks))
+          const scoreLedger = briefContent.sections.find((s) => s.type === "score-ledger")
+          return (
+            <div className="grid lg:grid-cols-[minmax(0,65%)_minmax(0,30%)] lg:gap-12">
+              <div>
+                <BriefRenderer content={briefContent} />
+              </div>
+              <div className="mt-10 lg:mt-0">
+                {scoreLedger && <ScoreLedgerSidebar raw={scoreLedger.raw} />}
+              </div>
+            </div>
+          )
+        })()}
       </div>
     </div>
   );

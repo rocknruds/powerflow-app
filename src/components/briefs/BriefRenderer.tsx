@@ -1,11 +1,8 @@
 import type { BriefContent, BriefSection } from "@/lib/parseBriefContent"
-import CollapsibleSection from "@/components/CollapsibleSection"
 
 // ─── Inline markdown rendering ──────────────────────────────────────────────
 
-/** Render inline **bold** and *italic* as spans. */
 function renderInline(text: string): React.ReactNode[] {
-  // Match **bold** and *italic* patterns
   const parts = text.split(/(\*\*[^*]+\*\*|\*[^*]+\*)/)
   return parts.map((part, i) => {
     if (part.startsWith("**") && part.endsWith("**")) {
@@ -22,7 +19,6 @@ function renderInline(text: string): React.ReactNode[] {
   })
 }
 
-/** Strip raw "---" divider lines from section text. */
 function stripDividers(text: string): string {
   return text
     .split("\n")
@@ -30,7 +26,8 @@ function stripDividers(text: string): string {
     .join("\n")
 }
 
-/** Render a block of text as paragraphs with inline formatting. */
+// ─── Prose ───────────────────────────────────────────────────────────────────
+
 function Prose({ text }: { text: string }) {
   const paragraphs = stripDividers(text).split(/\n\s*\n/).filter(Boolean)
   return (
@@ -44,7 +41,32 @@ function Prose({ text }: { text: string }) {
   )
 }
 
-// ─── KEY MOVEMENTS renderer ─────────────────────────────────────────────────
+// ─── Section header ──────────────────────────────────────────────────────────
+
+function SectionHeader({ label, isFirst }: { label: string; isFirst: boolean }) {
+  return (
+    <div className={`flex items-center gap-2 mb-6${isFirst ? "" : " pt-10"}`}>
+      <svg width="7" height="20" viewBox="0 0 18 44" fill="none" aria-hidden="true" className="shrink-0">
+        <path
+          d="M5.2 8.6C5.2 7.16406 4.03594 6 2.6 6C1.16406 6 0 7.16406 0 8.6V35.4C0 36.8359 1.16406 38 2.6 38C4.03594 38 5.2 36.8359 5.2 35.4V8.6Z"
+          fill="#60A5FA"
+        />
+        <path
+          d="M18 2.6C18 1.16406 16.8359 0 15.4 0C13.9641 0 12.8 1.16406 12.8 2.6V41.4C12.8 42.8359 13.9641 44 15.4 44C16.8359 44 18 42.8359 18 41.4V2.6Z"
+          fill="#3B4A5C"
+        />
+      </svg>
+      <span
+        className="text-sm font-semibold tracking-[0.18em] uppercase"
+        style={{ color: "var(--muted-foreground)" }}
+      >
+        {label}
+      </span>
+    </div>
+  )
+}
+
+// ─── Delta badge ─────────────────────────────────────────────────────────────
 
 function DeltaBadge({ delta }: { delta: number }) {
   const isPositive = delta > 0
@@ -62,35 +84,30 @@ function DeltaBadge({ delta }: { delta: number }) {
   )
 }
 
+// ─── KEY MOVEMENTS renderer ─────────────────────────────────────────────────
+
+// Captures: 1=bold actor, 2=plain actor, 3=delta, 4=parenthetical (optional), 5=body
+const ENTRY_RE =
+  /^(?:\*\*(.+?)\*\*|([A-Z][^—\n]*?))\s*[—–-]\s*Δ\s*([+-]?\d+(?:\.\d+)?)\s*(?:\(([^)]*)\))?\s*(?:[—–-]|→)\s*([\s\S]+)$/
+
 function KeyMovementsSection({ raw }: { raw: string }) {
   const cleaned = stripDividers(raw).trim()
-
-  // Each actor entry is a separate paragraph block in Notion, joined with \n\n.
-  const entryChunks = cleaned
-    .split(/\n\n+/)
-    .map((s) => s.trim())
-    .filter(Boolean)
-
-  // Handles all agent formats — optional parenthetical annotation between delta and separator:
-  //   Monthly:  **Actor** — Δ ±N (PF old → ~new) — body
-  //   Weekly:   **Actor** — Δ ±N → body
-  //   Annotated: **Actor** — Δ ±N (internal rebalance) → body
-  const ENTRY_RE =
-    /^(?:\*\*(.+?)\*\*|([A-Z][^—\n]*?))\s*[—–-]\s*Δ\s*([+-]?\d+(?:\.\d+)?)\s*(?:\([^)]*\))?\s*(?:[—–-]|→)\s*([\s\S]+)$/
-  const items: { actor: string; delta: number; body: string }[] = []
+  const entryChunks = cleaned.split(/\n\n+/).map((s) => s.trim()).filter(Boolean)
+  const items: { actor: string; delta: number; range: string; body: string }[] = []
   const fallbackLines: string[] = []
 
   for (const chunk of entryChunks) {
     const m = ENTRY_RE.exec(chunk)
     if (m) {
-      // Strip agent-appended context tags from actor names (e.g. "Iran (Current Conflict)")
       const rawActor = (m[1] || m[2]).trim()
-      const actor = rawActor.replace(/\s*\(Current Conflict\)\s*/i, '').trim()
-      items.push({
-        actor,
-        delta: parseFloat(m[3]),
-        body: m[4].trim(),
-      })
+      const actor = rawActor.replace(/\s*\(Current Conflict\)\s*/i, "").trim()
+      const parenthetical = m[4] ?? ""
+      // Show parenthetical as score range only if it looks numeric (e.g. "50 → 26")
+      const range =
+        /[→\d]/.test(parenthetical) && !/current conflict/i.test(parenthetical)
+          ? parenthetical
+          : ""
+      items.push({ actor, delta: parseFloat(m[3]), range, body: m[5].trim() })
     } else {
       fallbackLines.push(chunk)
     }
@@ -102,25 +119,25 @@ function KeyMovementsSection({ raw }: { raw: string }) {
         {items.map((item, i) => (
           <div
             key={i}
+            className="pl-4 py-2 mb-6"
             style={{
-              marginTop: i > 0 ? 24 : 0,
-              paddingTop: i > 0 ? 24 : 0,
-              borderTop: i > 0 ? "1px solid var(--border)" : "none",
+              borderLeft: "2px solid var(--accent)",
+              borderBottom: i < items.length - 1 ? "1px solid rgba(255,255,255,0.05)" : "none",
+              paddingBottom: i < items.length - 1 ? "1.5rem" : undefined,
             }}
           >
-            <div className="flex items-center gap-2 mb-1.5">
-              <span
-                className="text-sm"
-                style={{ color: "var(--foreground)", fontWeight: 600 }}
-              >
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="text-sm" style={{ color: "var(--foreground)", fontWeight: 500 }}>
                 {item.actor}
               </span>
               <DeltaBadge delta={item.delta} />
+              {item.range && (
+                <span className="text-xs font-mono ml-2" style={{ color: "var(--muted)" }}>
+                  {item.range}
+                </span>
+              )}
             </div>
-            <p
-              className="text-base leading-[1.8]"
-              style={{ color: "var(--muted-foreground)" }}
-            >
+            <p className="text-sm leading-relaxed mt-2" style={{ color: "var(--muted-foreground)" }}>
               {renderInline(item.body)}
             </p>
           </div>
@@ -133,10 +150,6 @@ function KeyMovementsSection({ raw }: { raw: string }) {
 
 // ─── SCENARIOS TO WATCH renderer ────────────────────────────────────────────
 
-/**
- * Format: **Scenario Title** p=55% (context). Body text.
- * Groups: 1=title, 2=probability, 3=parenthetical context (optional), 4=body
- */
 const SCENARIO_RE =
   /^\*\*(.+?)\*\*\s*(?:[,;—–-]\s*)?p=(\d+%?)(?:\s*\(([^)]*)\))?\.\s*([\s\S]*)$/i
 
@@ -164,22 +177,49 @@ function ProbabilityBadge({ p }: { p: string }) {
 }
 
 function TriggeredPill({ context }: { context: string }) {
-  const isTriggered = /already triggered/i.test(context)
-  const isEscalating = /escalating/i.test(context)
-  if (!isTriggered) return null
-  const label = isEscalating ? "Active — Escalating" : "Active"
+  if (!/already triggered/i.test(context)) return null
+  const label = /escalating/i.test(context) ? "Active — Escalating" : "Active"
   return (
     <span
       className="text-[10px] font-semibold uppercase tracking-wider px-1.5 py-0.5 rounded"
-      style={{ color: "var(--delta-down)", backgroundColor: "color-mix(in srgb, var(--delta-down) 12%, transparent)" }}
+      style={{
+        color: "var(--delta-down)",
+        backgroundColor: "color-mix(in srgb, var(--delta-down) 12%, transparent)",
+      }}
     >
       {label}
     </span>
   )
 }
 
+function ScenarioBody({ body }: { body: string }) {
+  const TRIGGER = "Trigger to monitor:"
+  const idx = body.indexOf(TRIGGER)
+  if (idx === -1) {
+    return (
+      <p className="text-sm leading-relaxed" style={{ color: "var(--muted-foreground)" }}>
+        {renderInline(body)}
+      </p>
+    )
+  }
+  const before = body.slice(0, idx).trim()
+  const afterTrigger = body.slice(idx + TRIGGER.length).trim()
+  return (
+    <>
+      {before && (
+        <p className="text-sm leading-relaxed" style={{ color: "var(--muted-foreground)" }}>
+          {renderInline(before)}
+        </p>
+      )}
+      <p className="text-sm leading-relaxed mt-2" style={{ color: "var(--muted-foreground)" }}>
+        <strong style={{ color: "var(--foreground)" }}>{TRIGGER}</strong>{" "}
+        {renderInline(afterTrigger)}
+      </p>
+    </>
+  )
+}
+
 function ScenariosSection({ raw }: { raw: string }) {
-  // Each scenario is a paragraph block → separated by \n\n
   const entries = stripDividers(raw).split(/\n\n+/).map((s) => s.trim()).filter(Boolean)
   const items: { title: string; probability: string; context: string; body: string }[] = []
   const fallbackLines: string[] = []
@@ -208,11 +248,7 @@ function ScenariosSection({ raw }: { raw: string }) {
             <ProbabilityBadge p={item.probability} />
             <TriggeredPill context={item.context} />
           </div>
-          {item.body && (
-            <p className="text-base leading-[1.8]" style={{ color: "var(--muted-foreground)" }}>
-              {renderInline(item.body)}
-            </p>
-          )}
+          {item.body && <ScenarioBody body={item.body} />}
         </div>
       ))}
       {fallbackLines.length > 0 && <Prose text={fallbackLines.join("\n\n")} />}
@@ -220,43 +256,40 @@ function ScenariosSection({ raw }: { raw: string }) {
   )
 }
 
-// ─── SCORE LEDGER renderer ──────────────────────────────────────────────────
+// ─── SCORE LEDGER ────────────────────────────────────────────────────────────
 
-/** Pattern: **Actor** Δ+5 (old → new) — clause */
-const LEDGER_RE = /^\*\*(.+?)\*\*\s*Δ\s*([+-]?\d+(?:\.\d+)?)\s*(?:\(([^)]+)\))?\s*(?:[—–-]\s*)?(.*)$/
+const LEDGER_RE =
+  /^\*\*(.+?)\*\*\s*Δ\s*([+-]?\d+(?:\.\d+)?)\s*(?:\(([^)]+)\))?\s*(?:[—–-]\s*)?(.*)$/
 
-function ScoreLedgerSection({ raw }: { raw: string }) {
-  // Each actor entry is a paragraph block → separated by \n\n
+function parseLedgerItems(raw: string) {
   const entries = stripDividers(raw).split(/\n\n+/).map((s) => s.trim()).filter(Boolean)
-  // Also handle single-line-per-entry format (legacy)
   const lines = entries.flatMap((e) => e.split("\n")).filter((l) => l.trim())
-
   const items: { actor: string; delta: number; range: string; note: string }[] = []
-  const fallbackLines: string[] = []
+  const fallback: string[] = []
 
   for (const line of lines) {
     const m = LEDGER_RE.exec(line.trim())
     if (m) {
       items.push({ actor: m[1], delta: parseFloat(m[2]), range: m[3] || "", note: m[4] || "" })
     } else {
-      fallbackLines.push(line)
+      fallback.push(line)
     }
   }
+  return { items, fallback }
+}
 
-  if (items.length === 0 && fallbackLines.length > 0) {
-    return <Prose text={fallbackLines.join("\n")} />
+// Inline version — used on mobile (renders after Scenarios)
+function ScoreLedgerSection({ raw }: { raw: string }) {
+  const { items, fallback } = parseLedgerItems(raw)
+  if (items.length === 0 && fallback.length > 0) {
+    return <Prose text={fallback.join("\n")} />
   }
-
   return (
     <>
-      <div className="space-y-1">
+      <div className="divide-y divide-white/5">
         {items.map((item, i) => (
-          <div
-            key={i}
-            className="py-3 px-3 rounded text-sm"
-            style={{ backgroundColor: i % 2 === 0 ? "var(--surface)" : "transparent" }}
-          >
-            <div className="flex items-center gap-2 mb-1 flex-wrap">
+          <div key={i} className="py-3 text-sm">
+            <div className="flex items-center gap-2 flex-wrap">
               <span className="font-medium shrink-0" style={{ color: "var(--foreground)" }}>
                 {item.actor}
               </span>
@@ -268,15 +301,60 @@ function ScoreLedgerSection({ raw }: { raw: string }) {
               )}
             </div>
             {item.note && (
-              <p className="text-sm leading-[1.6]" style={{ color: "var(--muted-foreground)" }}>
+              <p className="text-xs leading-[1.6] mt-1" style={{ color: "var(--muted)" }}>
                 {renderInline(item.note)}
               </p>
             )}
           </div>
         ))}
       </div>
-      {fallbackLines.length > 0 && <Prose text={fallbackLines.join("\n")} />}
+      {fallback.length > 0 && <Prose text={fallback.join("\n")} />}
     </>
+  )
+}
+
+// Sidebar version — sticky card, lg breakpoint only
+export function ScoreLedgerSidebar({ raw }: { raw: string }) {
+  const { items, fallback } = parseLedgerItems(raw)
+  return (
+    <div
+      className="rounded-lg p-5 lg:sticky lg:top-24 lg:max-h-[calc(100vh-8rem)] lg:overflow-y-auto"
+      style={{ backgroundColor: "var(--surface)", border: "1px solid rgba(255,255,255,0.08)" }}
+    >
+      <div
+        className="text-xs tracking-[0.18em] uppercase font-semibold mb-4"
+        style={{ color: "var(--muted)" }}
+      >
+        Score Ledger
+      </div>
+      <div className="divide-y divide-white/5">
+        {items.map((item, i) => (
+          <div key={i} className="py-3 text-sm">
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="font-medium shrink-0" style={{ color: "var(--foreground)" }}>
+                {item.actor}
+              </span>
+              <DeltaBadge delta={item.delta} />
+              {item.range && (
+                <span className="text-xs font-mono" style={{ color: "var(--muted)" }}>
+                  {item.range}
+                </span>
+              )}
+            </div>
+            {item.note && (
+              <p className="text-xs leading-[1.6] mt-1" style={{ color: "var(--muted)" }}>
+                {renderInline(item.note)}
+              </p>
+            )}
+          </div>
+        ))}
+      </div>
+      {fallback.length > 0 && (
+        <p className="text-xs mt-3" style={{ color: "var(--muted)" }}>
+          {fallback.join(" ")}
+        </p>
+      )}
+    </div>
   )
 }
 
@@ -295,54 +373,79 @@ function renderSection(section: BriefSection) {
   }
 }
 
-// ─── Display labels (title case for CollapsibleSection) ─────────────────────
+// ─── Display labels ──────────────────────────────────────────────────────────
 
 const DISPLAY_LABELS: Record<string, string> = {
   "THE HEADLINE": "The Headline",
   "KEY MOVEMENTS": "Key Movements",
-  "ANALYTICAL SYNTHESIS": "Analytical Synthesis",
+  "ANALYTICAL SYNTHESIS": "Analytical Commentary",
+  "ANALYTICAL COMMENTARY": "Analytical Commentary",
   "SCENARIOS TO WATCH": "Scenarios to Watch",
   "SCORE LEDGER": "Score Ledger",
 }
 
-// ─── Main component ─────────────────────────────────────────────────────────
+// ─── Main component ──────────────────────────────────────────────────────────
 
-export default function BriefRenderer({ content }: { content: BriefContent }) {
-  if (content.sections.length === 0) {
+/**
+ * Renders brief sections. Excludes "score-ledger" by default — that section
+ * is rendered separately in the sticky sidebar via ScoreLedgerSidebar.
+ * Pass exclude={[]} to render all sections.
+ */
+export default function BriefRenderer({
+  content,
+  exclude = ["score-ledger"],
+}: {
+  content: BriefContent
+  exclude?: string[]
+}) {
+  const sections = content.sections.filter((s) => !exclude.includes(s.type))
+
+  if (sections.length === 0) {
     return (
       <div
         className="rounded-lg px-6 py-12 text-center text-sm"
-        style={{ border: "1px solid var(--border)", backgroundColor: "var(--surface)", color: "var(--muted)" }}
+        style={{
+          border: "1px solid var(--border)",
+          backgroundColor: "var(--surface)",
+          color: "var(--muted)",
+        }}
       >
         No content available for this brief.
       </div>
     )
   }
 
-  return (
-    <div className="space-y-0">
-      {content.sections.map((section, i) => {
-        const label = DISPLAY_LABELS[section.title] || section.title
-        const isLast = i === content.sections.length - 1
+  let firstHeader = true
 
-        // Sections without a title (preamble) render as plain prose
+  return (
+    <div>
+      {sections.map((section, i) => {
+        // Untitled preamble — plain prose
         if (!section.title) {
           return (
-            <div key={i} className="pb-12">
+            <div key={i} className="pb-10">
               {renderSection(section)}
             </div>
           )
         }
 
+        // THE HEADLINE — no section header label, just content
+        if (section.type === "headline") {
+          return (
+            <div key={i} className="pb-10">
+              <Prose text={section.raw} />
+            </div>
+          )
+        }
+
+        const label = DISPLAY_LABELS[section.title] || section.title
+        const isFirst = firstHeader
+        firstHeader = false
+
         return (
-          <section
-            key={i}
-            className="pt-2 pb-12"
-            style={{ borderBottom: isLast ? "none" : "1px solid var(--border)" }}
-          >
-            <CollapsibleSection label={label} headerGap="mb-8">
-              {renderSection(section)}
-            </CollapsibleSection>
+          <section key={i} className="pb-10">
+            <SectionHeader label={label} isFirst={isFirst} />
+            {renderSection(section)}
           </section>
         )
       })}
