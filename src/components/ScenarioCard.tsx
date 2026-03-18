@@ -1,5 +1,3 @@
-"use client";
-
 import type { ScenarioWithActors } from "@/lib/scenarios";
 
 /* ── Color mapping ── */
@@ -56,10 +54,10 @@ function probabilityColor(label: string): string {
 function timeHorizonShort(label: string | null): string | null {
   if (!label) return null;
   return label
-    .replace("months", "mo")
-    .replace("month", "mo")
-    .replace("years", "yr")
-    .replace("year", "yr");
+    .replace(/months/g, "mo")
+    .replace(/month/g, "mo")
+    .replace(/years/g, "yr")
+    .replace(/year/g, "yr");
 }
 
 /* ── Component ── */
@@ -71,19 +69,18 @@ export default function ScenarioCard({ scenario }: { scenario: ScenarioWithActor
   const horizon = timeHorizonShort(scenario.timeHorizon);
 
   return (
+    <>
+    <style>{`
+      .scenario-card:hover {
+        border-color: color-mix(in srgb, var(--accent) 30%, var(--border)) !important;
+        box-shadow: 0 2px 12px color-mix(in srgb, var(--accent) 6%, transparent);
+      }
+    `}</style>
     <div
-      className="group rounded-[10px] overflow-hidden flex flex-col transition-[border-color,box-shadow] duration-200"
+      className="scenario-card rounded-[10px] overflow-hidden flex flex-col transition-[border-color,box-shadow] duration-200"
       style={{
         border: "1px solid var(--border)",
         backgroundColor: "var(--surface)",
-      }}
-      onMouseEnter={(e) => {
-        e.currentTarget.style.borderColor = "color-mix(in srgb, var(--accent) 30%, var(--border))";
-        e.currentTarget.style.boxShadow = "0 2px 12px color-mix(in srgb, var(--accent) 6%, transparent)";
-      }}
-      onMouseLeave={(e) => {
-        e.currentTarget.style.borderColor = "var(--border)";
-        e.currentTarget.style.boxShadow = "none";
       }}
     >
       {/* Zone 1: Status bar */}
@@ -210,5 +207,6 @@ export default function ScenarioCard({ scenario }: { scenario: ScenarioWithActor
         </div>
       )}
     </div>
+    </>
   );
 }
