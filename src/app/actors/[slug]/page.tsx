@@ -67,15 +67,6 @@ function PFSignalBadge({ signal }: { signal: string | null }) {
   );
 }
 
-function ScoreCell({ label, value, color, sub }: { label: string; value: number | null; color: string; sub?: string }) {
-  return (
-    <div>
-      <p className="text-xs mb-1" style={{ color: "var(--muted)" }}>{label}</p>
-      <p className="text-3xl font-bold tabular-nums" style={{ color }}>{value ?? "—"}</p>
-      {sub && <p className="text-xs mt-0.5" style={{ color: "var(--muted)" }}>{sub}</p>}
-    </div>
-  );
-}
 
 const EVENT_TYPE_COLORS: Record<string, string> = {
   "Military Action": "var(--delta-down)",
@@ -197,35 +188,10 @@ export default async function ActorProfilePage({ params }: { params: Promise<{ s
       {/* Main content */}
       <div className="max-w-6xl mx-auto px-6 py-10 space-y-8">
 
-        {/* SECTION 1: Score panel + chart */}
-        <div className="grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-6">
-          <div className="rounded-xl p-6 flex flex-col gap-6" style={{ backgroundColor: "var(--surface)", border: "1px solid var(--border)" }}>
-            <ScoreCell label="PF Score" value={pf} color={scoreColor} />
-            <div className="w-full h-px" style={{ backgroundColor: "var(--border)" }} />
-            <ScoreCell label="Authority Score" value={actor.authorityScore} color="var(--score-authority)" sub="Capacity to coerce" />
-            <ScoreCell label="Reach Score" value={actor.reachScore} color="var(--score-reach)" sub="Influence projection" />
-            <div className="mt-auto pt-4 space-y-2" style={{ borderTop: "1px solid var(--border)" }}>
-              {actor.proxyDepth && (
-                <div className="flex justify-between items-center">
-                  <span className="text-xs" style={{ color: "var(--muted)" }}>Depth</span>
-                  <span className="text-xs" style={{ color: "var(--muted-foreground)" }}>{actor.proxyDepth}</span>
-                </div>
-              )}
-              {actor.capabilities.length > 0 && (
-                <div className="flex flex-wrap gap-1 mt-1">
-                  {actor.capabilities.slice(0, 4).map((cap) => (
-                    <span key={cap} className="text-[10px] px-1.5 py-0.5 rounded" style={{ backgroundColor: "var(--surface-raised)", color: "var(--muted)" }}>
-                      {cap}
-                    </span>
-                  ))}
-                </div>
-              )}
-            </div>
-          </div>
-          <div className="rounded-xl p-6" style={{ backgroundColor: "var(--surface)", border: "1px solid var(--border)" }}>
-            <SectionLabel>Score Trajectory</SectionLabel>
-            <ScoreChart snapshots={history} />
-          </div>
+        {/* SECTION 1: Score Trajectory (full width) */}
+        <div className="rounded-xl p-6" style={{ backgroundColor: "var(--surface)", border: "1px solid var(--border)" }}>
+          <SectionLabel>Score Trajectory</SectionLabel>
+          <ScoreChart snapshots={history} />
         </div>
 
         {/* SECTION 2: Key Drivers */}
@@ -270,6 +236,27 @@ export default async function ActorProfilePage({ params }: { params: Promise<{ s
                       >
                         {da.name}
                       </Link>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+            {/* depth + capabilities moved from old score panel */}
+            {(actor.proxyDepth || actor.capabilities.length > 0) && (
+              <div className="mt-4 pt-4 space-y-2" style={{ borderTop: "1px solid var(--border)" }}>
+                {actor.proxyDepth && (
+                  <div className="flex items-center gap-2">
+                    <span className="text-[10px] font-semibold uppercase tracking-widest" style={{ color: "var(--muted)" }}>Depth:</span>
+                    <span className="text-xs" style={{ color: "var(--muted-foreground)" }}>{actor.proxyDepth}</span>
+                  </div>
+                )}
+                {actor.capabilities.length > 0 && (
+                  <div className="flex items-center flex-wrap gap-2">
+                    <span className="text-[10px] font-semibold uppercase tracking-widest" style={{ color: "var(--muted)" }}>Capabilities:</span>
+                    {actor.capabilities.slice(0, 4).map((cap) => (
+                      <span key={cap} className="text-[10px] px-1.5 py-0.5 rounded" style={{ backgroundColor: "var(--surface-raised)", color: "var(--muted)" }}>
+                        {cap}
+                      </span>
                     ))}
                   </div>
                 )}
