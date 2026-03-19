@@ -63,8 +63,11 @@ export default function BriefCard({ brief }: BriefCardProps) {
           </p>
         )}
         {(brief.summaryDek || brief.leadThesis || brief.bodyPreview) && (
-          <p className="text-sm mt-auto pt-2" style={{ color: "var(--muted-foreground)" }}>
-            {brief.summaryDek || brief.leadThesis || brief.bodyPreview}
+          <p className="text-sm mt-auto pt-2 line-clamp-2" style={{ color: "var(--muted-foreground)" }}>
+            {(() => {
+              const text = brief.summaryDek || brief.leadThesis || brief.bodyPreview || "";
+              return text.length > 160 ? text.slice(0, 160) + "…" : text;
+            })()}
           </p>
         )}
       </div>
