@@ -11,6 +11,7 @@ import type { ActorRelationships } from "@/lib/types";
 import { getActorIntelFeeds } from "@/lib/intel-feeds";
 import type { IntelFeedItem } from "@/lib/intel-feeds";
 import { calcPFScore } from "@/lib/notion";
+import { Lock } from "lucide-react";
 import ScoreDelta from "@/components/ScoreDelta";
 import ScoreChart from "@/components/ScoreChart";
 import AssessmentCard from "@/components/AssessmentCard";
@@ -107,6 +108,17 @@ function EventTypeBadge({ type }: { type: string | null }) {
   );
 }
 
+function truncateToSentences(text: string, maxChars = 300): string {
+  const sentences = text.match(/[^.!?]+[.!?]+/g);
+  if (!sentences) return text.slice(0, maxChars);
+  let result = "";
+  for (const s of sentences) {
+    if (result.length + s.length > maxChars && result.length > 0) break;
+    result += s;
+  }
+  return result.trim() || sentences[0].trim();
+}
+
 export default async function ActorProfilePage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   const actor = await getActorBySlug(slug);
@@ -117,7 +129,7 @@ export default async function ActorProfilePage({ params }: { params: Promise<{ s
     getLatestAssessment(actor.id).catch(() => null),
     getActorEvents(actor.id, 6).catch((): NotionEvent[] => []),
     getActorRelationships(actor.id).catch((): ActorRelationships => ({ outgoing: [], incoming: [] })),
-    getActorIntelFeeds(actor.id, 5).catch((): IntelFeedItem[] => []),
+    getActorIntelFeeds(actor.id, 4).catch((): IntelFeedItem[] => []),
   ]);
 
   const [patronActors, dependentOnActors] = await Promise.all([
@@ -253,43 +265,19 @@ export default async function ActorProfilePage({ params }: { params: Promise<{ s
             <div className="rounded-xl p-6" style={{ backgroundColor: "var(--surface)", border: "1px solid var(--border)" }}>
               <SectionLabel>Key Drivers</SectionLabel>
 
-              {actor.scoreReasoning.includes("\n\n") ? (
-                /* Structured three-paragraph format */
-                <div className="space-y-5">
-                  {actor.scoreReasoning.split("\n\n").filter(Boolean).slice(0, 3).map((para, i) => {
-                    const trimmed = para.trim();
-                    const label = trimmed.startsWith("Authority") ? "Authority"
-                      : trimmed.startsWith("Reach") ? "Reach"
-                      : "Synthesis";
-                    const color = label === "Authority" ? "var(--score-authority)"
-                      : label === "Reach" ? "var(--score-reach)"
-                      : "var(--score-pf)";
-                    const sentences = trimmed.split(". ")
-                      .map((s) => s.trim()).filter(Boolean).slice(0, 2)
-                      .map((s) => s.endsWith(".") ? s : s + ".");
-                    return (
-                      <div key={i}>
-                        <ParagraphLabel label={label} color={color} />
-                        <div className="space-y-1.5 pl-[18px]">
-                          {sentences.map((s, j) => (
-                            <p key={j} className="text-sm leading-relaxed" style={{ color: "var(--muted-foreground)" }}>
-                              <span className="mr-1.5" style={{ color }}>·</span>{s}
-                            </p>
-                          ))}
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              ) : (
-                /* Legacy single-blob fallback */
-                <div>
-                  <ParagraphLabel label="Score Drivers" color="var(--accent)" />
-                  <p className="text-sm leading-relaxed pl-[18px]" style={{ color: "var(--muted-foreground)" }}>
-                    {actor.scoreReasoning}
-                  </p>
-                </div>
-              )}
+              <p className="text-sm leading-relaxed" style={{ color: "var(--muted-foreground)" }}>
+                {truncateToSentences(actor.scoreReasoning)}
+              </p>
+
+              {/* TODO: wire to /actors/[slug]/assessment when Pro tier live */}
+              <a
+                href="#"
+                className="group inline-flex items-center gap-1.5 mt-3 text-xs transition-colors"
+                style={{ color: "var(--muted-foreground)" }}
+              >
+                <Lock size={12} className="shrink-0" />
+                <span className="group-hover:text-accent transition-colors">→ Full Assessment</span>
+              </a>
 
               {/* Patron / dependent links */}
               {(patronActors.length > 0 || dependentOnActors.length > 0) && (
@@ -406,20 +394,19 @@ export default async function ActorProfilePage({ params }: { params: Promise<{ s
                     )}
                   </div>
                   {feed.soWhatSummary && (
-                    <p className="text-sm leading-relaxed mb-1.5" style={{ color: "var(--foreground)" }}>
+                    <p className="text-sm leading-relaxed" style={{ color: "var(--foreground)" }}>
                       {feed.soWhatSummary}
                     </p>
                   )}
-                  {feed.mechanism && (
-                    <p className="text-[11px] leading-relaxed italic" style={{ color: "var(--muted-foreground)" }}>
-                      {feed.mechanism}
-                    </p>
-                  )}
-                  {feed.cascadeEffects && (
-                    <p className="text-[11px] leading-relaxed mt-1.5 pt-1.5 italic" style={{ color: "var(--muted)", borderTop: "1px solid var(--border)" }}>
-                      ↳ {feed.cascadeEffects}
-                    </p>
-                  )}
+                  <div className="flex justify-end mt-1.5">
+                    <a
+                      href="#"
+                      className="text-xs transition-colors hover:text-accent"
+                      style={{ color: "var(--muted-foreground)" }}
+                    >
+                      → Read brief
+                    </a>
+                  </div>
                 </div>
               ))}
             </div>
