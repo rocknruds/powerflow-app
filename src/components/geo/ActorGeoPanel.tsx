@@ -127,7 +127,7 @@ export default function ActorGeoPanel({ isoCode, region, actorType }: ActorGeoPa
       </ComposableMap>
 
       {/* Edge fade overlays — CSS divs on top of SVG */}
-      <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: 35, background: 'linear-gradient(to right, var(--surface), transparent)', pointerEvents: 'none' }} />
+      <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: 35, background: 'linear-gradient(to right, var(--background), transparent)', pointerEvents: 'none' }} />
       <div style={{ position: 'absolute', right: 0, top: 0, bottom: 0, width: 25, background: `linear-gradient(to left, ${OCEAN_COLOR}, transparent)`, pointerEvents: 'none' }} />
       <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 18, background: `linear-gradient(to bottom, ${OCEAN_COLOR}, transparent)`, pointerEvents: 'none' }} />
       <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 18, background: `linear-gradient(to top, ${OCEAN_COLOR}, transparent)`, pointerEvents: 'none' }} />

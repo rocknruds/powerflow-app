@@ -10,14 +10,11 @@ import { getActorRelationships } from "@/lib/relationships";
 import type { ActorRelationships } from "@/lib/types";
 import { getActorIntelFeeds } from "@/lib/intel-feeds";
 import type { IntelFeedItem } from "@/lib/intel-feeds";
-import LogoMark from "@/components/LogoMark";
 import { calcPFScore } from "@/lib/notion";
 import ScoreDelta from "@/components/ScoreDelta";
 import ScoreChart from "@/components/ScoreChart";
 import AssessmentCard from "@/components/AssessmentCard";
 import { pfScoreColor, actorTypeBadgeColor } from "@/components/ActorCard";
-
-import KeyDrivers from "@/components/KeyDrivers";
 import ActorGeoPanel from "@/components/geo/ActorGeoPanelWrapper";
 
 export const revalidate = 300;
@@ -41,13 +38,24 @@ function MetaBadge({ children }: { children: React.ReactNode }) {
   );
 }
 
-function SectionLabel({ children }: { children: React.ReactNode }) {
+function SectionLabel({ children, color }: { children: React.ReactNode; color?: string }) {
   return (
-    <div className="flex items-center gap-2 mb-4">
-      <LogoMark size={16} />
-      <h2 className="text-xs font-semibold uppercase tracking-widest" style={{ color: "var(--muted)" }}>
+    <div className="flex items-center gap-2.5 mb-4">
+      <div style={{ width: 3, height: 13, borderRadius: 1.5, backgroundColor: color ?? "var(--accent)", flexShrink: 0 }} />
+      <span className="text-[10px] font-semibold uppercase tracking-widest" style={{ color: "var(--muted)" }}>
         {children}
-      </h2>
+      </span>
+    </div>
+  );
+}
+
+function ParagraphLabel({ label, color }: { label: string; color: string }) {
+  return (
+    <div className="flex items-center gap-2.5 mb-2">
+      <div style={{ width: 3, height: 13, borderRadius: 1.5, backgroundColor: color, flexShrink: 0 }} />
+      <span className="text-[10px] font-semibold uppercase tracking-widest" style={{ color: "var(--muted)" }}>
+        {label}
+      </span>
     </div>
   );
 }
@@ -132,18 +140,57 @@ export default async function ActorProfilePage({ params }: { params: Promise<{ s
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: "var(--background)" }}>
-      {/* Page header — asymmetric split hero */}
-      <div style={{ borderBottom: "1px solid var(--border)" }}>
-        <div className="max-w-6xl mx-auto px-6">
+      {/* Hero — renders directly on page background, no card/border/separator */}
+      <div className="relative">
+
+        {/* Map — absolute, right-aligned, bleeds off the right viewport edge (desktop only) */}
+        <div
+          className="absolute inset-y-0 right-0 hidden lg:block"
+          style={{ width: "55vw", pointerEvents: "none" }}
+          aria-hidden="true"
+        >
+          <ActorGeoPanel isoCode={actor.iso3} region={actor.region} actorType={actor.actorType} />
+        </div>
+
+        {/* Horizontal gradient — solid background through 35%, dissolves to transparent by 62% */}
+        <div
+          className="absolute inset-0 hidden lg:block"
+          style={{
+            background: "linear-gradient(to right, var(--background) 35%, transparent 62%)",
+            pointerEvents: "none",
+            zIndex: 1,
+          }}
+          aria-hidden="true"
+        />
+
+        {/* Bottom gradient — hero dissolves seamlessly into the content section below */}
+        <div
+          className="absolute bottom-0 left-0 right-0"
+          style={{
+            height: 80,
+            background: "linear-gradient(to bottom, transparent, var(--background))",
+            pointerEvents: "none",
+            zIndex: 2,
+          }}
+          aria-hidden="true"
+        />
+
+        {/* Content */}
+        <div className="relative max-w-6xl mx-auto px-6" style={{ zIndex: 3 }}>
+          {/* Breadcrumb */}
           <div className="pt-6 pb-2">
             <Link href="/actors" className="text-xs transition-colors inline-flex items-center gap-1" style={{ color: "var(--muted)" }}>
               ← Actor Leaderboard
             </Link>
           </div>
-        </div>
-        <div className="max-w-6xl mx-auto flex flex-col lg:flex-row" style={{ minHeight: 270 }}>
-          {/* Left panel: metadata + scores (order-last on mobile so map stacks above) */}
-          <div className="order-last lg:order-first lg:w-[38%] px-6 py-6 flex flex-col justify-center" style={{ backgroundColor: "var(--surface)" }}>
+
+          {/* Mobile map — in-flow, shown only below lg breakpoint */}
+          <div className="lg:hidden h-[150px] sm:h-[190px] mb-4 -mx-6 overflow-hidden">
+            <ActorGeoPanel isoCode={actor.iso3} region={actor.region} actorType={actor.actorType} />
+          </div>
+
+          {/* Metadata + scores — constrained to left ~48% on desktop so text stays clear of the map */}
+          <div className="lg:max-w-[48%] pt-4 pb-16">
             <div className="flex items-center gap-2 mb-2 flex-wrap">
               {actor.actorType && (
                 <span
@@ -161,7 +208,7 @@ export default async function ActorProfilePage({ params }: { params: Promise<{ s
               {actor.iso3 && <span className="text-xs font-mono" style={{ color: "var(--muted)" }}>{actor.iso3}</span>}
               {actor.pfVector && <PFSignalBadge signal={actor.pfVector} />}
             </div>
-            <h1 className="text-[28px] font-bold" style={{ color: "var(--foreground)", letterSpacing: "-0.5px" }}>{actor.name}</h1>
+            <h1 className="text-[32px] font-bold" style={{ color: "var(--foreground)", letterSpacing: "-0.5px" }}>{actor.name}</h1>
             {subtitle && (
               <p className="text-xs mt-1" style={{ color: "var(--muted)" }}>{subtitle}</p>
             )}
@@ -186,90 +233,136 @@ export default async function ActorProfilePage({ params }: { params: Promise<{ s
               )}
             </div>
           </div>
-          {/* Right panel: geographic map (order-first on mobile so it stacks above metadata) */}
-          <div className="order-first lg:order-last lg:flex-1 h-[140px] sm:h-[180px] lg:h-auto">
-            <ActorGeoPanel isoCode={actor.iso3} region={actor.region} actorType={actor.actorType} />
-          </div>
         </div>
       </div>
 
       {/* Main content */}
       <div className="max-w-6xl mx-auto px-6 py-10 space-y-8">
 
-        {/* SECTION 1: Score Trajectory (full width) */}
-        <div className="rounded-xl p-6" style={{ backgroundColor: "var(--surface)", border: "1px solid var(--border)" }}>
-          <SectionLabel>Score Trajectory</SectionLabel>
-          <ScoreChart snapshots={history} />
-        </div>
+        {/* SECTION 1+2: Score Trajectory (left) + Key Drivers (right) — two-column grid */}
+        {actor.scoreReasoning ? (
+          <div className="grid grid-cols-1 lg:grid-cols-[55fr_45fr] gap-6 items-start">
 
-        {/* SECTION 2: Key Drivers */}
-        {actor.scoreReasoning && (
+            {/* Left: Score Trajectory */}
+            <div className="rounded-xl p-6" style={{ backgroundColor: "var(--surface)", border: "1px solid var(--border)" }}>
+              <SectionLabel>Score Trajectory</SectionLabel>
+              <ScoreChart snapshots={history} />
+            </div>
+
+            {/* Right: Key Drivers */}
+            <div className="rounded-xl p-6" style={{ backgroundColor: "var(--surface)", border: "1px solid var(--border)" }}>
+              <SectionLabel>Key Drivers</SectionLabel>
+
+              {actor.scoreReasoning.includes("\n\n") ? (
+                /* Structured three-paragraph format */
+                <div className="space-y-5">
+                  {actor.scoreReasoning.split("\n\n").filter(Boolean).slice(0, 3).map((para, i) => {
+                    const trimmed = para.trim();
+                    const label = trimmed.startsWith("Authority") ? "Authority"
+                      : trimmed.startsWith("Reach") ? "Reach"
+                      : "Synthesis";
+                    const color = label === "Authority" ? "var(--score-authority)"
+                      : label === "Reach" ? "var(--score-reach)"
+                      : "var(--score-pf)";
+                    const sentences = trimmed.split(". ")
+                      .map((s) => s.trim()).filter(Boolean).slice(0, 2)
+                      .map((s) => s.endsWith(".") ? s : s + ".");
+                    return (
+                      <div key={i}>
+                        <ParagraphLabel label={label} color={color} />
+                        <div className="space-y-1.5 pl-[18px]">
+                          {sentences.map((s, j) => (
+                            <p key={j} className="text-sm leading-relaxed" style={{ color: "var(--muted-foreground)" }}>
+                              <span className="mr-1.5" style={{ color }}>·</span>{s}
+                            </p>
+                          ))}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                /* Legacy single-blob fallback */
+                <div>
+                  <ParagraphLabel label="Score Drivers" color="var(--accent)" />
+                  <p className="text-sm leading-relaxed pl-[18px]" style={{ color: "var(--muted-foreground)" }}>
+                    {actor.scoreReasoning}
+                  </p>
+                </div>
+              )}
+
+              {/* Patron / dependent links */}
+              {(patronActors.length > 0 || dependentOnActors.length > 0) && (
+                <div className="mt-5 pt-4 space-y-2" style={{ borderTop: "1px solid var(--border)" }}>
+                  {patronActors.length > 0 && (
+                    <div className="flex items-center flex-wrap gap-2">
+                      <span className="text-[10px] font-semibold uppercase tracking-widest" style={{ color: "var(--muted)" }}>Patron:</span>
+                      {patronActors.map((pa) => (
+                        <Link
+                          key={pa.id}
+                          href={`/actors/${toSlug(pa.name)}`}
+                          className="text-xs px-2 py-0.5 rounded transition-opacity hover:opacity-70"
+                          style={{
+                            color: "var(--accent)",
+                            border: "1px solid color-mix(in srgb, var(--accent) 30%, transparent)",
+                            backgroundColor: "color-mix(in srgb, var(--accent) 10%, transparent)",
+                          }}
+                        >
+                          {pa.name}
+                        </Link>
+                      ))}
+                    </div>
+                  )}
+                  {dependentOnActors.length > 0 && (
+                    <div className="flex items-center flex-wrap gap-2">
+                      <span className="text-[10px] font-semibold uppercase tracking-widest" style={{ color: "var(--muted)" }}>Dependent On:</span>
+                      {dependentOnActors.map((da) => (
+                        <Link
+                          key={da.id}
+                          href={`/actors/${toSlug(da.name)}`}
+                          className="text-xs px-2 py-0.5 rounded transition-opacity hover:opacity-70"
+                          style={{
+                            color: "var(--accent)",
+                            border: "1px solid color-mix(in srgb, var(--accent) 30%, transparent)",
+                            backgroundColor: "color-mix(in srgb, var(--accent) 10%, transparent)",
+                          }}
+                        >
+                          {da.name}
+                        </Link>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Depth + Capabilities chips */}
+              {(actor.proxyDepth || actor.capabilities.length > 0) && (
+                <div className="mt-4 pt-4 space-y-2" style={{ borderTop: "1px solid var(--border)" }}>
+                  {actor.proxyDepth && (
+                    <div className="flex items-center gap-2">
+                      <span className="text-[10px] font-semibold uppercase tracking-widest" style={{ color: "var(--muted)" }}>Depth:</span>
+                      <span className="text-xs" style={{ color: "var(--muted-foreground)" }}>{actor.proxyDepth}</span>
+                    </div>
+                  )}
+                  {actor.capabilities.length > 0 && (
+                    <div className="flex items-center flex-wrap gap-2">
+                      <span className="text-[10px] font-semibold uppercase tracking-widest" style={{ color: "var(--muted)" }}>Capabilities:</span>
+                      {actor.capabilities.slice(0, 4).map((cap) => (
+                        <span key={cap} className="text-[10px] px-1.5 py-0.5 rounded" style={{ backgroundColor: "var(--surface-raised)", color: "var(--muted)" }}>
+                          {cap}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+        ) : (
+          /* No scoreReasoning — Score Trajectory full width */
           <div className="rounded-xl p-6" style={{ backgroundColor: "var(--surface)", border: "1px solid var(--border)" }}>
-            <SectionLabel>Key Drivers</SectionLabel>
-            <KeyDrivers reasoning={actor.scoreReasoning} />
-            {(patronActors.length > 0 || dependentOnActors.length > 0) && (
-              <div className="mt-4 pt-4 space-y-2" style={{ borderTop: "1px solid var(--border)" }}>
-                {patronActors.length > 0 && (
-                  <div className="flex items-center flex-wrap gap-2">
-                    <span className="text-[10px] font-semibold uppercase tracking-widest" style={{ color: "var(--muted)" }}>Patron:</span>
-                    {patronActors.map((pa) => (
-                      <Link
-                        key={pa.id}
-                        href={`/actors/${toSlug(pa.name)}`}
-                        className="text-xs px-2 py-0.5 rounded transition-opacity hover:opacity-70"
-                        style={{
-                          color: "var(--accent)",
-                          border: "1px solid color-mix(in srgb, var(--accent) 30%, transparent)",
-                          backgroundColor: "color-mix(in srgb, var(--accent) 10%, transparent)",
-                        }}
-                      >
-                        {pa.name}
-                      </Link>
-                    ))}
-                  </div>
-                )}
-                {dependentOnActors.length > 0 && (
-                  <div className="flex items-center flex-wrap gap-2">
-                    <span className="text-[10px] font-semibold uppercase tracking-widest" style={{ color: "var(--muted)" }}>Dependent On:</span>
-                    {dependentOnActors.map((da) => (
-                      <Link
-                        key={da.id}
-                        href={`/actors/${toSlug(da.name)}`}
-                        className="text-xs px-2 py-0.5 rounded transition-opacity hover:opacity-70"
-                        style={{
-                          color: "var(--accent)",
-                          border: "1px solid color-mix(in srgb, var(--accent) 30%, transparent)",
-                          backgroundColor: "color-mix(in srgb, var(--accent) 10%, transparent)",
-                        }}
-                      >
-                        {da.name}
-                      </Link>
-                    ))}
-                  </div>
-                )}
-              </div>
-            )}
-            {/* depth + capabilities moved from old score panel */}
-            {(actor.proxyDepth || actor.capabilities.length > 0) && (
-              <div className="mt-4 pt-4 space-y-2" style={{ borderTop: "1px solid var(--border)" }}>
-                {actor.proxyDepth && (
-                  <div className="flex items-center gap-2">
-                    <span className="text-[10px] font-semibold uppercase tracking-widest" style={{ color: "var(--muted)" }}>Depth:</span>
-                    <span className="text-xs" style={{ color: "var(--muted-foreground)" }}>{actor.proxyDepth}</span>
-                  </div>
-                )}
-                {actor.capabilities.length > 0 && (
-                  <div className="flex items-center flex-wrap gap-2">
-                    <span className="text-[10px] font-semibold uppercase tracking-widest" style={{ color: "var(--muted)" }}>Capabilities:</span>
-                    {actor.capabilities.slice(0, 4).map((cap) => (
-                      <span key={cap} className="text-[10px] px-1.5 py-0.5 rounded" style={{ backgroundColor: "var(--surface-raised)", color: "var(--muted)" }}>
-                        {cap}
-                      </span>
-                    ))}
-                  </div>
-                )}
-              </div>
-            )}
+            <SectionLabel>Score Trajectory</SectionLabel>
+            <ScoreChart snapshots={history} />
           </div>
         )}
 
