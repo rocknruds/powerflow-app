@@ -253,7 +253,7 @@ export default async function ActorProfilePage({ params }: { params: Promise<{ s
 
         {/* SECTION 1+2: Score Trajectory (left) + Key Drivers (right) — two-column grid */}
         {actor.scoreReasoning ? (
-          <div className="grid grid-cols-1 lg:grid-cols-[55fr_45fr] gap-6 items-start">
+          <div className="grid grid-cols-1 lg:grid-cols-[50fr_50fr] gap-6 items-start">
 
             {/* Left: Score Trajectory */}
             <div className="rounded-xl p-6" style={{ backgroundColor: "var(--surface)", border: "1px solid var(--border)" }}>
@@ -262,33 +262,33 @@ export default async function ActorProfilePage({ params }: { params: Promise<{ s
             </div>
 
             {/* Right: Key Drivers */}
-            <div className="rounded-xl p-6" style={{ backgroundColor: "var(--surface)", border: "1px solid var(--border)" }}>
+            <div className="rounded-[20px] p-6" style={{ backgroundColor: "var(--surface)", border: "1px solid var(--border)" }}>
               <SectionLabel>Key Drivers</SectionLabel>
 
-              <div className="space-y-4">
+              <div className="divide-y divide-white/5">
                 {/* Authority block */}
-                <div>
+                <div className="py-3.5">
                   <ParagraphLabel label="Authority" color="var(--score-authority)" />
-                  <p className="text-sm leading-relaxed" style={{ color: "var(--muted-foreground)" }}>
-                    {actor.authorityReasoning || truncateToSentences(actor.scoreReasoning!, 200)}
-                  </p>
+                  <ul className="text-sm leading-relaxed ml-4 list-disc space-y-1" style={{ color: "var(--muted-foreground)" }}>
+                    <li>{actor.authorityReasoning || truncateToSentences(actor.scoreReasoning!, 200)}</li>
+                  </ul>
                 </div>
 
                 {/* Reach block */}
-                <div>
+                <div className="py-3.5">
                   <ParagraphLabel label="Reach" color="var(--score-reach)" />
-                  <p className="text-sm leading-relaxed" style={{ color: "var(--muted-foreground)" }}>
-                    {actor.reachReasoning || truncateToSentences(actor.scoreReasoning!, 200)}
-                  </p>
+                  <ul className="text-sm leading-relaxed ml-4 list-disc space-y-1" style={{ color: "var(--muted-foreground)" }}>
+                    <li>{actor.reachReasoning || truncateToSentences(actor.scoreReasoning!, 200)}</li>
+                  </ul>
                 </div>
 
                 {/* PF block — omit if empty */}
                 {actor.pfReasoning && (
-                  <div>
+                  <div className="py-3.5">
                     <ParagraphLabel label="PF" color="var(--accent)" />
-                    <p className="text-sm leading-relaxed" style={{ color: "var(--muted-foreground)" }}>
-                      {actor.pfReasoning}
-                    </p>
+                    <ul className="text-sm leading-relaxed ml-4 list-disc space-y-1" style={{ color: "var(--muted-foreground)" }}>
+                      <li>{actor.pfReasoning}</li>
+                    </ul>
                   </div>
                 )}
               </div>
@@ -305,7 +305,7 @@ export default async function ActorProfilePage({ params }: { params: Promise<{ s
 
               {/* Patron / dependent links */}
               {(patronActors.length > 0 || dependentOnActors.length > 0) && (
-                <div className="mt-5 pt-4 space-y-2" style={{ borderTop: "1px solid var(--border)" }}>
+                <div className="mt-5 pt-4 space-y-3" style={{ borderTop: "1px solid var(--border)" }}>
                   {patronActors.length > 0 && (
                     <div className="flex items-center flex-wrap gap-2">
                       <span className="text-[10px] font-semibold uppercase tracking-widest" style={{ color: "var(--muted)" }}>Patron:</span>
