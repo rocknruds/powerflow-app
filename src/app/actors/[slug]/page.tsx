@@ -258,16 +258,16 @@ export default async function ActorProfilePage({ params }: { params: Promise<{ s
             {/* Left: Score Trajectory */}
             <CollapsibleSection label="Score Trajectory" headerGap="mb-4">
               <div className="rounded-xl p-6" style={{ backgroundColor: "var(--surface)", border: "1px solid var(--border)" }}>
-                <ScoreChart snapshots={history} />
+                <ScoreChart snapshots={history} intelFeeds={intelFeeds} />
               </div>
             </CollapsibleSection>
 
             {/* Right: Key Drivers */}
             <CollapsibleSection label="Key Drivers" headerGap="mb-4">
               <div className="rounded-[20px] p-6" style={{ backgroundColor: "var(--surface)", border: "1px solid var(--border)" }}>
-                <div className="divide-y divide-white/5">
-                  {/* Overall block — first */}
-                  <div className="py-3.5">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  {/* Overall block */}
+                  <div className="p-3 border-l-2 pl-3" style={{ borderLeftColor: "var(--accent)" }}>
                     <ParagraphLabel label="Overall" color="var(--accent)" score={pf} scoreColor={scoreColor} />
                     <p className="text-sm leading-relaxed" style={{ color: "var(--muted-foreground)" }}>
                       {truncateToSentences(actor.pfReasoning || actor.scoreReasoning!, 160)}
@@ -275,7 +275,7 @@ export default async function ActorProfilePage({ params }: { params: Promise<{ s
                   </div>
 
                   {/* Authority block */}
-                  <div className="py-3.5">
+                  <div className="p-3 border-l-2 pl-3" style={{ borderLeftColor: "var(--score-authority)" }}>
                     <ParagraphLabel label="Authority" color="var(--score-authority)" score={actor.authorityScore} scoreColor="var(--score-authority)" />
                     <p className="text-sm leading-relaxed" style={{ color: "var(--muted-foreground)" }}>
                       {truncateToSentences(actor.authorityReasoning || actor.scoreReasoning!, 160)}
@@ -283,7 +283,7 @@ export default async function ActorProfilePage({ params }: { params: Promise<{ s
                   </div>
 
                   {/* Reach block */}
-                  <div className="py-3.5">
+                  <div className="p-3 border-l-2 pl-3" style={{ borderLeftColor: "var(--score-reach)" }}>
                     <ParagraphLabel label="Reach" color="var(--score-reach)" score={actor.reachScore} scoreColor="var(--score-reach)" />
                     <p className="text-sm leading-relaxed" style={{ color: "var(--muted-foreground)" }}>
                       {truncateToSentences(actor.reachReasoning || actor.scoreReasoning!, 160)}
@@ -373,7 +373,7 @@ export default async function ActorProfilePage({ params }: { params: Promise<{ s
           /* No scoreReasoning — Score Trajectory full width */
           <CollapsibleSection label="Score Trajectory" headerGap="mb-4">
             <div className="rounded-xl p-6" style={{ backgroundColor: "var(--surface)", border: "1px solid var(--border)" }}>
-              <ScoreChart snapshots={history} />
+              <ScoreChart snapshots={history} intelFeeds={intelFeeds} />
             </div>
           </CollapsibleSection>
         )}

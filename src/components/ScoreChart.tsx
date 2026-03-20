@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import {
   LineChart,
   Line,
@@ -12,9 +13,11 @@ import {
   Legend,
 } from "recharts";
 import type { ScoreHistoryPoint } from "@/lib/types";
+import type { IntelFeedItem } from "@/lib/intel-feeds";
 
 interface ScoreChartProps {
   snapshots: ScoreHistoryPoint[];
+  intelFeeds?: IntelFeedItem[];
 }
 
 interface TooltipEntry {
@@ -34,6 +37,28 @@ interface CustomTooltipProps {
 function formatDate(dateStr: string): string {
   const d = new Date(dateStr);
   return d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "2-digit" });
+}
+
+function formatDateLong(dateStr: string): string {
+  const d = new Date(dateStr);
+  return d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+}
+
+function PFSignalBadge({ signal }: { signal: string | null }) {
+  if (!signal) return null;
+  const colors: Record<string, { text: string; bg: string }> = {
+    Widening: { text: "var(--delta-down)", bg: "color-mix(in srgb, var(--delta-down) 12%, transparent)" },
+    Narrowing: { text: "var(--delta-up)", bg: "color-mix(in srgb, var(--delta-up) 12%, transparent)" },
+    Mixed: { text: "var(--score-mid)", bg: "color-mix(in srgb, var(--score-mid) 12%, transparent)" },
+    Stable: { text: "var(--muted)", bg: "color-mix(in srgb, var(--muted) 12%, transparent)" },
+    Unclear: { text: "var(--score-mid)", bg: "color-mix(in srgb, var(--score-mid) 12%, transparent)" },
+  };
+  const c = colors[signal] ?? { text: "var(--muted-foreground)", bg: "color-mix(in srgb, var(--muted) 12%, transparent)" };
+  return (
+    <span className="text-[10px] px-1.5 py-0.5 rounded font-medium" style={{ color: c.text, backgroundColor: c.bg }}>
+      {signal}
+    </span>
+  );
 }
 
 function CustomTooltip({ active, payload, label }: CustomTooltipProps) {
@@ -76,7 +101,20 @@ function CustomTooltip({ active, payload, label }: CustomTooltipProps) {
   );
 }
 
-export default function ScoreChart({ snapshots }: ScoreChartProps) {
+function getMatchingFeeds(feeds: IntelFeedItem[], snapshotDate: string): IntelFeedItem[] {
+  const snap = new Date(snapshotDate).getTime();
+  const windowStart = snap - 14 * 24 * 60 * 60 * 1000;
+  return feeds.filter((f) => {
+    const raw = f.dateIngested ?? f.publicationDate;
+    if (!raw) return false;
+    const t = new Date(raw).getTime();
+    return t >= windowStart && t <= snap;
+  }).slice(0, 3);
+}
+
+export default function ScoreChart({ snapshots, intelFeeds }: ScoreChartProps) {
+  const [selectedPoint, setSelectedPoint] = useState<ScoreHistoryPoint | null>(null);
+
   if (snapshots.length === 0) {
     return (
       <div className="h-48 flex items-center justify-center text-sm" style={{ color: "var(--muted)" }}>
@@ -100,12 +138,23 @@ export default function ScoreChart({ snapshots }: ScoreChartProps) {
     (s) => s.authorityScore !== null || s.reachScore !== null
   );
 
+  const matchingFeeds = selectedPoint && intelFeeds
+    ? getMatchingFeeds(intelFeeds, selectedPoint.date)
+    : [];
+
   return (
     <div className="w-full">
       <ResponsiveContainer width="100%" height={220}>
         <LineChart
           data={sorted}
           margin={{ top: 8, right: 8, bottom: 0, left: -16 }}
+          onClick={(data) => {
+            const pt: ScoreHistoryPoint | null = data?.activePayload?.[0]?.payload ?? null;
+            setSelectedPoint((prev) =>
+              prev && pt && prev.date === pt.date ? null : pt
+            );
+          }}
+          style={{ cursor: "pointer" }}
         >
           <CartesianGrid
             strokeDasharray="3 3"
@@ -187,14 +236,103 @@ export default function ScoreChart({ snapshots }: ScoreChartProps) {
               key={i}
               x={pt.date}
               y={pt.pfScore}
-              r={5}
-              fill="var(--accent)"
-              stroke="var(--background)"
+              r={6}
+              fill={selectedPoint?.date === pt.date ? "var(--accent)" : "var(--accent)"}
+              stroke="white"
               strokeWidth={2}
+              cursor="pointer"
             />
           ))}
         </LineChart>
       </ResponsiveContainer>
+
+      {/* Click-to-explain panel */}
+      {selectedPoint && (
+        <div
+          style={{ borderTop: "1px solid var(--border)" }}
+          className="mt-0 pt-4"
+          onClick={() => setSelectedPoint(null)}
+        >
+          <div
+            className="rounded-lg p-4"
+            style={{ backgroundColor: "var(--surface-raised)", border: "1px solid var(--border)", cursor: "default" }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header */}
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2 flex-wrap">
+                <span
+                  className="text-[10px] font-mono px-1.5 py-0.5 rounded tabular-nums"
+                  style={{ backgroundColor: "var(--surface)", color: "var(--muted)" }}
+                >
+                  {formatDateLong(selectedPoint.date)}
+                </span>
+                {selectedPoint.delta !== null && selectedPoint.delta !== undefined && (
+                  <span
+                    className="text-xs font-semibold tabular-nums px-1.5 py-0.5 rounded"
+                    style={{
+                      color: (selectedPoint.delta ?? 0) >= 0 ? "var(--delta-up)" : "var(--delta-down)",
+                      backgroundColor: (selectedPoint.delta ?? 0) >= 0
+                        ? "color-mix(in srgb, var(--delta-up) 12%, transparent)"
+                        : "color-mix(in srgb, var(--delta-down) 12%, transparent)",
+                    }}
+                  >
+                    {(selectedPoint.delta ?? 0) >= 0 ? "+" : ""}
+                    {Math.round(selectedPoint.delta ?? 0)} Δ
+                  </span>
+                )}
+              </div>
+              <button
+                onClick={() => setSelectedPoint(null)}
+                className="text-xs leading-none"
+                style={{ color: "var(--muted)", background: "none", border: "none", cursor: "pointer", padding: "2px 4px" }}
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Annotation — primary "why" */}
+            {selectedPoint.annotation && (
+              <p className="text-sm leading-relaxed mb-3" style={{ color: "var(--foreground)" }}>
+                {selectedPoint.annotation}
+              </p>
+            )}
+
+            {/* Matching intel feeds */}
+            {matchingFeeds.length > 0 && (
+              <div className="space-y-2" style={{ borderTop: "1px solid var(--border)", paddingTop: 12 }}>
+                <p className="text-[10px] font-semibold uppercase tracking-widest mb-2" style={{ color: "var(--muted)" }}>
+                  Intel from this period
+                </p>
+                {matchingFeeds.map((feed) => (
+                  <div
+                    key={feed.id}
+                    className="rounded px-3 py-2"
+                    style={{ backgroundColor: "var(--surface)", border: "1px solid var(--border)" }}
+                  >
+                    <div className="flex items-center gap-2 flex-wrap mb-1">
+                      {(feed.dateIngested ?? feed.publicationDate) && (
+                        <span
+                          className="text-[10px] font-mono px-1.5 py-0.5 rounded tabular-nums"
+                          style={{ backgroundColor: "var(--surface-raised)", color: "var(--muted)" }}
+                        >
+                          {new Date(feed.dateIngested ?? feed.publicationDate!).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+                        </span>
+                      )}
+                      <PFSignalBadge signal={feed.pfSignal} />
+                    </div>
+                    {feed.soWhatSummary && (
+                      <p className="text-xs leading-relaxed" style={{ color: "var(--muted-foreground)" }}>
+                        {feed.soWhatSummary}
+                      </p>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
