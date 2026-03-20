@@ -148,7 +148,7 @@ function KeyMovementEntry({
         </span>
       </button>
       {open && (
-        <p className="text-[1.0625rem] leading-relaxed pb-1" style={{ color: "var(--muted-foreground)" }}>
+        <p className="text-[1.0625rem] leading-relaxed pb-1 mt-3" style={{ color: "var(--muted-foreground)" }}>
           {renderInline(item.body)}
         </p>
       )}
