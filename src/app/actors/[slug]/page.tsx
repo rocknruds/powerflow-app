@@ -6,8 +6,9 @@ import { getActorScoreHistory } from "@/lib/scores";
 import { getActorEvents } from "@/lib/events";
 import type { NotionEvent } from "@/lib/events";
 import { getLatestAssessment } from "@/lib/assessments";
-import { getActorRelationships } from "@/lib/relationships";
-import type { ActorRelationships } from "@/lib/types";
+import { getTopRelationships } from "@/lib/relationships";
+import type { ActorRelationship } from "@/lib/types";
+import CollapsibleSection from "@/components/CollapsibleSection";
 import { getActorIntelFeeds } from "@/lib/intel-feeds";
 import type { IntelFeedItem } from "@/lib/intel-feeds";
 import { calcPFScore } from "@/lib/notion";
@@ -39,24 +40,18 @@ function MetaBadge({ children }: { children: React.ReactNode }) {
   );
 }
 
-function SectionLabel({ children, color }: { children: React.ReactNode; color?: string }) {
-  return (
-    <div className="flex items-center gap-2.5 mb-4">
-      <div style={{ width: 3, height: 13, borderRadius: 1.5, backgroundColor: color ?? "var(--accent)", flexShrink: 0 }} />
-      <span className="text-[10px] font-semibold uppercase tracking-widest" style={{ color: "var(--muted)" }}>
-        {children}
-      </span>
-    </div>
-  );
-}
-
-function ParagraphLabel({ label, color }: { label: string; color: string }) {
+function ParagraphLabel({ label, color, score, scoreColor }: { label: string; color: string; score?: number | null; scoreColor?: string }) {
   return (
     <div className="flex items-center gap-2.5 mb-2">
       <div style={{ width: 3, height: 13, borderRadius: 1.5, backgroundColor: color, flexShrink: 0 }} />
       <span className="text-[10px] font-semibold uppercase tracking-widest" style={{ color: "var(--muted)" }}>
         {label}
       </span>
+      {score != null && (
+        <span className="text-sm font-bold tabular-nums" style={{ color: scoreColor ?? color }}>
+          {score}
+        </span>
+      )}
     </div>
   );
 }
@@ -133,7 +128,7 @@ export default async function ActorProfilePage({ params }: { params: Promise<{ s
     getActorScoreHistory(actor.id),
     getLatestAssessment(actor.id).catch(() => null),
     getActorEvents(actor.id, 6).catch((): NotionEvent[] => []),
-    getActorRelationships(actor.id).catch((): ActorRelationships => ({ outgoing: [], incoming: [] })),
+    getTopRelationships(actor.id, 8).catch((): ActorRelationship[] => []),
     getActorIntelFeeds(actor.id, 4).catch((): IntelFeedItem[] => []),
   ]);
 
@@ -261,142 +256,139 @@ export default async function ActorProfilePage({ params }: { params: Promise<{ s
           <div className="grid grid-cols-1 lg:grid-cols-[50fr_50fr] gap-6 items-start">
 
             {/* Left: Score Trajectory */}
-            <div className="rounded-xl p-6" style={{ backgroundColor: "var(--surface)", border: "1px solid var(--border)" }}>
-              <SectionLabel>Score Trajectory</SectionLabel>
-              <ScoreChart snapshots={history} />
-            </div>
+            <CollapsibleSection label="Score Trajectory" headerGap="mb-4">
+              <div className="rounded-xl p-6" style={{ backgroundColor: "var(--surface)", border: "1px solid var(--border)" }}>
+                <ScoreChart snapshots={history} />
+              </div>
+            </CollapsibleSection>
 
             {/* Right: Key Drivers */}
-            <div className="rounded-[20px] p-6" style={{ backgroundColor: "var(--surface)", border: "1px solid var(--border)" }}>
-              <h3 className="text-lg font-semibold tracking-[0.14em] uppercase mb-6 ml-4" style={{ color: "var(--muted-foreground)" }}>
-                Key Drivers
-              </h3>
-
-              <div className="divide-y divide-white/5">
-                {/* Authority block */}
-                <div className="py-3.5">
-                  <ParagraphLabel label="Authority" color="var(--score-authority)" />
-                  <ul className="text-sm leading-relaxed ml-4 list-disc space-y-1" style={{ color: "var(--muted-foreground)" }}>
-                    <li>{truncateToChars(actor.authorityReasoning || truncateToSentences(actor.scoreReasoning!, 200), 160)}</li>
-                  </ul>
-                </div>
-
-                {/* Reach block */}
-                <div className="py-3.5">
-                  <ParagraphLabel label="Reach" color="var(--score-reach)" />
-                  <ul className="text-sm leading-relaxed ml-4 list-disc space-y-1" style={{ color: "var(--muted-foreground)" }}>
-                    <li>{truncateToChars(actor.reachReasoning || truncateToSentences(actor.scoreReasoning!, 200), 160)}</li>
-                  </ul>
-                </div>
-
-                {/* PF block — omit if empty */}
-                {actor.pfReasoning && (
+            <CollapsibleSection label="Key Drivers" headerGap="mb-4">
+              <div className="rounded-[20px] p-6" style={{ backgroundColor: "var(--surface)", border: "1px solid var(--border)" }}>
+                <div className="divide-y divide-white/5">
+                  {/* Overall block — first */}
                   <div className="py-3.5">
-                    <ParagraphLabel label="PF" color="var(--accent)" />
-                    <ul className="text-sm leading-relaxed ml-4 list-disc space-y-1" style={{ color: "var(--muted-foreground)" }}>
-                      <li>{truncateToChars(actor.pfReasoning, 160)}</li>
-                    </ul>
+                    <ParagraphLabel label="Overall" color="var(--accent)" score={pf} scoreColor={scoreColor} />
+                    <p className="text-sm leading-relaxed" style={{ color: "var(--muted-foreground)" }}>
+                      {truncateToSentences(actor.pfReasoning || actor.scoreReasoning!, 160)}
+                    </p>
+                  </div>
+
+                  {/* Authority block */}
+                  <div className="py-3.5">
+                    <ParagraphLabel label="Authority" color="var(--score-authority)" score={actor.authorityScore} scoreColor="var(--score-authority)" />
+                    <p className="text-sm leading-relaxed" style={{ color: "var(--muted-foreground)" }}>
+                      {truncateToSentences(actor.authorityReasoning || actor.scoreReasoning!, 160)}
+                    </p>
+                  </div>
+
+                  {/* Reach block */}
+                  <div className="py-3.5">
+                    <ParagraphLabel label="Reach" color="var(--score-reach)" score={actor.reachScore} scoreColor="var(--score-reach)" />
+                    <p className="text-sm leading-relaxed" style={{ color: "var(--muted-foreground)" }}>
+                      {truncateToSentences(actor.reachReasoning || actor.scoreReasoning!, 160)}
+                    </p>
+                  </div>
+                </div>
+
+                {/* TODO: wire to /actors/[slug]/assessment when Pro tier live */}
+                <a
+                  href="#"
+                  className="group inline-flex items-center gap-1.5 mt-4 text-xs transition-colors"
+                  style={{ color: "var(--muted-foreground)" }}
+                >
+                  <Lock size={12} className="shrink-0" />
+                  <span className="group-hover:text-accent transition-colors">→ Full Assessment</span>
+                </a>
+
+                {/* Patron / dependent links */}
+                {(patronActors.length > 0 || dependentOnActors.length > 0) && (
+                  <div className="mt-5 pt-4 space-y-3" style={{ borderTop: "1px solid var(--border)" }}>
+                    {patronActors.length > 0 && (
+                      <div className="flex items-center flex-wrap gap-2">
+                        <span className="text-[10px] font-semibold uppercase tracking-widest" style={{ color: "var(--muted)" }}>Patron:</span>
+                        {patronActors.map((pa) => (
+                          <Link
+                            key={pa.id}
+                            href={`/actors/${toSlug(pa.name)}`}
+                            className="text-xs px-2 py-0.5 rounded transition-opacity hover:opacity-70"
+                            style={{
+                              color: "var(--accent)",
+                              border: "1px solid color-mix(in srgb, var(--accent) 30%, transparent)",
+                              backgroundColor: "color-mix(in srgb, var(--accent) 10%, transparent)",
+                            }}
+                          >
+                            {pa.name}
+                          </Link>
+                        ))}
+                      </div>
+                    )}
+                    {dependentOnActors.length > 0 && (
+                      <div className="flex items-center flex-wrap gap-2">
+                        <span className="text-[10px] font-semibold uppercase tracking-widest" style={{ color: "var(--muted)" }}>Dependent On:</span>
+                        {dependentOnActors.map((da) => (
+                          <Link
+                            key={da.id}
+                            href={`/actors/${toSlug(da.name)}`}
+                            className="text-xs px-2 py-0.5 rounded transition-opacity hover:opacity-70"
+                            style={{
+                              color: "var(--accent)",
+                              border: "1px solid color-mix(in srgb, var(--accent) 30%, transparent)",
+                              backgroundColor: "color-mix(in srgb, var(--accent) 10%, transparent)",
+                            }}
+                          >
+                            {da.name}
+                          </Link>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Depth + Capabilities chips */}
+                {(actor.proxyDepth || actor.capabilities.length > 0) && (
+                  <div className="mt-4 pt-4 space-y-2" style={{ borderTop: "1px solid var(--border)" }}>
+                    {actor.proxyDepth && (
+                      <div className="flex items-center gap-2">
+                        <span className="text-[10px] font-semibold uppercase tracking-widest" style={{ color: "var(--muted)" }}>Depth:</span>
+                        <span className="text-xs" style={{ color: "var(--muted-foreground)" }}>{actor.proxyDepth}</span>
+                      </div>
+                    )}
+                    {actor.capabilities.length > 0 && (
+                      <div className="flex items-center flex-wrap gap-2">
+                        <span className="text-[10px] font-semibold uppercase tracking-widest" style={{ color: "var(--muted)" }}>Capabilities:</span>
+                        {actor.capabilities.slice(0, 4).map((cap) => (
+                          <span key={cap} className="text-[10px] px-1.5 py-0.5 rounded" style={{ backgroundColor: "var(--surface-raised)", color: "var(--muted)" }}>
+                            {cap}
+                          </span>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
-
-              {/* TODO: wire to /actors/[slug]/assessment when Pro tier live */}
-              <a
-                href="#"
-                className="group inline-flex items-center gap-1.5 mt-4 text-xs transition-colors"
-                style={{ color: "var(--muted-foreground)" }}
-              >
-                <Lock size={12} className="shrink-0" />
-                <span className="group-hover:text-accent transition-colors">→ Full Assessment</span>
-              </a>
-
-              {/* Patron / dependent links */}
-              {(patronActors.length > 0 || dependentOnActors.length > 0) && (
-                <div className="mt-5 pt-4 space-y-3" style={{ borderTop: "1px solid var(--border)" }}>
-                  {patronActors.length > 0 && (
-                    <div className="flex items-center flex-wrap gap-2">
-                      <span className="text-[10px] font-semibold uppercase tracking-widest" style={{ color: "var(--muted)" }}>Patron:</span>
-                      {patronActors.map((pa) => (
-                        <Link
-                          key={pa.id}
-                          href={`/actors/${toSlug(pa.name)}`}
-                          className="text-xs px-2 py-0.5 rounded transition-opacity hover:opacity-70"
-                          style={{
-                            color: "var(--accent)",
-                            border: "1px solid color-mix(in srgb, var(--accent) 30%, transparent)",
-                            backgroundColor: "color-mix(in srgb, var(--accent) 10%, transparent)",
-                          }}
-                        >
-                          {pa.name}
-                        </Link>
-                      ))}
-                    </div>
-                  )}
-                  {dependentOnActors.length > 0 && (
-                    <div className="flex items-center flex-wrap gap-2">
-                      <span className="text-[10px] font-semibold uppercase tracking-widest" style={{ color: "var(--muted)" }}>Dependent On:</span>
-                      {dependentOnActors.map((da) => (
-                        <Link
-                          key={da.id}
-                          href={`/actors/${toSlug(da.name)}`}
-                          className="text-xs px-2 py-0.5 rounded transition-opacity hover:opacity-70"
-                          style={{
-                            color: "var(--accent)",
-                            border: "1px solid color-mix(in srgb, var(--accent) 30%, transparent)",
-                            backgroundColor: "color-mix(in srgb, var(--accent) 10%, transparent)",
-                          }}
-                        >
-                          {da.name}
-                        </Link>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {/* Depth + Capabilities chips */}
-              {(actor.proxyDepth || actor.capabilities.length > 0) && (
-                <div className="mt-4 pt-4 space-y-2" style={{ borderTop: "1px solid var(--border)" }}>
-                  {actor.proxyDepth && (
-                    <div className="flex items-center gap-2">
-                      <span className="text-[10px] font-semibold uppercase tracking-widest" style={{ color: "var(--muted)" }}>Depth:</span>
-                      <span className="text-xs" style={{ color: "var(--muted-foreground)" }}>{actor.proxyDepth}</span>
-                    </div>
-                  )}
-                  {actor.capabilities.length > 0 && (
-                    <div className="flex items-center flex-wrap gap-2">
-                      <span className="text-[10px] font-semibold uppercase tracking-widest" style={{ color: "var(--muted)" }}>Capabilities:</span>
-                      {actor.capabilities.slice(0, 4).map((cap) => (
-                        <span key={cap} className="text-[10px] px-1.5 py-0.5 rounded" style={{ backgroundColor: "var(--surface-raised)", color: "var(--muted)" }}>
-                          {cap}
-                        </span>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
+            </CollapsibleSection>
           </div>
         ) : (
           /* No scoreReasoning — Score Trajectory full width */
-          <div className="rounded-xl p-6" style={{ backgroundColor: "var(--surface)", border: "1px solid var(--border)" }}>
-            <SectionLabel>Score Trajectory</SectionLabel>
-            <ScoreChart snapshots={history} />
-          </div>
+          <CollapsibleSection label="Score Trajectory" headerGap="mb-4">
+            <div className="rounded-xl p-6" style={{ backgroundColor: "var(--surface)", border: "1px solid var(--border)" }}>
+              <ScoreChart snapshots={history} />
+            </div>
+          </CollapsibleSection>
         )}
 
         {/* SECTION 3: Recent Intelligence */}
         {intelFeeds.length > 0 && (
-          <div>
-            <SectionLabel>Recent Intelligence</SectionLabel>
-            <div className="space-y-2">
+          <CollapsibleSection label="Recent Intelligence">
+            <div className="space-y-1.5">
               {intelFeeds.map((feed: IntelFeedItem) => (
                 <div
                   key={feed.id}
-                  className="rounded-lg px-4 py-3"
+                  className="rounded-lg px-4 py-2.5"
                   style={{ border: "1px solid var(--border)", backgroundColor: "var(--surface)" }}
                 >
-                  <div className="flex items-center gap-2 flex-wrap mb-1.5">
+                  <div className="flex items-center gap-2 flex-wrap mb-1">
                     {(feed.dateIngested || feed.publicationDate) && (
                       <span
                         className="text-[10px] font-mono px-1.5 py-0.5 rounded tabular-nums"
@@ -425,32 +417,22 @@ export default async function ActorProfilePage({ params }: { params: Promise<{ s
                     )}
                   </div>
                   {feed.soWhatSummary && (
-                    <p className="text-sm leading-relaxed" style={{ color: "var(--foreground)" }}>
-                      {feed.soWhatSummary}
+                    <p className="text-sm leading-snug" style={{ color: "var(--muted-foreground)" }}>
+                      {truncateToChars(feed.soWhatSummary, 130)}
                     </p>
                   )}
-                  <div className="flex justify-end mt-1.5">
-                    <a
-                      href="#"
-                      className="text-xs transition-colors hover:text-accent"
-                      style={{ color: "var(--muted-foreground)" }}
-                    >
-                      → Read brief
-                    </a>
-                  </div>
                 </div>
               ))}
             </div>
-          </div>
+          </CollapsibleSection>
         )}
 
         {/* SECTION 4: Latest Assessment (full width) */}
         <AssessmentCard assessment={assessment} />
 
         {/* SECTION 5: Relationships (full width) */}
-        {relationships.outgoing.length + relationships.incoming.length > 0 && (
-          <div>
-            <SectionLabel>Relationships</SectionLabel>
+        {relationships.length > 0 && (
+          <CollapsibleSection label="Relationships" action={{ label: "View all", href: "#" }}>
             <div className="rounded-xl overflow-hidden" style={{ border: "1px solid var(--border)", backgroundColor: "var(--surface)" }}>
               <table className="w-full text-sm">
                 <thead>
@@ -467,9 +449,7 @@ export default async function ActorProfilePage({ params }: { params: Promise<{ s
                   </tr>
                 </thead>
                 <tbody>
-                  {[...relationships.outgoing, ...relationships.incoming]
-                    .sort((a, b) => Math.abs(b.alignmentScore ?? 0) - Math.abs(a.alignmentScore ?? 0))
-                    .slice(0, 8).map((rel) => {
+                  {relationships.map((rel) => {
                     const alignment = rel.alignmentScore
                     const alignColor =
                       alignment === null || alignment === 0
@@ -498,7 +478,7 @@ export default async function ActorProfilePage({ params }: { params: Promise<{ s
                           </Link>
                           {rel.notes && (
                             <p className="text-[11px] leading-relaxed mt-0.5 italic" style={{ color: "var(--muted)" }}>
-                              {rel.notes}
+                              {truncateToChars(rel.notes, 100)}
                             </p>
                           )}
                         </td>
@@ -532,26 +512,20 @@ export default async function ActorProfilePage({ params }: { params: Promise<{ s
                 </tbody>
               </table>
             </div>
-            {relationships.outgoing.length + relationships.incoming.length > 8 && (
-              <a href="#" className="text-xs font-medium mt-3 inline-block transition-opacity hover:opacity-70" style={{ color: "var(--accent)" }}>
-                View all →
-              </a>
-            )}
-          </div>
+          </CollapsibleSection>
         )}
 
         {/* SECTION 6: Recent Events (full width) */}
         {events.length > 0 && (
-          <div>
-            <SectionLabel>Recent Events</SectionLabel>
-            <div className="space-y-2">
+          <CollapsibleSection label="Recent Events">
+            <div className="space-y-1.5">
               {events.map((event: NotionEvent) => (
                 <div
                   key={event.id}
-                  className="rounded-lg px-4 py-3"
+                  className="rounded-lg px-4 py-2.5"
                   style={{ border: "1px solid var(--border)", backgroundColor: "var(--surface)" }}
                 >
-                  <div className="flex items-center gap-2 flex-wrap mb-1.5">
+                  <div className="flex items-center gap-2 flex-wrap mb-1">
                     {event.date && (
                       <span
                         className="text-[10px] font-mono px-1.5 py-0.5 rounded tabular-nums"
@@ -563,25 +537,18 @@ export default async function ActorProfilePage({ params }: { params: Promise<{ s
                     <EventTypeBadge type={event.eventType} />
                     <PFSignalBadge signal={event.pfSignal} />
                   </div>
-                  <p className="text-sm font-medium leading-snug mb-1.5" style={{ color: "var(--foreground)" }}>
+                  <p className="text-sm font-medium leading-snug" style={{ color: "var(--foreground)" }}>
                     {event.name || "—"}
                   </p>
                   {event.description && (
-                    <p className="text-xs leading-relaxed mb-1" style={{ color: "var(--muted-foreground)" }}>
-                      {event.description.length > 220
-                        ? event.description.slice(0, 220) + "…"
-                        : event.description}
-                    </p>
-                  )}
-                  {event.mechanism && (
-                    <p className="text-[11px] leading-relaxed mt-1.5 pt-1.5 italic" style={{ color: "var(--muted)", borderTop: "1px solid var(--border)" }}>
-                      {event.mechanism}
+                    <p className="text-xs leading-relaxed mt-0.5" style={{ color: "var(--muted-foreground)" }}>
+                      {truncateToChars(event.description, 120)}
                     </p>
                   )}
                 </div>
               ))}
             </div>
-          </div>
+          </CollapsibleSection>
         )}
       </div>
     </div>

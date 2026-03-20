@@ -47,7 +47,25 @@ function Prose({ text, centered = false }: { text: string; centered?: boolean })
 // ─── Headline Prose (larger text, foreground color) ──────────────────────────
 
 function HeadlineProse({ text }: { text: string }) {
-  const paragraphs = stripDividers(text).split(/\n\s*\n/).filter(Boolean)
+  const cleaned = stripDividers(text)
+  const lines = cleaned.split("\n").map((l) => l.trim()).filter(Boolean)
+  const bulletLines = lines.filter((l) => l.startsWith("- "))
+
+  // If the content is structured as 2+ bullets, render as a scannable list
+  if (bulletLines.length >= 2) {
+    return (
+      <ul className="max-w-[72ch] space-y-4 list-none pl-0 mb-6">
+        {bulletLines.map((line, i) => (
+          <li key={i} className="flex gap-3 text-lg leading-[1.75]" style={{ color: "var(--foreground)" }}>
+            <span className="mt-[0.35em] shrink-0 text-sm" style={{ color: "var(--muted)" }}>—</span>
+            <span>{renderInline(line.slice(2))}</span>
+          </li>
+        ))}
+      </ul>
+    )
+  }
+
+  const paragraphs = cleaned.split(/\n\s*\n/).filter(Boolean)
   return (
     <div className="max-w-[72ch]">
       {paragraphs.map((p, i) => (
@@ -372,17 +390,22 @@ function extractNewScore(rangeStr: string): string | null {
 export function ScoreLedgerSidebar({ raw }: { raw: string }) {
   const { items, fallback } = parseLedgerItems(raw)
   const filtered = items.filter((item) => item.actor !== "Pakistan")
-  const sorted = [...filtered].sort((a, b) => Math.abs(b.delta) - Math.abs(a.delta)).slice(0, 6)
+  const sorted = [...filtered].sort((a, b) => Math.abs(b.delta) - Math.abs(a.delta)).slice(0, 5)
   return (
     <div
       className="rounded-[20px] p-5 lg:sticky lg:top-24 lg:max-h-[calc(100vh-8rem)] lg:overflow-y-auto"
       style={{ backgroundColor: "var(--surface)", border: "1px solid rgba(255,255,255,0.08)", width: "100%", minWidth: "400px" }}
     >
-      <div
-        className="text-sm tracking-[0.14em] uppercase font-semibold mb-5 text-left"
-        style={{ color: "var(--muted)" }}
-      >
-        Score Ledger
+      <div className="mb-5 text-left">
+        <div
+          className="text-sm tracking-[0.14em] uppercase font-semibold mb-1"
+          style={{ color: "var(--muted)" }}
+        >
+          Score Ledger
+        </div>
+        <div className="text-xs" style={{ color: "var(--muted)", opacity: 0.55 }}>
+          Score movements this period, ranked by magnitude
+        </div>
       </div>
       <div className="divide-y divide-white/5">
         {sorted.map((item, i) => {
@@ -558,7 +581,16 @@ export default function BriefRenderer({
               ) : (
                 <SectionHeader label={label} isFirst={isFirst} />
               )}
-              {isExpanded && renderSection(section)}
+              {isExpanded && (
+                <>
+                  {section.type === "key-movements" && (
+                    <p className="text-xs mb-6 -mt-4" style={{ color: "var(--muted)", opacity: 0.55 }}>
+                      Analytical context behind the most significant shifts this period
+                    </p>
+                  )}
+                  {renderSection(section)}
+                </>
+              )}
             </section>
           </div>
         )
