@@ -276,9 +276,11 @@ function ScenariosSection({ raw }: { raw: string }) {
     }
   }
 
+  const limitedItems = items.slice(0, 3)
+
   return (
     <>
-      {items.map((item, i) => (
+      {limitedItems.map((item, i) => (
         <div
           key={i}
           className="rounded-lg p-4 mb-3"
@@ -324,13 +326,14 @@ function parseLedgerItems(raw: string) {
 // Inline version — used on mobile (renders after Scenarios)
 function ScoreLedgerSection({ raw }: { raw: string }) {
   const { items, fallback } = parseLedgerItems(raw)
-  if (items.length === 0 && fallback.length > 0) {
+  const filtered = items.filter((item) => item.actor !== "Pakistan")
+  if (filtered.length === 0 && fallback.length > 0) {
     return <Prose text={fallback.join("\n")} />
   }
   return (
     <>
       <div className="divide-y divide-white/5">
-        {items.map((item, i) => (
+        {filtered.map((item, i) => (
           <div key={i} className="py-3 text-sm">
             <div className="flex items-center gap-2 flex-wrap">
               <span className="font-medium shrink-0" style={{ color: "var(--foreground)" }}>
@@ -368,7 +371,8 @@ function extractNewScore(rangeStr: string): string | null {
 // Sidebar version — sticky card, lg breakpoint only
 export function ScoreLedgerSidebar({ raw }: { raw: string }) {
   const { items, fallback } = parseLedgerItems(raw)
-  const sorted = [...items].sort((a, b) => Math.abs(b.delta) - Math.abs(a.delta)).slice(0, 6)
+  const filtered = items.filter((item) => item.actor !== "Pakistan")
+  const sorted = [...filtered].sort((a, b) => Math.abs(b.delta) - Math.abs(a.delta)).slice(0, 6)
   return (
     <div
       className="rounded-[20px] p-5 lg:sticky lg:top-24 lg:max-h-[calc(100vh-8rem)] lg:overflow-y-auto"
@@ -517,7 +521,8 @@ export default function BriefRenderer({
         firstHeader = false
 
         const sectionMargin = section.title && ["ANALYTICAL COMMENTARY", "ANALYTICAL SYNTHESIS"].includes(section.title) ? "my-[27px]" : ""
-        const isCollapsible = section.title && ["ANALYTICAL COMMENTARY", "ANALYTICAL SYNTHESIS"].includes(section.title)
+        const collapsibleSections = ["ANALYTICAL COMMENTARY", "ANALYTICAL SYNTHESIS", "KEY MOVEMENTS", "SCENARIOS TO WATCH"]
+        const isCollapsible = section.title && collapsibleSections.includes(section.title)
         const sectionKey = `section-${i}`
         const isExpanded = expandedSections[sectionKey] !== false // default to expanded
 
