@@ -79,26 +79,60 @@ function HeadlineProse({ text }: { text: string }) {
 
 // ─── Section header ──────────────────────────────────────────────────────────
 
-function SectionHeader({ label, isFirst }: { label: string; isFirst: boolean }) {
+function SectionBars({ open }: { open: boolean }) {
+  const barStyle = (delay: string): React.CSSProperties => ({
+    transformOrigin: "50% 50%",
+    transition: `transform 200ms ease ${delay}`,
+    transform: open ? "scaleY(1)" : "scaleY(0.3)",
+  })
   return (
-    <div className={`flex items-center gap-2 mb-8 max-w-[72ch] group/toggle${isFirst ? "" : " mt-14"}`}>
-      <svg width="10" height="24" viewBox="0 0 18 44" fill="none" aria-hidden="true" className="shrink-0">
-        <path
-          d="M5.2 8.6C5.2 7.16406 4.03594 6 2.6 6C1.16406 6 0 7.16406 0 8.6V35.4C0 36.8359 1.16406 38 2.6 38C4.03594 38 5.2 36.8359 5.2 35.4V8.6Z"
-          fill="#60A5FA"
-        />
-        <path
-          d="M18 2.6C18 1.16406 16.8359 0 15.4 0C13.9641 0 12.8 1.16406 12.8 2.6V41.4C12.8 42.8359 13.9641 44 15.4 44C16.8359 44 18 42.8359 18 41.4V2.6Z"
-          fill="#3B4A5C"
-        />
-      </svg>
-      <span
-        className="text-lg font-semibold tracking-[0.14em] uppercase group-hover/toggle:opacity-70 transition-opacity"
-        style={{ color: "var(--muted-foreground)" }}
+    <svg width="10" height="24" viewBox="0 0 18 44" fill="none" aria-hidden="true" className="shrink-0">
+      <path
+        d="M5.2 8.6C5.2 7.16406 4.03594 6 2.6 6C1.16406 6 0 7.16406 0 8.6V35.4C0 36.8359 1.16406 38 2.6 38C4.03594 38 5.2 36.8359 5.2 35.4V8.6Z"
+        fill="#60A5FA"
+        style={barStyle("0ms")}
+      />
+      <path
+        d="M18 2.6C18 1.16406 16.8359 0 15.4 0C13.9641 0 12.8 1.16406 12.8 2.6V41.4C12.8 42.8359 13.9641 44 15.4 44C16.8359 44 18 42.8359 18 41.4V2.6Z"
+        fill="#3B4A5C"
+        style={barStyle("30ms")}
+      />
+    </svg>
+  )
+}
+
+function CollapsibleBriefSection({
+  label,
+  isFirst,
+  children,
+}: {
+  label: string
+  isFirst: boolean
+  children: React.ReactNode
+}) {
+  const [open, setOpen] = useState(true)
+  return (
+    <>
+      <button
+        onClick={() => setOpen((v) => !v)}
+        className={`flex items-center gap-2 mb-8 w-full text-left group/toggle focus:outline-none${!isFirst ? " mt-14" : ""}`}
+        aria-expanded={open}
       >
-        {label}
-      </span>
-    </div>
+        <SectionBars open={open} />
+        <span
+          className="text-lg font-semibold tracking-[0.14em] uppercase group-hover/toggle:opacity-70 transition-opacity"
+          style={{ color: "var(--muted-foreground)" }}
+        >
+          {label}
+        </span>
+      </button>
+      <div
+        className="overflow-hidden transition-all duration-200"
+        style={{ maxHeight: open ? "9999px" : "0px", opacity: open ? 1 : 0 }}
+      >
+        {children}
+      </div>
+    </>
   )
 }
 
@@ -482,7 +516,6 @@ export default function BriefRenderer({
   exclude?: string[]
 }) {
   const sections = content.sections.filter((s) => !exclude.includes(s.type))
-  const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({})
 
   if (sections.length === 0) {
     return (
@@ -501,13 +534,6 @@ export default function BriefRenderer({
 
   let firstHeader = true
 
-  const toggleSection = (key: string) => {
-    setExpandedSections((prev) => ({
-      ...prev,
-      [key]: !prev[key],
-    }))
-  }
-
   return (
     <div>
       {sections.map((section, i) => {
@@ -518,9 +544,7 @@ export default function BriefRenderer({
               {i > 0 && (
                 <div className="mb-12 mt-2" style={{ borderTop: "1px solid rgba(255,255,255,0.06)" }} />
               )}
-              <div className="pb-10">
-                {renderSection(section)}
-              </div>
+              <div className="pb-10">{renderSection(section)}</div>
             </div>
           )
         }
@@ -543,11 +567,7 @@ export default function BriefRenderer({
         const isFirst = firstHeader
         firstHeader = false
 
-        const sectionMargin = section.title && ["ANALYTICAL COMMENTARY", "ANALYTICAL SYNTHESIS"].includes(section.title) ? "my-[27px]" : ""
-        const collapsibleSections = ["ANALYTICAL COMMENTARY", "ANALYTICAL SYNTHESIS", "KEY MOVEMENTS", "SCENARIOS TO WATCH"]
-        const isCollapsible = section.title && collapsibleSections.includes(section.title)
-        const sectionKey = `section-${i}`
-        const isExpanded = expandedSections[sectionKey] !== false // default to expanded
+        const sectionMargin = ["ANALYTICAL COMMENTARY", "ANALYTICAL SYNTHESIS"].includes(section.title) ? "my-[27px]" : ""
 
         return (
           <div key={i}>
@@ -555,42 +575,14 @@ export default function BriefRenderer({
               <div className="mb-12 mt-2" style={{ borderTop: "1px solid rgba(255,255,255,0.06)" }} />
             )}
             <section className={`pb-10 ${sectionMargin}`}>
-              {isCollapsible ? (
-                <button
-                  onClick={() => toggleSection(sectionKey)}
-                  className="flex items-center gap-2 mb-8 w-full text-left group/toggle focus:outline-none"
-                  style={{ cursor: "pointer" }}
-                >
-                  <svg width="10" height="24" viewBox="0 0 18 44" fill="none" aria-hidden="true" className="shrink-0">
-                    <path
-                      d="M5.2 8.6C5.2 7.16406 4.03594 6 2.6 6C1.16406 6 0 7.16406 0 8.6V35.4C0 36.8359 1.16406 38 2.6 38C4.03594 38 5.2 36.8359 5.2 35.4V8.6Z"
-                      fill="#60A5FA"
-                    />
-                    <path
-                      d="M18 2.6C18 1.16406 16.8359 0 15.4 0C13.9641 0 12.8 1.16406 12.8 2.6V41.4C12.8 42.8359 13.9641 44 15.4 44C16.8359 44 18 42.8359 18 41.4V2.6Z"
-                      fill="#3B4A5C"
-                    />
-                  </svg>
-                  <span
-                    className="text-lg font-semibold tracking-[0.14em] uppercase group-hover/toggle:opacity-70 transition-opacity"
-                    style={{ color: "var(--muted-foreground)" }}
-                  >
-                    {label}
-                  </span>
-                </button>
-              ) : (
-                <SectionHeader label={label} isFirst={isFirst} />
-              )}
-              {isExpanded && (
-                <>
-                  {section.type === "key-movements" && (
-                    <p className="text-xs mb-6 -mt-4" style={{ color: "var(--muted)", opacity: 0.55 }}>
-                      Analytical context behind the most significant shifts this period
-                    </p>
-                  )}
-                  {renderSection(section)}
-                </>
-              )}
+              <CollapsibleBriefSection label={label} isFirst={isFirst}>
+                {section.type === "key-movements" && (
+                  <p className="text-xs mb-6 -mt-4" style={{ color: "var(--muted)", opacity: 0.55 }}>
+                    Analytical context behind the most significant shifts this period
+                  </p>
+                )}
+                {renderSection(section)}
+              </CollapsibleBriefSection>
             </section>
           </div>
         )
