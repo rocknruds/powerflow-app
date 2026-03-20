@@ -21,6 +21,9 @@ export interface Actor {
   iso3: string | null
   lastScored: string | null
   scoreReasoning: string | null
+  authorityReasoning?: string
+  reachReasoning?: string
+  pfReasoning?: string
   notes: string | null
   patronStateIds: string[]
   dependentOnIds: string[]

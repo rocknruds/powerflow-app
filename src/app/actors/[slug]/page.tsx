@@ -265,14 +265,38 @@ export default async function ActorProfilePage({ params }: { params: Promise<{ s
             <div className="rounded-xl p-6" style={{ backgroundColor: "var(--surface)", border: "1px solid var(--border)" }}>
               <SectionLabel>Key Drivers</SectionLabel>
 
-              <p className="text-sm leading-relaxed" style={{ color: "var(--muted-foreground)" }}>
-                {truncateToSentences(actor.scoreReasoning)}
-              </p>
+              <div className="space-y-4">
+                {/* Authority block */}
+                <div>
+                  <ParagraphLabel label="Authority" color="var(--score-authority)" />
+                  <p className="text-sm leading-relaxed" style={{ color: "var(--muted-foreground)" }}>
+                    {actor.authorityReasoning || truncateToSentences(actor.scoreReasoning!, 200)}
+                  </p>
+                </div>
+
+                {/* Reach block */}
+                <div>
+                  <ParagraphLabel label="Reach" color="var(--score-reach)" />
+                  <p className="text-sm leading-relaxed" style={{ color: "var(--muted-foreground)" }}>
+                    {actor.reachReasoning || truncateToSentences(actor.scoreReasoning!, 200)}
+                  </p>
+                </div>
+
+                {/* PF block — omit if empty */}
+                {actor.pfReasoning && (
+                  <div>
+                    <ParagraphLabel label="PF" color="var(--accent)" />
+                    <p className="text-sm leading-relaxed" style={{ color: "var(--muted-foreground)" }}>
+                      {actor.pfReasoning}
+                    </p>
+                  </div>
+                )}
+              </div>
 
               {/* TODO: wire to /actors/[slug]/assessment when Pro tier live */}
               <a
                 href="#"
-                className="group inline-flex items-center gap-1.5 mt-3 text-xs transition-colors"
+                className="group inline-flex items-center gap-1.5 mt-4 text-xs transition-colors"
                 style={{ color: "var(--muted-foreground)" }}
               >
                 <Lock size={12} className="shrink-0" />
