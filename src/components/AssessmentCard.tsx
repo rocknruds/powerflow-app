@@ -1,9 +1,5 @@
-"use client";
-
-import { useState } from "react";
 import Link from "next/link";
 import type { Assessment } from "@/lib/assessments";
-import LogoMark from "@/components/LogoMark";
 
 function getTwoSentences(text: string): string {
   const matches = text.match(/[^.!?]*[.!?]+/g) ?? [];
@@ -18,15 +14,7 @@ const PF_SIGNAL_COLORS: Record<string, { text: string; bg: string }> = {
 };
 
 export default function AssessmentCard({ assessment }: { assessment: Assessment | null }) {
-  const [expanded, setExpanded] = useState(false);
-
-  if (!assessment) {
-    return (
-      <p className="text-sm py-1" style={{ color: "var(--muted)" }}>
-        No assessment published yet.
-      </p>
-    );
-  }
+  if (!assessment) return null;
 
   const teaser = getTwoSentences(assessment.analystCommentary);
   const signalColors =
@@ -38,79 +26,52 @@ export default function AssessmentCard({ assessment }: { assessment: Assessment 
     : null;
 
   return (
-    <div className="rounded-xl" style={{ border: "1px solid var(--border)", backgroundColor: "var(--surface)" }}>
-      <button
-        onClick={() => setExpanded(!expanded)}
-        className="w-full text-left px-6 pt-5 pb-4"
-      >
-        <div className="flex items-center gap-2 mb-3">
-          <LogoMark size={16} />
-          <span className="text-xs font-semibold uppercase tracking-widest" style={{ color: "var(--muted)" }}>
-            Latest Assessment
-          </span>
-        </div>
-        <div className="flex items-start justify-between gap-3 flex-wrap">
-          <h3 className="text-base font-semibold leading-snug" style={{ color: "var(--foreground)" }}>
-            {assessment.title}
-          </h3>
-          <div className="flex items-center gap-2 flex-wrap shrink-0">
-            {assessment.pfSignal && (
-              <span
-                className="text-xs px-2 py-0.5 rounded font-medium"
-                style={{ color: signalColors.text, backgroundColor: signalColors.bg }}
-              >
-                {assessment.pfSignal}
-              </span>
-            )}
-            {assessment.confidenceLevel && (
-              <span
-                className="text-xs px-2 py-0.5 rounded"
-                style={{ color: "var(--muted)", border: "1px solid var(--border)" }}
-              >
-                {assessment.confidenceLevel}
-              </span>
-            )}
-            {timePeriodFormatted && (
-              <span className="text-xs" style={{ color: "var(--muted)" }}>{timePeriodFormatted}</span>
-            )}
-            <span className="text-xs ml-1 select-none" style={{ color: "var(--muted)" }}>
-              {expanded ? "▲" : "▼"}
-            </span>
-          </div>
-        </div>
-      </button>
-
-      <div className="px-6 pb-5">
-        {!expanded ? (
-          <p className="text-sm leading-relaxed" style={{ color: "var(--muted-foreground)" }}>
-            {teaser}
-          </p>
-        ) : (
-          <>
-            <p className="text-sm leading-relaxed whitespace-pre-line" style={{ color: "var(--muted-foreground)" }}>
-              {assessment.analystCommentary}
-            </p>
-            {assessment.currentPosition && (
-              <>
-                <div className="my-4 h-px" style={{ backgroundColor: "var(--border)" }} />
-                <p className="text-sm leading-relaxed" style={{ color: "var(--muted-foreground)" }}>
-                  {assessment.currentPosition}
-                </p>
-              </>
-            )}
-          </>
-        )}
-
-        <div className="mt-4 pt-3" style={{ borderTop: "1px solid var(--border)" }}>
-          <Link
-            href={`/analysis/${assessment.id}`}
-            className="text-xs font-medium transition-opacity hover:opacity-70"
-            style={{ color: "var(--accent)" }}
+    <div
+      className="rounded-lg px-4 py-2.5"
+      style={{ border: "1px solid var(--border)", backgroundColor: "var(--surface)" }}
+    >
+      <div className="flex items-center gap-2 flex-wrap mb-1">
+        {timePeriodFormatted && (
+          <span
+            className="text-[10px] font-mono px-1.5 py-0.5 rounded tabular-nums"
+            style={{ backgroundColor: "var(--surface-raised)", color: "var(--muted)" }}
           >
-            View full assessment →
-          </Link>
-        </div>
+            {timePeriodFormatted}
+          </span>
+        )}
+        {assessment.pfSignal && (
+          <span
+            className="text-xs px-2 py-0.5 rounded font-medium"
+            style={{ color: signalColors.text, backgroundColor: signalColors.bg }}
+          >
+            {assessment.pfSignal}
+          </span>
+        )}
+        {assessment.confidenceLevel && (
+          <span
+            className="text-[10px] px-1.5 py-0.5 rounded"
+            style={{ color: "var(--muted)", border: "1px solid var(--border)" }}
+          >
+            {assessment.confidenceLevel}
+          </span>
+        )}
       </div>
+
+      <p className="text-sm font-medium leading-snug mb-1" style={{ color: "var(--foreground)" }}>
+        {assessment.title}
+      </p>
+
+      <p className="text-xs leading-relaxed mb-2" style={{ color: "var(--muted-foreground)" }}>
+        {teaser}
+      </p>
+
+      <Link
+        href={`/analysis/${assessment.id}`}
+        className="text-xs font-medium transition-opacity hover:opacity-70"
+        style={{ color: "var(--accent)" }}
+      >
+        View full assessment →
+      </Link>
     </div>
   );
 }

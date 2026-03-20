@@ -256,118 +256,110 @@ export default async function ActorProfilePage({ params }: { params: Promise<{ s
           <div className="grid grid-cols-1 lg:grid-cols-[50fr_50fr] gap-6 items-start">
 
             {/* Left: Score Trajectory */}
-            <CollapsibleSection label="Score Trajectory" headerGap="mb-4">
-              <div className="rounded-xl p-6" style={{ backgroundColor: "var(--surface)", border: "1px solid var(--border)" }}>
-                <ScoreChart snapshots={history} intelFeeds={intelFeeds} />
-              </div>
-            </CollapsibleSection>
+            <div className="min-w-0">
+              <CollapsibleSection label="Score Trajectory" headerGap="mb-4">
+                <div className="rounded-xl p-6" style={{ backgroundColor: "var(--surface)", border: "1px solid var(--border)" }}>
+                  <ScoreChart snapshots={history} intelFeeds={intelFeeds} />
+                </div>
+              </CollapsibleSection>
+            </div>
 
             {/* Right: Key Drivers */}
-            <CollapsibleSection label="Key Drivers" headerGap="mb-4">
-              <div className="rounded-[20px] p-6" style={{ backgroundColor: "var(--surface)", border: "1px solid var(--border)" }}>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  {/* Overall block */}
-                  <div className="p-3 border-l-2 pl-3" style={{ borderLeftColor: "var(--accent)" }}>
-                    <ParagraphLabel label="Overall" color="var(--accent)" score={pf} scoreColor={scoreColor} />
-                    <p className="text-sm leading-relaxed" style={{ color: "var(--muted-foreground)" }}>
-                      {truncateToSentences(actor.pfReasoning || actor.scoreReasoning!, 120)}
-                    </p>
-                  </div>
-
-                  {/* Authority block */}
-                  <div className="p-3 border-l-2 pl-3" style={{ borderLeftColor: "var(--score-authority)" }}>
-                    <ParagraphLabel label="Authority" color="var(--score-authority)" score={actor.authorityScore} scoreColor="var(--score-authority)" />
-                    <p className="text-sm leading-relaxed" style={{ color: "var(--muted-foreground)" }}>
-                      {truncateToSentences(actor.authorityReasoning || actor.scoreReasoning!, 120)}
-                    </p>
-                  </div>
-
-                  {/* Reach block */}
-                  <div className="p-3 border-l-2 pl-3" style={{ borderLeftColor: "var(--score-reach)" }}>
-                    <ParagraphLabel label="Reach" color="var(--score-reach)" score={actor.reachScore} scoreColor="var(--score-reach)" />
-                    <p className="text-sm leading-relaxed" style={{ color: "var(--muted-foreground)" }}>
-                      {truncateToSentences(actor.reachReasoning || actor.scoreReasoning!, 120)}
-                    </p>
-                  </div>
+            <div className="min-w-0">
+              <CollapsibleSection label="Key Drivers" headerGap="mb-4">
+                <div className="rounded-xl overflow-hidden" style={{ border: "1px solid var(--border)", backgroundColor: "var(--surface)" }}>
+                  {/* Three columns */}
+                  <div className="grid grid-cols-3">
+                    {[
+                      { label: "Overall", color: "var(--accent)", score: pf, scoreColor, reasoning: truncateToSentences(actor.pfReasoning || actor.scoreReasoning!, 160) },
+                      { label: "Authority", color: "var(--score-authority)", score: actor.authorityScore, scoreColor: "var(--score-authority)", reasoning: truncateToSentences(actor.authorityReasoning || actor.scoreReasoning!, 160) },
+                      { label: "Reach", color: "var(--score-reach)", score: actor.reachScore, scoreColor: "var(--score-reach)", reasoning: truncateToSentences(actor.reachReasoning || actor.scoreReasoning!, 160) },
+                    ].map((block, i) => (
+                      <div
+                        key={block.label}
+                        className="p-3 flex flex-col gap-2"
+                        style={{
+                          borderRight: i < 2 ? "1px solid var(--border)" : undefined,
+                          borderTop: `3px solid ${block.color}`,
+                        }}
+                      >
+                        {/* Score — dominant */}
+                        <div className="flex items-baseline gap-2">
+                          <span className="text-3xl font-bold tabular-nums" style={{ color: block.scoreColor }}>
+                            {block.score ?? "—"}
+                          </span>
+                          <span className="text-[10px] font-semibold uppercase tracking-widest" style={{ color: "var(--muted)" }}>
+                            {block.label}
+                          </span>
+                        </div>
+                        {/* Reasoning */}
+                        <p className="text-xs leading-relaxed line-clamp-3" style={{ color: "var(--muted-foreground)" }}>
+                          {block.reasoning}
+                        </p>
+                      </div>
+                    ))}
                 </div>
 
-                {/* TODO: wire to /actors/[slug]/assessment when Pro tier live */}
-                <a
-                  href="#"
-                  className="group inline-flex items-center gap-1.5 mt-4 text-xs transition-colors"
-                  style={{ color: "var(--muted-foreground)" }}
-                >
-                  <Lock size={12} className="shrink-0" />
-                  <span className="group-hover:text-accent transition-colors">→ Full Assessment</span>
-                </a>
+                {/* Footer row */}
+                <div className="px-4 py-3 space-y-3" style={{ borderTop: "1px solid var(--border)", backgroundColor: "var(--surface-raised)" }}>
+                  {/* Full Assessment link */}
+                  <a href="#" className="group inline-flex items-center gap-1.5 text-xs transition-colors" style={{ color: "var(--muted-foreground)" }}>
+                    <Lock size={12} className="shrink-0" />
+                    <span className="group-hover:text-accent transition-colors">→ Full Assessment</span>
+                  </a>
 
-                {/* Patron / dependent links */}
-                {(patronActors.length > 0 || dependentOnActors.length > 0) && (
-                  <div className="mt-5 pt-4 space-y-3" style={{ borderTop: "1px solid var(--border)" }}>
-                    {patronActors.length > 0 && (
-                      <div className="flex items-center flex-wrap gap-2">
-                        <span className="text-[10px] font-semibold uppercase tracking-widest" style={{ color: "var(--muted)" }}>Patron:</span>
-                        {patronActors.map((pa) => (
-                          <Link
-                            key={pa.id}
-                            href={`/actors/${toSlug(pa.name)}`}
-                            className="text-xs px-2 py-0.5 rounded transition-opacity hover:opacity-70"
-                            style={{
-                              color: "var(--accent)",
-                              border: "1px solid color-mix(in srgb, var(--accent) 30%, transparent)",
-                              backgroundColor: "color-mix(in srgb, var(--accent) 10%, transparent)",
-                            }}
-                          >
-                            {pa.name}
-                          </Link>
-                        ))}
-                      </div>
-                    )}
-                    {dependentOnActors.length > 0 && (
-                      <div className="flex items-center flex-wrap gap-2">
-                        <span className="text-[10px] font-semibold uppercase tracking-widest" style={{ color: "var(--muted)" }}>Dependent On:</span>
-                        {dependentOnActors.map((da) => (
-                          <Link
-                            key={da.id}
-                            href={`/actors/${toSlug(da.name)}`}
-                            className="text-xs px-2 py-0.5 rounded transition-opacity hover:opacity-70"
-                            style={{
-                              color: "var(--accent)",
-                              border: "1px solid color-mix(in srgb, var(--accent) 30%, transparent)",
-                              backgroundColor: "color-mix(in srgb, var(--accent) 10%, transparent)",
-                            }}
-                          >
-                            {da.name}
-                          </Link>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                )}
+                  {/* Patron / Dependent On links */}
+                  {(patronActors.length > 0 || dependentOnActors.length > 0) && (
+                    <div className="space-y-2">
+                      {patronActors.length > 0 && (
+                        <div className="flex items-center flex-wrap gap-2">
+                          <span className="text-[10px] font-semibold uppercase tracking-widest" style={{ color: "var(--muted)" }}>Patron:</span>
+                          {patronActors.map((pa) => (
+                            <Link key={pa.id} href={`/actors/${toSlug(pa.name)}`} className="text-xs px-2 py-0.5 rounded transition-opacity hover:opacity-70" style={{ color: "var(--accent)", border: "1px solid color-mix(in srgb, var(--accent) 30%, transparent)", backgroundColor: "color-mix(in srgb, var(--accent) 10%, transparent)" }}>
+                              {pa.name}
+                            </Link>
+                          ))}
+                        </div>
+                      )}
+                      {dependentOnActors.length > 0 && (
+                        <div className="flex items-center flex-wrap gap-2">
+                          <span className="text-[10px] font-semibold uppercase tracking-widest" style={{ color: "var(--muted)" }}>Dependent On:</span>
+                          {dependentOnActors.map((da) => (
+                            <Link key={da.id} href={`/actors/${toSlug(da.name)}`} className="text-xs px-2 py-0.5 rounded transition-opacity hover:opacity-70" style={{ color: "var(--accent)", border: "1px solid color-mix(in srgb, var(--accent) 30%, transparent)", backgroundColor: "color-mix(in srgb, var(--accent) 10%, transparent)" }}>
+                              {da.name}
+                            </Link>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )}
 
-                {/* Depth + Capabilities chips */}
-                {(actor.proxyDepth || actor.capabilities.length > 0) && (
-                  <div className="mt-4 pt-4 space-y-2" style={{ borderTop: "1px solid var(--border)" }}>
-                    {actor.proxyDepth && (
-                      <div className="flex items-center gap-2">
-                        <span className="text-[10px] font-semibold uppercase tracking-widest" style={{ color: "var(--muted)" }}>Depth:</span>
-                        <span className="text-xs" style={{ color: "var(--muted-foreground)" }}>{actor.proxyDepth}</span>
-                      </div>
-                    )}
-                    {actor.capabilities.length > 0 && (
-                      <div className="flex items-center flex-wrap gap-2">
-                        <span className="text-[10px] font-semibold uppercase tracking-widest" style={{ color: "var(--muted)" }}>Capabilities:</span>
-                        {actor.capabilities.slice(0, 4).map((cap) => (
-                          <span key={cap} className="text-[10px] px-1.5 py-0.5 rounded" style={{ backgroundColor: "var(--surface-raised)", color: "var(--muted)" }}>
-                            {cap}
-                          </span>
-                        ))}
-                      </div>
-                    )}
+                  {/* Depth + Capabilities */}
+                  {(actor.proxyDepth || actor.capabilities.length > 0) && (
+                    <div className="space-y-2">
+                      {actor.proxyDepth && (
+                        <div className="flex items-center gap-2">
+                          <span className="text-[10px] font-semibold uppercase tracking-widest" style={{ color: "var(--muted)" }}>Depth:</span>
+                          <span className="text-xs" style={{ color: "var(--muted-foreground)" }}>{actor.proxyDepth}</span>
+                        </div>
+                      )}
+                      {actor.capabilities.length > 0 && (
+                        <div className="flex items-center flex-wrap gap-2">
+                          <span className="text-[10px] font-semibold uppercase tracking-widest" style={{ color: "var(--muted)" }}>Capabilities:</span>
+                          {actor.capabilities.slice(0, 4).map((cap) => (
+                            <span key={cap} className="text-[10px] px-1.5 py-0.5 rounded" style={{ backgroundColor: "var(--surface)", color: "var(--muted)" }}>
+                              {cap}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )}
                   </div>
-                )}
-              </div>
-            </CollapsibleSection>
+                </div>
+              </CollapsibleSection>
+            </div>
+
           </div>
         ) : (
           /* No scoreReasoning — Score Trajectory full width */
@@ -428,7 +420,11 @@ export default async function ActorProfilePage({ params }: { params: Promise<{ s
         )}
 
         {/* SECTION 4: Latest Assessment (full width) */}
-        <AssessmentCard assessment={assessment} />
+        {assessment && (
+          <CollapsibleSection label="Latest Assessment">
+            <AssessmentCard assessment={assessment} />
+          </CollapsibleSection>
+        )}
 
         {/* SECTION 5: Relationships (full width) */}
         {relationships.length > 0 && (

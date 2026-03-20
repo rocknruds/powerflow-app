@@ -5,6 +5,7 @@ import { getLatestBrief } from "@/lib/briefs";
 import { getLatestPublicAssessments } from "@/lib/assessments";
 import { getActiveScenariosWithActors } from "@/lib/scenarios";
 import ScoreDelta from "@/components/ScoreDelta";
+import ScoreMoverPill from "@/components/ScoreMoverPill";
 import { pfScoreColor } from "@/components/ActorCard";
 import CollapsibleSection from "@/components/CollapsibleSection";
 import ScenarioCard from "@/components/ScenarioCard";
@@ -32,6 +33,22 @@ export default async function HomePage() {
   const { gainers, fallers } = computeScoreMovers(enrichedActors, 3);
   const topGainers = gainers.slice(0, 2).sort((a, b) => b.delta - a.delta);
   const topFallers = fallers.slice(0, 2).sort((a, b) => b.delta - a.delta);
+
+  function getCascadeActors(moverId: string, moverDelta: number) {
+    return enrichedActors
+      .filter((a) => {
+        if (!a.dependentOnIds.includes(moverId)) return false;
+        if (!a.scoreDelta || a.scoreDelta === 0) return false;
+        return moverDelta > 0 ? a.scoreDelta > 0 : a.scoreDelta < 0;
+      })
+      .slice(0, 4)
+      .map((a) => ({
+        id: a.id,
+        name: a.name,
+        slug: a.slug,
+        scoreDelta: a.scoreDelta,
+      }));
+  }
 
   return (
     <div
@@ -103,46 +120,30 @@ export default async function HomePage() {
             </div>
             <div className="flex items-center justify-center gap-4 flex-wrap">
               {topGainers.map((m) => (
-                <Link
+                <ScoreMoverPill
                   key={m.actorId}
-                  href={`/actors/${m.actorSlug}`}
-                  className="flex items-center gap-2.5 px-5 py-2 rounded-full transition-colors hover:opacity-80"
-                  style={{ backgroundColor: "color-mix(in srgb, var(--delta-up) 6%, transparent)" }}
-                >
-                  <span className="text-xs font-medium" style={{ color: "var(--foreground)" }}>
-                    {m.actorName}
-                  </span>
-                  <span
-                    className="text-sm font-mono font-semibold tabular-nums"
-                    style={{ color: "var(--foreground)" }}
-                  >
-                    {Math.round(m.pfScore)}
-                  </span>
-                  <ScoreDelta delta={m.delta} />
-                </Link>
+                  actorId={m.actorId}
+                  actorSlug={m.actorSlug}
+                  actorName={m.actorName}
+                  pfScore={m.pfScore}
+                  delta={m.delta}
+                  cascadeActors={getCascadeActors(m.actorId, m.delta)}
+                />
               ))}
               <span
                 className="w-px h-5"
                 style={{ backgroundColor: "color-mix(in srgb, var(--border) 60%, transparent)" }}
               />
               {topFallers.map((m) => (
-                <Link
+                <ScoreMoverPill
                   key={m.actorId}
-                  href={`/actors/${m.actorSlug}`}
-                  className="flex items-center gap-2.5 px-5 py-2 rounded-full transition-colors hover:opacity-80"
-                  style={{ backgroundColor: "color-mix(in srgb, var(--delta-down) 6%, transparent)" }}
-                >
-                  <span className="text-xs font-medium" style={{ color: "var(--foreground)" }}>
-                    {m.actorName}
-                  </span>
-                  <span
-                    className="text-sm font-mono font-semibold tabular-nums"
-                    style={{ color: "var(--foreground)" }}
-                  >
-                    {Math.round(m.pfScore)}
-                  </span>
-                  <ScoreDelta delta={m.delta} />
-                </Link>
+                  actorId={m.actorId}
+                  actorSlug={m.actorSlug}
+                  actorName={m.actorName}
+                  pfScore={m.pfScore}
+                  delta={m.delta}
+                  cascadeActors={getCascadeActors(m.actorId, m.delta)}
+                />
               ))}
             </div>
           </div>

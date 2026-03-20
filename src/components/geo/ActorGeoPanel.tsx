@@ -16,6 +16,10 @@ import {
 import { ISO_NUMERIC_TO_ALPHA3 } from '@/lib/iso-numeric'
 import type { ActorType } from '@/lib/types'
 
+const ISO3_NORMALIZE: Record<string, string> = {
+  'CHN-CCP': 'CHN',
+}
+
 interface ActorGeoPanelProps {
   isoCode: string | null
   region: string | null
@@ -23,10 +27,11 @@ interface ActorGeoPanelProps {
 }
 
 function getProjectionConfig(isoCode: string | null, region: string | null, actorType: string) {
+  const normalizedIso = isoCode ? (ISO3_NORMALIZE[isoCode] ?? isoCode) : null
   // State actor with known ISO3 center
-  if (actorType === 'State' && isoCode && ISO3_CENTERS[isoCode]) {
-    const center = ISO3_CENTERS[isoCode]
-    const scale = COUNTRY_SCALES[isoCode] ?? DEFAULT_GEO_SCALE
+  if (actorType === 'State' && normalizedIso && ISO3_CENTERS[normalizedIso]) {
+    const center = ISO3_CENTERS[normalizedIso]
+    const scale = COUNTRY_SCALES[normalizedIso] ?? DEFAULT_GEO_SCALE
     return { center, scale }
   }
 
@@ -41,8 +46,9 @@ function getProjectionConfig(isoCode: string | null, region: string | null, acto
 }
 
 export default function ActorGeoPanel({ isoCode, region, actorType }: ActorGeoPanelProps) {
+  const normalizedIso = isoCode ? (ISO3_NORMALIZE[isoCode] ?? isoCode) : null
   const { center, scale } = getProjectionConfig(isoCode, region, actorType)
-  const shouldHighlight = actorType === 'State' && isoCode && ISO3_CENTERS[isoCode]
+  const shouldHighlight = actorType === 'State' && normalizedIso && ISO3_CENTERS[normalizedIso]
 
   return (
     <div
@@ -82,7 +88,7 @@ export default function ActorGeoPanel({ isoCode, region, actorType }: ActorGeoPa
           {({ geographies }: { geographies: any[] }) => {
             const geos = geographies.map((geo) => {
               const alpha3 = ISO_NUMERIC_TO_ALPHA3[geo.id]
-              const isActor = shouldHighlight && alpha3 === isoCode
+              const isActor = shouldHighlight && alpha3 === normalizedIso
               return (
                 <Geography
                   key={geo.rsmKey}
@@ -101,7 +107,7 @@ export default function ActorGeoPanel({ isoCode, region, actorType }: ActorGeoPa
 
             // Country-shaped glow: blurred copy of the highlighted country rendered on top
             const actorGeo = shouldHighlight
-              ? geographies.find((geo) => ISO_NUMERIC_TO_ALPHA3[geo.id] === isoCode)
+              ? geographies.find((geo) => ISO_NUMERIC_TO_ALPHA3[geo.id] === normalizedIso)
               : null
 
             return (
