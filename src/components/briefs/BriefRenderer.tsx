@@ -31,12 +31,12 @@ function stripDividers(text: string): string {
 
 // ─── Prose ───────────────────────────────────────────────────────────────────
 
-function Prose({ text }: { text: string }) {
+function Prose({ text, centered = false }: { text: string; centered?: boolean }) {
   const paragraphs = stripDividers(text).split(/\n\s*\n/).filter(Boolean)
   return (
     <div className="max-w-[72ch]">
       {paragraphs.map((p, i) => (
-        <p key={i} className="text-[1.0625rem] leading-[1.85] mb-6" style={{ color: "var(--muted-foreground)" }}>
+        <p key={i} className="text-[1.0625rem] leading-[1.85] mb-6" style={{ color: "var(--muted-foreground)", textAlign: centered ? "center" : "start" }}>
           {renderInline(p.trim())}
         </p>
       ))}
@@ -63,7 +63,7 @@ function HeadlineProse({ text }: { text: string }) {
 
 function SectionHeader({ label, isFirst }: { label: string; isFirst: boolean }) {
   return (
-    <div className={`flex items-center gap-2 mb-8${isFirst ? "" : " mt-14"}`}>
+    <div className={`flex items-center gap-2 mb-8 max-w-[72ch] group/toggle${isFirst ? "" : " mt-14"}`}>
       <svg width="10" height="24" viewBox="0 0 18 44" fill="none" aria-hidden="true" className="shrink-0">
         <path
           d="M5.2 8.6C5.2 7.16406 4.03594 6 2.6 6C1.16406 6 0 7.16406 0 8.6V35.4C0 36.8359 1.16406 38 2.6 38C4.03594 38 5.2 36.8359 5.2 35.4V8.6Z"
@@ -75,7 +75,7 @@ function SectionHeader({ label, isFirst }: { label: string; isFirst: boolean }) 
         />
       </svg>
       <span
-        className="text-lg font-semibold tracking-[0.14em] uppercase"
+        className="text-lg font-semibold tracking-[0.14em] uppercase group-hover/toggle:opacity-70 transition-opacity"
         style={{ color: "var(--muted-foreground)" }}
       >
         {label}
@@ -148,7 +148,7 @@ function KeyMovementEntry({
         </span>
       </button>
       {open && (
-        <p className="text-[1.0625rem] leading-relaxed pb-1" style={{ color: "var(--muted-foreground)" }}>
+        <p className="text-[1.0625rem] leading-relaxed pb-1 mt-3" style={{ color: "var(--muted-foreground)" }}>
           {renderInline(item.body)}
         </p>
       )}
@@ -276,9 +276,11 @@ function ScenariosSection({ raw }: { raw: string }) {
     }
   }
 
+  const limitedItems = items.slice(0, 3)
+
   return (
     <>
-      {items.map((item, i) => (
+      {limitedItems.map((item, i) => (
         <div
           key={i}
           className="rounded-lg p-4 mb-3"
@@ -324,13 +326,14 @@ function parseLedgerItems(raw: string) {
 // Inline version — used on mobile (renders after Scenarios)
 function ScoreLedgerSection({ raw }: { raw: string }) {
   const { items, fallback } = parseLedgerItems(raw)
-  if (items.length === 0 && fallback.length > 0) {
+  const filtered = items.filter((item) => item.actor !== "Pakistan")
+  if (filtered.length === 0 && fallback.length > 0) {
     return <Prose text={fallback.join("\n")} />
   }
   return (
     <>
       <div className="divide-y divide-white/5">
-        {items.map((item, i) => (
+        {filtered.map((item, i) => (
           <div key={i} className="py-3 text-sm">
             <div className="flex items-center gap-2 flex-wrap">
               <span className="font-medium shrink-0" style={{ color: "var(--foreground)" }}>
@@ -356,42 +359,55 @@ function ScoreLedgerSection({ raw }: { raw: string }) {
   )
 }
 
+// Extract new score from range string (e.g., "44 → 48" → "48")
+function extractNewScore(rangeStr: string): string | null {
+  const arrowMatch = rangeStr.match(/→\s*(\d+(?:\.\d+)?)/)
+  if (arrowMatch) return arrowMatch[1]
+  // Fallback: if no arrow, try to get the last number
+  const numbers = rangeStr.match(/\d+(?:\.\d+)?/g)
+  return numbers ? numbers[numbers.length - 1] : null
+}
+
 // Sidebar version — sticky card, lg breakpoint only
 export function ScoreLedgerSidebar({ raw }: { raw: string }) {
   const { items, fallback } = parseLedgerItems(raw)
-  const sorted = [...items].sort((a, b) => Math.abs(b.delta) - Math.abs(a.delta)).slice(0, 6)
+  const filtered = items.filter((item) => item.actor !== "Pakistan")
+  const sorted = [...filtered].sort((a, b) => Math.abs(b.delta) - Math.abs(a.delta)).slice(0, 6)
   return (
     <div
-      className="rounded-lg p-5 lg:sticky lg:top-24 lg:max-h-[calc(100vh-8rem)] lg:overflow-y-auto"
-      style={{ backgroundColor: "var(--surface)", border: "1px solid rgba(255,255,255,0.08)" }}
+      className="rounded-[20px] p-5 lg:sticky lg:top-24 lg:max-h-[calc(100vh-8rem)] lg:overflow-y-auto"
+      style={{ backgroundColor: "var(--surface)", border: "1px solid rgba(255,255,255,0.08)", width: "100%", minWidth: "400px" }}
     >
       <div
-        className="text-sm tracking-[0.14em] uppercase font-semibold mb-5"
+        className="text-sm tracking-[0.14em] uppercase font-semibold mb-5 text-left"
         style={{ color: "var(--muted)" }}
       >
         Score Ledger
       </div>
       <div className="divide-y divide-white/5">
-        {sorted.map((item, i) => (
-          <div key={i} className="py-3.5">
-            <div className="flex items-center gap-2 flex-wrap">
-              <span className="text-base font-medium shrink-0" style={{ color: "var(--foreground)" }}>
-                {item.actor}
-              </span>
-              <DeltaBadge delta={item.delta} />
-              {item.range && (
-                <span className="text-xs font-mono" style={{ color: "var(--muted)" }}>
-                  {item.range.replace(/[~≈]/g, "").trim()}
+        {sorted.map((item, i) => {
+          const newScore = item.range ? extractNewScore(item.range) : null
+          return (
+            <div key={i} className="py-3.5">
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="text-base font-medium shrink-0" style={{ color: "var(--foreground)" }}>
+                  {item.actor}
                 </span>
+                <DeltaBadge delta={item.delta} />
+                {newScore && (
+                  <span className="text-xs font-mono" style={{ color: "var(--muted)" }}>
+                    {newScore}
+                  </span>
+                )}
+              </div>
+              {item.note && (
+                <ul className="text-sm leading-relaxed mt-1.5 ml-4 list-disc space-y-1" style={{ color: "var(--muted)" }}>
+                  <li>{renderInline(item.note)}</li>
+                </ul>
               )}
             </div>
-            {item.note && (
-              <p className="text-sm leading-relaxed mt-1.5" style={{ color: "var(--muted)" }}>
-                {renderInline(item.note)}
-              </p>
-            )}
-          </div>
-        ))}
+          )
+        })}
       </div>
       {fallback.length > 0 && (
         <p className="text-xs mt-3" style={{ color: "var(--muted)" }}>
@@ -443,6 +459,7 @@ export default function BriefRenderer({
   exclude?: string[]
 }) {
   const sections = content.sections.filter((s) => !exclude.includes(s.type))
+  const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({})
 
   if (sections.length === 0) {
     return (
@@ -460,6 +477,13 @@ export default function BriefRenderer({
   }
 
   let firstHeader = true
+
+  const toggleSection = (key: string) => {
+    setExpandedSections((prev) => ({
+      ...prev,
+      [key]: !prev[key],
+    }))
+  }
 
   return (
     <div>
@@ -496,14 +520,45 @@ export default function BriefRenderer({
         const isFirst = firstHeader
         firstHeader = false
 
+        const sectionMargin = section.title && ["ANALYTICAL COMMENTARY", "ANALYTICAL SYNTHESIS"].includes(section.title) ? "my-[27px]" : ""
+        const collapsibleSections = ["ANALYTICAL COMMENTARY", "ANALYTICAL SYNTHESIS", "KEY MOVEMENTS", "SCENARIOS TO WATCH"]
+        const isCollapsible = section.title && collapsibleSections.includes(section.title)
+        const sectionKey = `section-${i}`
+        const isExpanded = expandedSections[sectionKey] !== false // default to expanded
+
         return (
           <div key={i}>
             {i > 0 && (
               <div className="mb-12 mt-2" style={{ borderTop: "1px solid rgba(255,255,255,0.06)" }} />
             )}
-            <section className="pb-10">
-              <SectionHeader label={label} isFirst={isFirst} />
-              {renderSection(section)}
+            <section className={`pb-10 ${sectionMargin}`}>
+              {isCollapsible ? (
+                <button
+                  onClick={() => toggleSection(sectionKey)}
+                  className="flex items-center gap-2 mb-8 w-full text-left group/toggle focus:outline-none"
+                  style={{ cursor: "pointer" }}
+                >
+                  <svg width="10" height="24" viewBox="0 0 18 44" fill="none" aria-hidden="true" className="shrink-0">
+                    <path
+                      d="M5.2 8.6C5.2 7.16406 4.03594 6 2.6 6C1.16406 6 0 7.16406 0 8.6V35.4C0 36.8359 1.16406 38 2.6 38C4.03594 38 5.2 36.8359 5.2 35.4V8.6Z"
+                      fill="#60A5FA"
+                    />
+                    <path
+                      d="M18 2.6C18 1.16406 16.8359 0 15.4 0C13.9641 0 12.8 1.16406 12.8 2.6V41.4C12.8 42.8359 13.9641 44 15.4 44C16.8359 44 18 42.8359 18 41.4V2.6Z"
+                      fill="#3B4A5C"
+                    />
+                  </svg>
+                  <span
+                    className="text-lg font-semibold tracking-[0.14em] uppercase group-hover/toggle:opacity-70 transition-opacity"
+                    style={{ color: "var(--muted-foreground)" }}
+                  >
+                    {label}
+                  </span>
+                </button>
+              ) : (
+                <SectionHeader label={label} isFirst={isFirst} />
+              )}
+              {isExpanded && renderSection(section)}
             </section>
           </div>
         )
