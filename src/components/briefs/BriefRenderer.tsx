@@ -356,6 +356,15 @@ function ScoreLedgerSection({ raw }: { raw: string }) {
   )
 }
 
+// Extract new score from range string (e.g., "44 → 48" → "48")
+function extractNewScore(rangeStr: string): string | null {
+  const arrowMatch = rangeStr.match(/→\s*(\d+(?:\.\d+)?)/)
+  if (arrowMatch) return arrowMatch[1]
+  // Fallback: if no arrow, try to get the last number
+  const numbers = rangeStr.match(/\d+(?:\.\d+)?/g)
+  return numbers ? numbers[numbers.length - 1] : null
+}
+
 // Sidebar version — sticky card, lg breakpoint only
 export function ScoreLedgerSidebar({ raw }: { raw: string }) {
   const { items, fallback } = parseLedgerItems(raw)
@@ -372,26 +381,29 @@ export function ScoreLedgerSidebar({ raw }: { raw: string }) {
         Score Ledger
       </div>
       <div className="divide-y divide-white/5">
-        {sorted.map((item, i) => (
-          <div key={i} className="py-3.5">
-            <div className="flex items-center gap-2 flex-wrap">
-              <span className="text-base font-medium shrink-0" style={{ color: "var(--foreground)" }}>
-                {item.actor}
-              </span>
-              <DeltaBadge delta={item.delta} />
-              {item.range && (
-                <span className="text-xs font-mono" style={{ color: "var(--muted)" }}>
-                  {item.range.replace(/[~≈]/g, "").trim()}
+        {sorted.map((item, i) => {
+          const newScore = item.range ? extractNewScore(item.range) : null
+          return (
+            <div key={i} className="py-3.5">
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="text-base font-medium shrink-0" style={{ color: "var(--foreground)" }}>
+                  {item.actor}
+                </span>
+                <DeltaBadge delta={item.delta} />
+              </div>
+              {newScore && (
+                <span className="text-xs font-mono block mt-1.5" style={{ color: "var(--muted)" }}>
+                  {newScore}
                 </span>
               )}
+              {item.note && (
+                <p className="text-sm leading-relaxed mt-1.5" style={{ color: "var(--muted)" }}>
+                  {renderInline(item.note)}
+                </p>
+              )}
             </div>
-            {item.note && (
-              <p className="text-sm leading-relaxed mt-1.5" style={{ color: "var(--muted)" }}>
-                {renderInline(item.note)}
-              </p>
-            )}
-          </div>
-        ))}
+          )
+        })}
       </div>
       {fallback.length > 0 && (
         <p className="text-xs mt-3" style={{ color: "var(--muted)" }}>
