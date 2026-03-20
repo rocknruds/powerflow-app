@@ -530,30 +530,14 @@ export default function BriefRenderer({
               {isCollapsible ? (
                 <button
                   onClick={() => toggleSection(sectionKey)}
-                  className="flex items-center gap-2 mb-8 w-full text-left group"
+                  className="flex items-center gap-2 mb-8 w-full text-left group/toggle focus:outline-none"
                   style={{ cursor: "pointer" }}
                 >
-                  <svg width="10" height="24" viewBox="0 0 18 44" fill="none" aria-hidden="true" className="shrink-0">
-                    <path
-                      d="M5.2 8.6C5.2 7.16406 4.03594 6 2.6 6C1.16406 6 0 7.16406 0 8.6V35.4C0 36.8359 1.16406 38 2.6 38C4.03594 38 5.2 36.8359 5.2 35.4V8.6Z"
-                      fill="#60A5FA"
-                    />
-                    <path
-                      d="M18 2.6C18 1.16406 16.8359 0 15.4 0C13.9641 0 12.8 1.16406 12.8 2.6V41.4C12.8 42.8359 13.9641 44 15.4 44C16.8359 44 18 42.8359 18 41.4V2.6Z"
-                      fill="#3B4A5C"
-                    />
-                  </svg>
                   <span
-                    className="text-lg font-semibold tracking-[0.14em] uppercase flex-1"
+                    className="text-lg font-semibold tracking-[0.14em] uppercase group-hover/toggle:opacity-70 transition-opacity"
                     style={{ color: "var(--muted-foreground)" }}
                   >
                     {label}
-                  </span>
-                  <span
-                    className="text-xs transition-transform duration-150 shrink-0"
-                    style={{ color: "var(--muted)", transform: isExpanded ? "rotate(0deg)" : "rotate(-90deg)" }}
-                  >
-                    ▾
                   </span>
                 </button>
               ) : (
