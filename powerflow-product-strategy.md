@@ -235,7 +235,7 @@ Iran fires missiles at the UAE. A user wants to know: *how does that affect UAE-
 A few weeks after the Iran conflict escalates, a user wants to know: *how has this affected US-China relations?* They're not looking to browse actor profiles or read a brief. They have a specific question about cross-actor dynamics triggered by a specific event. No other surface in the product answers that directly.
 
 **What it does:**
-Takes a natural language question, identifies the relevant actors, relationships, score movements, and intel feeds, and returns a structured answer grounded in PowerFlow's model.
+Takes a natural language question, identifies the relevant actors, relationships, score movements, and intel feeds, and returns a structured answer grounded in PowerFlow's model.  
 
 **Output:**
 
