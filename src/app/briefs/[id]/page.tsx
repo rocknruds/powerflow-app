@@ -117,7 +117,7 @@ export default async function BriefPage({
   return (
     <div className="min-h-screen" style={{ backgroundColor: "var(--background)" }}>
       <div className="py-10" style={{ borderBottom: "1px solid var(--border)" }}>
-        <div className="max-w-3xl mx-auto px-6">
+        <div className="max-w-7xl mx-auto px-6">
           <Link
             href="/briefs"
             className="text-xs transition-colors mb-4 inline-flex items-center gap-1"
@@ -126,30 +126,6 @@ export default async function BriefPage({
             ← Intelligence Briefs
           </Link>
 
-          <div className="flex items-center gap-2 mb-4 flex-wrap">
-            {brief.briefType && (
-              <span
-                className="text-xs px-2 py-0.5 rounded font-medium"
-                style={{ color: "var(--accent)", border: "1px solid color-mix(in srgb, var(--accent) 40%, transparent)", backgroundColor: "color-mix(in srgb, var(--accent) 10%, transparent)" }}
-              >
-                {brief.briefType}
-              </span>
-            )}
-            {brief.status && (
-              <span
-                className="text-xs px-2 py-0.5 rounded font-medium"
-                style={{ color: statusColor, backgroundColor: `color-mix(in srgb, ${statusColor} 10%, transparent)` }}
-              >
-                {brief.status}
-              </span>
-            )}
-            {(brief.dateRangeStart || brief.dateRangeEnd) && (
-              <span className="text-xs" style={{ color: "var(--muted)" }}>
-                {formatDate(brief.dateRangeStart)}
-                {brief.dateRangeEnd && ` – ${formatDate(brief.dateRangeEnd)}`}
-              </span>
-            )}
-          </div>
 
           {(() => {
             const { name, sub } = parseBriefHeading(brief);
@@ -169,12 +145,12 @@ export default async function BriefPage({
         </div>
       </div>
 
-      <div className="max-w-6xl mx-auto px-6 py-10">
+      <div className="max-w-7xl mx-auto px-6 py-10">
         {(() => {
           const briefContent = parseBriefContent(blocksToBody(brief.blocks))
           const scoreLedger = briefContent.sections.find((s) => s.type === "score-ledger")
           return (
-            <div className="grid lg:grid-cols-[minmax(0,65%)_minmax(0,30%)] lg:gap-12">
+            <div className="grid lg:grid-cols-[minmax(0,55%)_minmax(0,40%)] lg:gap-12">
               <div>
                 <BriefRenderer content={briefContent} />
               </div>
