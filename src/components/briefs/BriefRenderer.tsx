@@ -371,11 +371,11 @@ export function ScoreLedgerSidebar({ raw }: { raw: string }) {
   const sorted = [...items].sort((a, b) => Math.abs(b.delta) - Math.abs(a.delta)).slice(0, 6)
   return (
     <div
-      className="rounded-[20px] p-5 lg:sticky lg:top-24 lg:max-h-[calc(100vh-8rem)] lg:overflow-y-auto flex flex-col items-center"
-      style={{ backgroundColor: "var(--surface)", border: "1px solid rgba(255,255,255,0.08)", width: "100%" }}
+      className="rounded-[20px] p-5 lg:sticky lg:top-24 lg:max-h-[calc(100vh-8rem)] lg:overflow-y-auto"
+      style={{ backgroundColor: "var(--surface)", border: "1px solid rgba(255,255,255,0.08)", width: "100%", minWidth: "400px" }}
     >
       <div
-        className="text-sm tracking-[0.14em] uppercase font-semibold mb-5"
+        className="text-sm tracking-[0.14em] uppercase font-semibold mb-5 text-left"
         style={{ color: "var(--muted)" }}
       >
         Score Ledger
@@ -416,7 +416,7 @@ export function ScoreLedgerSidebar({ raw }: { raw: string }) {
 
 // ─── Section dispatcher ─────────────────────────────────────────────────────
 
-function renderSection(section: BriefSection, centered = false) {
+function renderSection(section: BriefSection) {
   switch (section.type) {
     case "key-movements":
       return <KeyMovementsSection raw={section.raw} />
@@ -425,7 +425,7 @@ function renderSection(section: BriefSection, centered = false) {
     case "score-ledger":
       return <ScoreLedgerSection raw={section.raw} />
     default:
-      return <Prose text={section.raw} centered={centered} />
+      return <Prose text={section.raw} />
   }
 }
 
@@ -508,8 +508,7 @@ export default function BriefRenderer({
         const isFirst = firstHeader
         firstHeader = false
 
-        const isCentered = section.title && ["ANALYTICAL COMMENTARY", "ANALYTICAL SYNTHESIS"].includes(section.title)
-        const sectionMargin = isCentered ? "my-[27px]" : ""
+        const sectionMargin = section.title && ["ANALYTICAL COMMENTARY", "ANALYTICAL SYNTHESIS"].includes(section.title) ? "my-[27px]" : ""
         return (
           <div key={i}>
             {i > 0 && (
@@ -517,7 +516,7 @@ export default function BriefRenderer({
             )}
             <section className={`pb-10 ${sectionMargin}`}>
               <SectionHeader label={label} isFirst={isFirst} />
-              {renderSection(section, isCentered)}
+              {renderSection(section)}
             </section>
           </div>
         )
