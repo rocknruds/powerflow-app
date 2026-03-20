@@ -148,8 +148,8 @@ export default function ScoreChart({ snapshots, intelFeeds }: ScoreChartProps) {
         <LineChart
           data={sorted}
           margin={{ top: 8, right: 8, bottom: 0, left: -16 }}
-          onClick={(data) => {
-            const pt: ScoreHistoryPoint | null = data?.activePayload?.[0]?.payload ?? null;
+          onClick={(data: unknown) => {
+            const pt: ScoreHistoryPoint | null = (data as { activePayload?: { payload: ScoreHistoryPoint }[] } | null)?.activePayload?.[0]?.payload ?? null;
             setSelectedPoint((prev) =>
               prev && pt && prev.date === pt.date ? null : pt
             );
