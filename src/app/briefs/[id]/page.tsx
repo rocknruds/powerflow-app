@@ -117,7 +117,7 @@ export default async function BriefPage({
   return (
     <div className="min-h-screen" style={{ backgroundColor: "var(--background)" }}>
       <div className="py-10" style={{ borderBottom: "1px solid var(--border)" }}>
-        <div className="max-w-5xl mx-auto px-6">
+        <div className="max-w-7xl mx-auto px-6">
           <Link
             href="/briefs"
             className="text-xs transition-colors mb-4 inline-flex items-center gap-1"
