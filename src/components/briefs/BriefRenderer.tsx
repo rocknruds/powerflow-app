@@ -34,7 +34,7 @@ function stripDividers(text: string): string {
 function Prose({ text, centered = false }: { text: string; centered?: boolean }) {
   const paragraphs = stripDividers(text).split(/\n\s*\n/).filter(Boolean)
   return (
-    <div className="max-w-[72ch]">
+    <div className="max-w-[72ch] pl-6">
       {paragraphs.map((p, i) => (
         <p key={i} className="text-[1.0625rem] leading-[1.85] mb-6" style={{ color: "var(--muted-foreground)", textAlign: centered ? "center" : "start" }}>
           {renderInline(p.trim())}
