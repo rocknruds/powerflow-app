@@ -398,18 +398,7 @@ export function ScoreLedgerSidebar({ raw }: { raw: string }) {
               </div>
               {item.note && (
                 <ul className="text-sm leading-relaxed mt-1.5 ml-4 list-disc space-y-1" style={{ color: "var(--muted)" }}>
-                  {(() => {
-                    const words = item.note.split(" ")
-                    const mid = Math.ceil(words.length / 2)
-                    const part1 = words.slice(0, mid).join(" ")
-                    const part2 = words.slice(mid).join(" ")
-                    return (
-                      <>
-                        <li>{renderInline(part1)}</li>
-                        {part2 && <li>{renderInline(part2)}</li>}
-                      </>
-                    )
-                  })()}
+                  <li>{renderInline(item.note)}</li>
                 </ul>
               )}
             </div>
