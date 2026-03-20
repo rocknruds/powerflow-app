@@ -126,30 +126,6 @@ export default async function BriefPage({
             ← Intelligence Briefs
           </Link>
 
-          <div className="flex items-center gap-2 mb-4 flex-wrap">
-            {brief.briefType && (
-              <span
-                className="text-xs px-2 py-0.5 rounded font-medium"
-                style={{ color: "var(--accent)", border: "1px solid color-mix(in srgb, var(--accent) 40%, transparent)", backgroundColor: "color-mix(in srgb, var(--accent) 10%, transparent)" }}
-              >
-                {brief.briefType}
-              </span>
-            )}
-            {brief.status && (
-              <span
-                className="text-xs px-2 py-0.5 rounded font-medium"
-                style={{ color: statusColor, backgroundColor: `color-mix(in srgb, ${statusColor} 10%, transparent)` }}
-              >
-                {brief.status}
-              </span>
-            )}
-            {(brief.dateRangeStart || brief.dateRangeEnd) && (
-              <span className="text-xs" style={{ color: "var(--muted)" }}>
-                {formatDate(brief.dateRangeStart)}
-                {brief.dateRangeEnd && ` – ${formatDate(brief.dateRangeEnd)}`}
-              </span>
-            )}
-          </div>
 
           {(() => {
             const { name, sub } = parseBriefHeading(brief);
