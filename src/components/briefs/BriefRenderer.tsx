@@ -390,16 +390,27 @@ export function ScoreLedgerSidebar({ raw }: { raw: string }) {
                   {item.actor}
                 </span>
                 <DeltaBadge delta={item.delta} />
+                {newScore && (
+                  <span className="text-xs font-mono" style={{ color: "var(--muted)" }}>
+                    {newScore}
+                  </span>
+                )}
               </div>
-              {newScore && (
-                <span className="text-xs font-mono block mt-1.5" style={{ color: "var(--muted)" }}>
-                  {newScore}
-                </span>
-              )}
               {item.note && (
-                <p className="text-sm leading-relaxed mt-1.5" style={{ color: "var(--muted)" }}>
-                  {renderInline(item.note)}
-                </p>
+                <ul className="text-sm leading-relaxed mt-1.5 ml-4 list-disc space-y-1" style={{ color: "var(--muted)" }}>
+                  {(() => {
+                    const words = item.note.split(" ")
+                    const mid = Math.ceil(words.length / 2)
+                    const part1 = words.slice(0, mid).join(" ")
+                    const part2 = words.slice(mid).join(" ")
+                    return (
+                      <>
+                        <li>{renderInline(part1)}</li>
+                        {part2 && <li>{renderInline(part2)}</li>}
+                      </>
+                    )
+                  })()}
+                </ul>
               )}
             </div>
           )
