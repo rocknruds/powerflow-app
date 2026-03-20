@@ -144,7 +144,7 @@ export default function ScoreChart({ snapshots, intelFeeds }: ScoreChartProps) {
 
   return (
     <div className="w-full">
-      <ResponsiveContainer width="100%" height={220}>
+      <ResponsiveContainer width="100%" height={280}>
         <LineChart
           data={sorted}
           margin={{ top: 8, right: 8, bottom: 0, left: -16 }}

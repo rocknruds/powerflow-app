@@ -270,7 +270,7 @@ export default async function ActorProfilePage({ params }: { params: Promise<{ s
                   <div className="p-3 border-l-2 pl-3" style={{ borderLeftColor: "var(--accent)" }}>
                     <ParagraphLabel label="Overall" color="var(--accent)" score={pf} scoreColor={scoreColor} />
                     <p className="text-sm leading-relaxed" style={{ color: "var(--muted-foreground)" }}>
-                      {truncateToSentences(actor.pfReasoning || actor.scoreReasoning!, 160)}
+                      {truncateToSentences(actor.pfReasoning || actor.scoreReasoning!, 120)}
                     </p>
                   </div>
 
@@ -278,7 +278,7 @@ export default async function ActorProfilePage({ params }: { params: Promise<{ s
                   <div className="p-3 border-l-2 pl-3" style={{ borderLeftColor: "var(--score-authority)" }}>
                     <ParagraphLabel label="Authority" color="var(--score-authority)" score={actor.authorityScore} scoreColor="var(--score-authority)" />
                     <p className="text-sm leading-relaxed" style={{ color: "var(--muted-foreground)" }}>
-                      {truncateToSentences(actor.authorityReasoning || actor.scoreReasoning!, 160)}
+                      {truncateToSentences(actor.authorityReasoning || actor.scoreReasoning!, 120)}
                     </p>
                   </div>
 
@@ -286,7 +286,7 @@ export default async function ActorProfilePage({ params }: { params: Promise<{ s
                   <div className="p-3 border-l-2 pl-3" style={{ borderLeftColor: "var(--score-reach)" }}>
                     <ParagraphLabel label="Reach" color="var(--score-reach)" score={actor.reachScore} scoreColor="var(--score-reach)" />
                     <p className="text-sm leading-relaxed" style={{ color: "var(--muted-foreground)" }}>
-                      {truncateToSentences(actor.reachReasoning || actor.scoreReasoning!, 160)}
+                      {truncateToSentences(actor.reachReasoning || actor.scoreReasoning!, 120)}
                     </p>
                   </div>
                 </div>
