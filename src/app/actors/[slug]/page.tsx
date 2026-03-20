@@ -119,6 +119,11 @@ function truncateToSentences(text: string, maxChars = 300): string {
   return result.trim() || sentences[0].trim();
 }
 
+function truncateToChars(text: string, maxChars = 160): string {
+  if (text.length <= maxChars) return text;
+  return text.slice(0, maxChars).trim() + "…";
+}
+
 export default async function ActorProfilePage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   const actor = await getActorBySlug(slug);
@@ -263,14 +268,16 @@ export default async function ActorProfilePage({ params }: { params: Promise<{ s
 
             {/* Right: Key Drivers */}
             <div className="rounded-[20px] p-6" style={{ backgroundColor: "var(--surface)", border: "1px solid var(--border)" }}>
-              <SectionLabel>Key Drivers</SectionLabel>
+              <h3 className="text-lg font-semibold tracking-[0.14em] uppercase mb-6 ml-4" style={{ color: "var(--muted-foreground)" }}>
+                Key Drivers
+              </h3>
 
               <div className="divide-y divide-white/5">
                 {/* Authority block */}
                 <div className="py-3.5">
                   <ParagraphLabel label="Authority" color="var(--score-authority)" />
                   <ul className="text-sm leading-relaxed ml-4 list-disc space-y-1" style={{ color: "var(--muted-foreground)" }}>
-                    <li>{actor.authorityReasoning || truncateToSentences(actor.scoreReasoning!, 200)}</li>
+                    <li>{truncateToChars(actor.authorityReasoning || truncateToSentences(actor.scoreReasoning!, 200), 160)}</li>
                   </ul>
                 </div>
 
@@ -278,7 +285,7 @@ export default async function ActorProfilePage({ params }: { params: Promise<{ s
                 <div className="py-3.5">
                   <ParagraphLabel label="Reach" color="var(--score-reach)" />
                   <ul className="text-sm leading-relaxed ml-4 list-disc space-y-1" style={{ color: "var(--muted-foreground)" }}>
-                    <li>{actor.reachReasoning || truncateToSentences(actor.scoreReasoning!, 200)}</li>
+                    <li>{truncateToChars(actor.reachReasoning || truncateToSentences(actor.scoreReasoning!, 200), 160)}</li>
                   </ul>
                 </div>
 
@@ -287,7 +294,7 @@ export default async function ActorProfilePage({ params }: { params: Promise<{ s
                   <div className="py-3.5">
                     <ParagraphLabel label="PF" color="var(--accent)" />
                     <ul className="text-sm leading-relaxed ml-4 list-disc space-y-1" style={{ color: "var(--muted-foreground)" }}>
-                      <li>{actor.pfReasoning}</li>
+                      <li>{truncateToChars(actor.pfReasoning, 160)}</li>
                     </ul>
                   </div>
                 )}
