@@ -63,7 +63,7 @@ function HeadlineProse({ text }: { text: string }) {
 
 function SectionHeader({ label, isFirst }: { label: string; isFirst: boolean }) {
   return (
-    <div className={`flex items-center gap-2 mb-8 max-w-[72ch]${isFirst ? "" : " mt-14"}`}>
+    <div className={`flex items-center gap-2 mb-8 max-w-[72ch] group/toggle${isFirst ? "" : " mt-14"}`}>
       <svg width="10" height="24" viewBox="0 0 18 44" fill="none" aria-hidden="true" className="shrink-0">
         <path
           d="M5.2 8.6C5.2 7.16406 4.03594 6 2.6 6C1.16406 6 0 7.16406 0 8.6V35.4C0 36.8359 1.16406 38 2.6 38C4.03594 38 5.2 36.8359 5.2 35.4V8.6Z"
@@ -75,7 +75,7 @@ function SectionHeader({ label, isFirst }: { label: string; isFirst: boolean }) 
         />
       </svg>
       <span
-        className="text-lg font-semibold tracking-[0.14em] uppercase"
+        className="text-lg font-semibold tracking-[0.14em] uppercase group-hover/toggle:opacity-70 transition-opacity"
         style={{ color: "var(--muted-foreground)" }}
       >
         {label}
