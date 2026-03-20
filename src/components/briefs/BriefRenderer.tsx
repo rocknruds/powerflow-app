@@ -31,12 +31,12 @@ function stripDividers(text: string): string {
 
 // ─── Prose ───────────────────────────────────────────────────────────────────
 
-function Prose({ text }: { text: string }) {
+function Prose({ text, centered = false }: { text: string; centered?: boolean }) {
   const paragraphs = stripDividers(text).split(/\n\s*\n/).filter(Boolean)
   return (
     <div className="max-w-[72ch]">
       {paragraphs.map((p, i) => (
-        <p key={i} className="text-[1.0625rem] leading-[1.85] mb-6" style={{ color: "var(--muted-foreground)" }}>
+        <p key={i} className="text-[1.0625rem] leading-[1.85] mb-6" style={{ color: "var(--muted-foreground)", textAlign: centered ? "center" : "start" }}>
           {renderInline(p.trim())}
         </p>
       ))}
@@ -371,8 +371,8 @@ export function ScoreLedgerSidebar({ raw }: { raw: string }) {
   const sorted = [...items].sort((a, b) => Math.abs(b.delta) - Math.abs(a.delta)).slice(0, 6)
   return (
     <div
-      className="rounded-lg p-5 lg:sticky lg:top-24 lg:max-h-[calc(100vh-8rem)] lg:overflow-y-auto"
-      style={{ backgroundColor: "var(--surface)", border: "1px solid rgba(255,255,255,0.08)" }}
+      className="rounded-[20px] p-5 lg:sticky lg:top-24 lg:max-h-[calc(100vh-8rem)] lg:overflow-y-auto flex flex-col items-center"
+      style={{ backgroundColor: "var(--surface)", border: "1px solid rgba(255,255,255,0.08)", width: "100%" }}
     >
       <div
         className="text-sm tracking-[0.14em] uppercase font-semibold mb-5"
@@ -416,7 +416,7 @@ export function ScoreLedgerSidebar({ raw }: { raw: string }) {
 
 // ─── Section dispatcher ─────────────────────────────────────────────────────
 
-function renderSection(section: BriefSection) {
+function renderSection(section: BriefSection, centered = false) {
   switch (section.type) {
     case "key-movements":
       return <KeyMovementsSection raw={section.raw} />
@@ -425,7 +425,7 @@ function renderSection(section: BriefSection) {
     case "score-ledger":
       return <ScoreLedgerSection raw={section.raw} />
     default:
-      return <Prose text={section.raw} />
+      return <Prose text={section.raw} centered={centered} />
   }
 }
 
@@ -508,14 +508,16 @@ export default function BriefRenderer({
         const isFirst = firstHeader
         firstHeader = false
 
+        const isCentered = section.title && ["ANALYTICAL COMMENTARY", "ANALYTICAL SYNTHESIS"].includes(section.title)
+        const sectionMargin = isCentered ? "my-[27px]" : ""
         return (
           <div key={i}>
             {i > 0 && (
               <div className="mb-12 mt-2" style={{ borderTop: "1px solid rgba(255,255,255,0.06)" }} />
             )}
-            <section className="pb-10">
+            <section className={`pb-10 ${sectionMargin}`}>
               <SectionHeader label={label} isFirst={isFirst} />
-              {renderSection(section)}
+              {renderSection(section, isCentered)}
             </section>
           </div>
         )
