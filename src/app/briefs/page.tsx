@@ -268,15 +268,6 @@ export default async function BriefsPage() {
       {/* Header */}
       <div className="border-b py-10" style={{ borderColor: "var(--border)" }}>
         <div className="max-w-5xl mx-auto px-6">
-          <div className="flex items-center gap-2 mb-2">
-            <LogoMark size={10} />
-            <span
-              className="text-xs font-semibold uppercase tracking-widest"
-              style={{ color: "var(--accent-dim)" }}
-            >
-              PowerFlow Lab
-            </span>
-          </div>
           <h1 className="text-3xl font-bold mb-1" style={{ color: "var(--foreground)" }}>
             Intelligence Briefs
           </h1>

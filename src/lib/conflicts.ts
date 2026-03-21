@@ -1,5 +1,5 @@
 import { queryDatabase, getTitle, getText, getNumber, getSelect, getRelationIds } from './notion'
-import { getActorsByIds } from './actors'
+import { getActorsByIds, getAllPublicActors } from './actors'
 import type { ConflictPublic, ConflictActor } from './types'
 
 const CONFLICTS_DB_ID = process.env.NOTION_CONFLICTS_DB_ID ?? 'db9f622892a74cdd942981c330e90886'
@@ -22,6 +22,15 @@ function parsePage(page: any): Omit<ConflictPublic, 'linkedActors'> {
     pfGapScore: getNumber(props, 'PF Gap Score'),
     linkedActorIds: getRelationIds(props, 'Linked Actors'),
   }
+}
+
+// TODO: backfill Linked Actors relation in Notion for all conflicts — this is a fallback
+function parseActorNamesFromText(text: string): string[] {
+  return text
+    .split(/[,/]/)
+    .map((seg) => seg.replace(/\([^)]*\)/g, '').trim())
+    .filter(Boolean)
+    .slice(0, 5)
 }
 
 // ─── Queries ──────────────────────────────────────────────────────────────
@@ -62,15 +71,18 @@ export async function enrichConflictsWithActors(
 ): Promise<ConflictPublic[]> {
   // Collect all unique actor IDs across all conflicts
   const allIds = [...new Set(conflicts.flatMap((c) => c.linkedActorIds))]
-  if (allIds.length === 0) return conflicts
+  const needsFallback = conflicts.some((c) => c.linkedActorIds.length === 0 && c.primaryActors)
 
-  // Fetch all needed actors in parallel
-  const actors = await getActorsByIds(allIds)
+  // Fetch linked actors by ID; also fetch full registry if any conflict needs name-matching fallback
+  const [actors, allActors] = await Promise.all([
+    allIds.length > 0 ? getActorsByIds(allIds) : Promise.resolve([]),
+    needsFallback ? getAllPublicActors() : Promise.resolve([]),
+  ])
+
   const actorById = new Map(actors.map((a) => [a.id, a]))
 
-  return conflicts.map((conflict) => ({
-    ...conflict,
-    linkedActors: conflict.linkedActorIds
+  return conflicts.map((conflict) => {
+    const linkedActors = conflict.linkedActorIds
       .map((id): ConflictActor | null => {
         const actor = actorById.get(id)
         if (!actor) return null
@@ -83,6 +95,32 @@ export async function enrichConflictsWithActors(
           actorType: actor.actorType,
         }
       })
-      .filter((a): a is ConflictActor => a !== null),
-  }))
+      .filter((a): a is ConflictActor => a !== null)
+
+    if (linkedActors.length === 0 && conflict.primaryActors) {
+      const names = parseActorNamesFromText(conflict.primaryActors)
+      const seen = new Set<string>()
+      for (const name of names) {
+        const nameLower = name.toLowerCase()
+        const match = allActors.find((a) => {
+          const actorLower = a.name.toLowerCase()
+          const firstWord = actorLower.split(' ')[0]
+          return actorLower.includes(nameLower) || nameLower.includes(firstWord)
+        })
+        if (match && !seen.has(match.id)) {
+          seen.add(match.id)
+          linkedActors.push({
+            id: match.id,
+            name: match.name,
+            slug: match.slug,
+            pfScore: match.pfScore,
+            delta: deltaMap.get(match.id) ?? null,
+            actorType: match.actorType,
+          })
+        }
+      }
+    }
+
+    return { ...conflict, linkedActors }
+  })
 }

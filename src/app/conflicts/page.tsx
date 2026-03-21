@@ -234,12 +234,6 @@ export default async function ConflictsPage() {
       {/* Page header */}
       <div className="py-10" style={{ borderBottom: "1px solid var(--border)" }}>
         <div className="max-w-7xl mx-auto px-6">
-          <div className="flex items-center gap-2 mb-2">
-            <LogoMark size={10} />
-            <span className="text-xs font-semibold uppercase tracking-widest" style={{ color: "var(--accent)" }}>
-              PowerFlow Lab
-            </span>
-          </div>
           <h1 className="text-3xl font-bold mb-1" style={{ color: "var(--foreground)" }}>Conflicts</h1>
           <p className="text-sm" style={{ color: "var(--muted)" }}>
             {enriched.length} tracked conflict{enriched.length !== 1 ? "s" : ""} — actor scores inline
