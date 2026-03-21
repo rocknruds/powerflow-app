@@ -4,6 +4,7 @@ import { useEffect, useCallback } from 'react'
 import Link from 'next/link'
 import type { MapActorFull } from '@/lib/types'
 import { VECTOR_COLORS, TREND_DISPLAY } from '@/lib/geo-constants'
+import { getPowerPostureLabel } from '@/lib/powerPosture'
 
 interface MapSidePanelProps {
   actor: MapActorFull | null
@@ -95,7 +96,7 @@ function TrackedActorPanel({ actor }: { actor: MapActorFull }) {
                 backgroundColor: `rgba(${VECTOR_COLORS[actor.pfVector] ? '255,255,255' : '107,114,128'},0.1)`,
               }}
             >
-              {actor.pfVector}
+              {getPowerPostureLabel(actor.pfVector)}
             </span>
           )}
         </div>

@@ -6,11 +6,16 @@ export const SIGNAL_BLUE = '#38bdf8'
 export const GRATICULE_STROKE = '#1a2235'
 
 export const VECTOR_COLORS: Record<string, string> = {
+  // Canonical values
+  Projecting: '#f59e0b',
+  Defending: '#3b82f6',
+  Contesting: '#ef4444',
+  Neutral: '#6b7280',
+  // Legacy values
   Defender: '#3b82f6',
   'From Above (External Pressure)': '#f59e0b',
   'From Below (Challenger)': '#ef4444',
   'From Within (Parallel Governance)': '#a855f7',
-  Neutral: '#6b7280',
 }
 
 export const TREND_DISPLAY: Record<string, { symbol: string; color: string }> = {

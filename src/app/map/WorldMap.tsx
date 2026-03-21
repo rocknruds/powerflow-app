@@ -20,6 +20,7 @@ import {
 } from '@/lib/geo-constants'
 import type { MapActorFull } from '@/lib/types'
 import MapSidePanel from './MapSidePanel'
+import { getPowerPostureLabel } from '@/lib/powerPosture'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -40,7 +41,7 @@ const LAYERS: { key: LayerKey; label: string }[] = [
   { key: 'pf', label: 'PF Score' },
   { key: 'authority', label: 'Authority' },
   { key: 'reach', label: 'Reach' },
-  { key: 'vector', label: 'PF Vector' },
+  { key: 'vector', label: 'Power Posture' },
 ]
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -71,7 +72,7 @@ function layerLabel(layer: LayerKey): string {
 }
 
 function layerValue(actor: MapActorFull, layer: LayerKey): string {
-  if (layer === 'vector') return actor.pfVector ?? 'Unscored'
+  if (layer === 'vector') return getPowerPostureLabel(actor.pfVector)
   const score =
     layer === 'pf'
       ? actor.pfScore
@@ -372,8 +373,8 @@ export default function WorldMap({ actors }: { actors: MapActorFull[] }) {
             />
             {layer !== 'vector' && tooltip.actor.pfVector && (
               <Row
-                label="Vector"
-                value={tooltip.actor.pfVector}
+                label="Posture"
+                value={getPowerPostureLabel(tooltip.actor.pfVector)}
                 valueColor={
                   VECTOR_COLORS[tooltip.actor.pfVector] ?? '#6b7280'
                 }
@@ -403,18 +404,18 @@ export default function WorldMap({ actors }: { actors: MapActorFull[] }) {
               className="text-[10px] font-medium uppercase tracking-[0.15em] mb-0.5"
               style={{ color: '#5a6375' }}
             >
-              PF Vector
+              Power Posture
             </span>
-            {Object.entries(VECTOR_COLORS).map(([label, color]) => (
+            {Object.entries(VECTOR_COLORS).map(([pfVector, color]) => (
               <div
-                key={label}
+                key={pfVector}
                 className="flex items-center gap-2 text-[11px]"
               >
                 <div
                   className="w-2.5 h-2.5 rounded-sm flex-shrink-0"
                   style={{ backgroundColor: color }}
                 />
-                <span style={{ color: '#c0c5d0' }}>{label}</span>
+                <span style={{ color: '#c0c5d0' }}>{getPowerPostureLabel(pfVector)}</span>
               </div>
             ))}
           </div>

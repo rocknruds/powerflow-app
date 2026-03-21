@@ -112,19 +112,18 @@ export default function ActorTable({ actors, snapshotDeltaMap }: ActorTableProps
             <tr className="text-left text-xs" style={{ borderBottom: "1px solid var(--border)" }}>
               <th className="pb-3 pr-4" style={{ color: "var(--muted)" }}>Rank</th>
               <SortHeader label="Name" field="name" sortBy={sortBy} sortDir={sortDir} onClick={toggleSort} />
-              <th className="pb-3 pr-4 text-center" style={{ color: "var(--muted)" }}>Type</th>
+              <th className="pb-3 pr-4 text-center" style={{ color: "var(--muted)" }}>Δ</th>
+              <SortHeader label="PF Score" field="pfScore" sortBy={sortBy} sortDir={sortDir} onClick={toggleSort} center />
               <SortHeader label="Authority" field="authorityScore" sortBy={sortBy} sortDir={sortDir} onClick={toggleSort} center />
               <SortHeader label="Reach" field="reachScore" sortBy={sortBy} sortDir={sortDir} onClick={toggleSort} center />
-              <SortHeader label="PF Score" field="pfScore" sortBy={sortBy} sortDir={sortDir} onClick={toggleSort} center />
-              <th className="pb-3 pr-4 text-center" style={{ color: "var(--muted)" }} title="Directional posture — how this actor is currently exercising power (Defender, Challenger, External Pressure, Neutral)">Signal</th>
+              <th className="pb-3 pr-4 text-center" style={{ color: "var(--muted)" }}>Type</th>
               <th className="pb-3 pr-4 text-center" style={{ color: "var(--muted)" }}>Region</th>
-              <th className="pb-3 text-center" style={{ color: "var(--muted)" }}>Δ</th>
             </tr>
           </thead>
           <tbody style={{ borderColor: "var(--border)" }}>
             {filtered.length === 0 ? (
               <tr>
-                <td colSpan={9} className="py-16 text-center text-sm" style={{ color: "var(--muted)" }}>
+                <td colSpan={8} className="py-16 text-center text-sm" style={{ color: "var(--muted)" }}>
                   No actors found
                 </td>
               </tr>
@@ -140,15 +139,14 @@ export default function ActorTable({ actors, snapshotDeltaMap }: ActorTableProps
                         {actor.name || "—"}
                       </Link>
                     </td>
-                    <td className="py-3 pr-4 text-center"><ActorTypeBadge type={actor.actorType} /></td>
-                    <td className="py-3 pr-4 tabular-nums text-center" style={{ color: "var(--muted-foreground)" }}>{actor.authorityScore ?? "—"}</td>
-                    <td className="py-3 pr-4 tabular-nums text-center" style={{ color: "var(--muted-foreground)" }}>{actor.reachScore ?? "—"}</td>
+                    <td className="py-3 pr-4 text-center"><ScoreDelta delta={delta} /></td>
                     <td className="py-3 pr-4 text-center">
                       <span className="font-bold text-base tabular-nums" style={{ color: scoreColor }}>{actor.pfScore != null ? Math.round(actor.pfScore) : "—"}</span>
                     </td>
-                    <td className="py-3 pr-4 text-xs text-center" style={{ color: "var(--muted)" }}>{actor.pfVector === "From Above (External Pressure)" ? "Ext. Pressure" : actor.pfVector === "From Below (Challenger)" ? "Challenger" : actor.pfVector || "—"}</td>
+                    <td className="py-3 pr-4 tabular-nums text-center" style={{ color: "var(--muted-foreground)" }}>{actor.authorityScore ?? "—"}</td>
+                    <td className="py-3 pr-4 tabular-nums text-center" style={{ color: "var(--muted-foreground)" }}>{actor.reachScore ?? "—"}</td>
+                    <td className="py-3 pr-4 text-center"><ActorTypeBadge type={actor.actorType} /></td>
                     <td className="py-3 pr-4 text-xs text-center" style={{ color: "var(--muted)" }}>{actor.region || "—"}</td>
-                    <td className="py-3 text-center"><ScoreDelta delta={delta} /></td>
                   </tr>
                 );
               })

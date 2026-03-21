@@ -18,6 +18,7 @@ import ScoreChart from "@/components/ScoreChart";
 import AssessmentCard from "@/components/AssessmentCard";
 import { pfScoreColor, actorTypeBadgeColor } from "@/components/ActorCard";
 import ActorGeoPanel from "@/components/geo/ActorGeoPanelWrapper";
+import { getPowerPostureLabel } from "@/lib/powerPosture";
 
 export const revalidate = 300;
 
@@ -73,6 +74,31 @@ function PFSignalBadge({ signal }: { signal: string | null }) {
   );
 }
 
+
+const POSTURE_HEX: Record<string, string> = {
+  // Canonical values
+  Projecting: '#60a5fa',
+  Defending: '#4ade80',
+  Contesting: '#fb923c',
+  Neutral: '#9ca3af',
+  // Legacy values
+  'From Above (External Pressure)': '#60a5fa',
+  Defender: '#4ade80',
+  'From Below (Challenger)': '#fb923c',
+  'From Within (Parallel Governance)': '#fb923c',
+}
+
+function PowerPostureBadge({ pfVector }: { pfVector: string }) {
+  const color = POSTURE_HEX[pfVector] ?? '#6b7280'
+  return (
+    <span
+      className="text-xs px-2 py-0.5 rounded font-medium"
+      style={{ color, backgroundColor: `color-mix(in srgb, ${color} 12%, transparent)` }}
+    >
+      {getPowerPostureLabel(pfVector)}
+    </span>
+  )
+}
 
 // Keys match the extractor's exact event_type enum values
 const EVENT_TYPE_COLORS: Record<string, string> = {
@@ -218,7 +244,7 @@ export default async function ActorProfilePage({ params }: { params: Promise<{ s
               )}
               {actor.region && <MetaBadge>{actor.region}</MetaBadge>}
               {actor.iso3 && <span className="text-xs font-mono" style={{ color: "var(--muted)" }}>{actor.iso3}</span>}
-              {actor.pfVector && <PFSignalBadge signal={actor.pfVector} />}
+              {actor.pfVector && <PowerPostureBadge pfVector={actor.pfVector} />}
             </div>
             <h1 className="text-[32px] font-bold" style={{ color: "var(--foreground)", letterSpacing: "-0.5px" }}>{actor.name}</h1>
             {subtitle && (

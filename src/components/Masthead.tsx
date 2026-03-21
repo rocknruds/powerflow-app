@@ -10,6 +10,7 @@ const NAV_LINKS = [
   { label: "Map", href: "/map" },
   { label: "Conflicts", href: "/conflicts" },
   { label: "Analysis", href: "/analysis" },
+  { label: "Query", href: "/query" },
   { label: "Briefs", href: "/briefs" },
 ];
 
