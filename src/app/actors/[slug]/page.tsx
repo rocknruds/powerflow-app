@@ -308,27 +308,49 @@ export default async function ActorProfilePage({ params }: { params: Promise<{ s
                     <span className="group-hover:text-accent transition-colors">→ Full Assessment</span>
                   </a>
 
-                  {/* Patron / Dependent On links */}
+                  {/* Dependency Chain */}
                   {(patronActors.length > 0 || dependentOnActors.length > 0) && (
-                    <div className="space-y-2">
+                    <div className="space-y-1.5">
+                      <span className="text-[10px] font-semibold uppercase tracking-widest" style={{ color: "var(--muted)" }}>Dependency Chain</span>
+                      {/* Patron chain: [Patron(s)] → [Actor] */}
                       {patronActors.length > 0 && (
-                        <div className="flex items-center flex-wrap gap-2">
-                          <span className="text-[10px] font-semibold uppercase tracking-widest" style={{ color: "var(--muted)" }}>Patron:</span>
-                          {patronActors.map((pa) => (
-                            <Link key={pa.id} href={`/actors/${toSlug(pa.name)}`} className="text-xs px-2 py-0.5 rounded transition-opacity hover:opacity-70" style={{ color: "var(--accent)", border: "1px solid color-mix(in srgb, var(--accent) 30%, transparent)", backgroundColor: "color-mix(in srgb, var(--accent) 10%, transparent)" }}>
-                              {pa.name}
-                            </Link>
+                        <div className="flex items-center flex-wrap gap-1">
+                          {patronActors.slice(0, 3).map((pa) => (
+                            <span key={pa.id} className="flex items-center gap-1">
+                              <Link href={`/actors/${toSlug(pa.name)}`} className="text-xs px-2 py-0.5 rounded transition-opacity hover:opacity-70" style={{ color: "var(--accent)", border: "1px solid color-mix(in srgb, var(--accent) 30%, transparent)", backgroundColor: "color-mix(in srgb, var(--accent) 10%, transparent)" }}>
+                                {pa.name}
+                              </Link>
+                              <span className="text-xs" style={{ color: "var(--muted)" }}>→</span>
+                            </span>
                           ))}
+                          {patronActors.length > 3 && (
+                            <span className="text-xs mr-1" style={{ color: "var(--muted)" }}>+{patronActors.length - 3} more →</span>
+                          )}
+                          <span className="text-xs px-2 py-0.5 rounded" style={{ color: "var(--accent)", border: "1px solid color-mix(in srgb, var(--accent) 30%, transparent)", backgroundColor: "color-mix(in srgb, var(--accent) 10%, transparent)" }}>
+                            {actor.name}
+                          </span>
                         </div>
                       )}
+                      {/* Dependent chain: [Actor] → [Dependent(s)] */}
                       {dependentOnActors.length > 0 && (
-                        <div className="flex items-center flex-wrap gap-2">
-                          <span className="text-[10px] font-semibold uppercase tracking-widest" style={{ color: "var(--muted)" }}>Dependent On:</span>
-                          {dependentOnActors.map((da) => (
-                            <Link key={da.id} href={`/actors/${toSlug(da.name)}`} className="text-xs px-2 py-0.5 rounded transition-opacity hover:opacity-70" style={{ color: "var(--accent)", border: "1px solid color-mix(in srgb, var(--accent) 30%, transparent)", backgroundColor: "color-mix(in srgb, var(--accent) 10%, transparent)" }}>
-                              {da.name}
-                            </Link>
+                        <div className="flex items-center flex-wrap gap-1">
+                          <span className="text-xs px-2 py-0.5 rounded" style={{ color: "var(--accent)", border: "1px solid color-mix(in srgb, var(--accent) 30%, transparent)", backgroundColor: "color-mix(in srgb, var(--accent) 10%, transparent)" }}>
+                            {actor.name}
+                          </span>
+                          <span className="text-xs" style={{ color: "var(--muted)" }}>→</span>
+                          {dependentOnActors.slice(0, 3).map((da, i) => (
+                            <span key={da.id} className="flex items-center gap-1">
+                              <Link href={`/actors/${toSlug(da.name)}`} className="text-xs px-2 py-0.5 rounded transition-opacity hover:opacity-70" style={{ color: "var(--accent)", border: "1px solid color-mix(in srgb, var(--accent) 30%, transparent)", backgroundColor: "color-mix(in srgb, var(--accent) 10%, transparent)" }}>
+                                {da.name}
+                              </Link>
+                              {i < Math.min(dependentOnActors.length, 3) - 1 && (
+                                <span className="text-xs" style={{ color: "var(--muted)" }}>→</span>
+                              )}
+                            </span>
                           ))}
+                          {dependentOnActors.length > 3 && (
+                            <span className="text-xs" style={{ color: "var(--muted)" }}>+{dependentOnActors.length - 3} more</span>
+                          )}
                         </div>
                       )}
                     </div>
@@ -368,6 +390,22 @@ export default async function ActorProfilePage({ params }: { params: Promise<{ s
               <ScoreChart snapshots={history} intelFeeds={intelFeeds} />
             </div>
           </CollapsibleSection>
+        )}
+
+        {/* SECTION 4 (moved): Latest Assessment — rendered directly, no collapsible wrapper */}
+        {assessment && (
+          <div>
+            <div className="flex items-center gap-2 mb-5">
+              <svg width="7" height="18" viewBox="0 0 18 44" fill="none" aria-hidden="true" className="shrink-0">
+                <path d="M5.2 8.6C5.2 7.16406 4.03594 6 2.6 6C1.16406 6 0 7.16406 0 8.6V35.4C0 36.8359 1.16406 38 2.6 38C4.03594 38 5.2 36.8359 5.2 35.4V8.6Z" fill="#60A5FA" />
+                <path d="M18 2.6C18 1.16406 16.8359 0 15.4 0C13.9641 0 12.8 1.16406 12.8 2.6V41.4C12.8 42.8359 13.9641 44 15.4 44C16.8359 44 18 42.8359 18 41.4V2.6Z" fill="#3B4A5C" />
+              </svg>
+              <span className="text-[13px] font-semibold uppercase tracking-[0.18em]" style={{ color: "var(--muted-foreground)" }}>
+                Latest Assessment
+              </span>
+            </div>
+            <AssessmentCard assessment={assessment} />
+          </div>
         )}
 
         {/* SECTION 3: Recent Intelligence */}
@@ -416,13 +454,6 @@ export default async function ActorProfilePage({ params }: { params: Promise<{ s
                 </div>
               ))}
             </div>
-          </CollapsibleSection>
-        )}
-
-        {/* SECTION 4: Latest Assessment (full width) */}
-        {assessment && (
-          <CollapsibleSection label="Latest Assessment">
-            <AssessmentCard assessment={assessment} />
           </CollapsibleSection>
         )}
 

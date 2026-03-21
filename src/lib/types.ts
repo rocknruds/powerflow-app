@@ -94,6 +94,7 @@ export interface ConflictPublic {
 export interface ConflictActor {
   id: string
   name: string
+  slug: string
   pfScore: number | null
   delta: number | null
   actorType: ActorType

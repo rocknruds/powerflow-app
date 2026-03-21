@@ -1,7 +1,16 @@
 "use client"
 
 import { useState } from "react"
+import Link from "next/link"
 import type { BriefContent, BriefSection } from "@/lib/parseBriefContent"
+
+function toSlug(name: string): string {
+  return name
+    .toLowerCase()
+    .replace(/[^a-z0-9\s-]/g, "")
+    .trim()
+    .replace(/\s+/g, "-")
+}
 
 // ─── Inline markdown rendering ──────────────────────────────────────────────
 
@@ -57,7 +66,7 @@ function HeadlineProse({ text }: { text: string }) {
       <ul className="max-w-[72ch] space-y-4 list-none pl-0 mb-6">
         {bulletLines.map((line, i) => (
           <li key={i} className="flex gap-3 text-lg leading-[1.75]" style={{ color: "var(--foreground)" }}>
-            <span className="mt-[0.35em] shrink-0 text-sm" style={{ color: "var(--muted)" }}>—</span>
+            <span className="mt-[0.6em] w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: "var(--foreground)", opacity: 0.18 }} />
             <span>{renderInline(line.slice(2))}</span>
           </li>
         ))}
@@ -66,14 +75,17 @@ function HeadlineProse({ text }: { text: string }) {
   }
 
   const paragraphs = cleaned.split(/\n\s*\n/).filter(Boolean)
+  const allText = paragraphs.join(" ").trim()
+  const sentences = allText.split(/(?<=[.!?])\s+/).filter(Boolean).slice(0, 4)
   return (
-    <div className="max-w-[72ch]">
-      {paragraphs.map((p, i) => (
-        <p key={i} className="text-lg leading-[1.85] mb-6" style={{ color: "var(--foreground)" }}>
-          {renderInline(p.trim())}
-        </p>
+    <ul className="max-w-[72ch] space-y-3 list-none pl-0 mb-6">
+      {sentences.map((sentence, i) => (
+        <li key={i} className="flex gap-3 text-lg leading-[1.75]" style={{ color: "var(--foreground)" }}>
+          <span className="mt-[0.6em] w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: "var(--foreground)", opacity: 0.18 }} />
+          <span>{renderInline(sentence)}</span>
+        </li>
       ))}
-    </div>
+    </ul>
   )
 }
 
@@ -183,9 +195,14 @@ function KeyMovementEntry({
         className="flex items-center gap-2.5 w-full text-left py-2 group"
         style={{ cursor: "pointer" }}
       >
-        <span className="text-base font-medium" style={{ color: "var(--foreground)" }}>
+        <Link
+          href={`/actors/${toSlug(item.actor)}`}
+          className="text-base font-medium transition-opacity hover:opacity-70"
+          style={{ color: "var(--foreground)" }}
+          onClick={(e) => e.stopPropagation()}
+        >
           {item.actor}
-        </span>
+        </Link>
         <DeltaBadge delta={item.delta} />
         {item.range && (
           <span className="text-xs font-mono" style={{ color: "var(--muted)" }}>
@@ -388,9 +405,9 @@ function ScoreLedgerSection({ raw }: { raw: string }) {
         {filtered.map((item, i) => (
           <div key={i} className="py-3 text-sm">
             <div className="flex items-center gap-2 flex-wrap">
-              <span className="font-medium shrink-0" style={{ color: "var(--foreground)" }}>
+              <Link href={`/actors/${toSlug(item.actor)}`} className="font-medium shrink-0 transition-opacity hover:opacity-70" style={{ color: "var(--foreground)" }}>
                 {item.actor}
-              </span>
+              </Link>
               <DeltaBadge delta={item.delta} />
               {item.range && (
                 <span className="text-xs font-mono" style={{ color: "var(--muted)" }}>
@@ -424,7 +441,7 @@ function extractNewScore(rangeStr: string): string | null {
 export function ScoreLedgerSidebar({ raw }: { raw: string }) {
   const { items, fallback } = parseLedgerItems(raw)
   const filtered = items.filter((item) => item.actor !== "Pakistan")
-  const sorted = [...filtered].sort((a, b) => Math.abs(b.delta) - Math.abs(a.delta)).slice(0, 5)
+  const sorted = [...filtered].sort((a, b) => Math.abs(b.delta) - Math.abs(a.delta)).slice(0, 4)
   return (
     <div
       className="rounded-[20px] p-5 lg:sticky lg:top-24 lg:max-h-[calc(100vh-8rem)] lg:overflow-y-auto"
@@ -447,9 +464,9 @@ export function ScoreLedgerSidebar({ raw }: { raw: string }) {
           return (
             <div key={i} className="py-3.5">
               <div className="flex items-center gap-2 flex-wrap">
-                <span className="text-base font-medium shrink-0" style={{ color: "var(--foreground)" }}>
+                <Link href={`/actors/${toSlug(item.actor)}`} className="text-base font-medium shrink-0 transition-opacity hover:opacity-70" style={{ color: "var(--foreground)" }}>
                   {item.actor}
-                </span>
+                </Link>
                 <DeltaBadge delta={item.delta} />
                 {newScore && (
                   <span className="text-xs font-mono" style={{ color: "var(--muted)" }}>
@@ -458,9 +475,9 @@ export function ScoreLedgerSidebar({ raw }: { raw: string }) {
                 )}
               </div>
               {item.note && (
-                <ul className="text-sm leading-relaxed mt-1.5 ml-4 list-disc space-y-1" style={{ color: "var(--muted)" }}>
-                  <li>{renderInline(item.note)}</li>
-                </ul>
+                <p className="text-xs leading-relaxed mt-1" style={{ color: "var(--muted)" }}>
+                  {renderInline(item.note)}
+                </p>
               )}
             </div>
           )

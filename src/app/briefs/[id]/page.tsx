@@ -150,7 +150,7 @@ export default async function BriefPage({
           const briefContent = parseBriefContent(blocksToBody(brief.blocks))
           const scoreLedger = briefContent.sections.find((s) => s.type === "score-ledger")
           return (
-            <div className="grid lg:grid-cols-[minmax(0,55%)_minmax(0,40%)] lg:gap-12">
+            <div className="grid lg:grid-cols-[minmax(0,62%)_minmax(0,35%)] lg:gap-14">
               <div>
                 <BriefRenderer content={briefContent} />
               </div>

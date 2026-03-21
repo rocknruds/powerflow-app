@@ -1,4 +1,9 @@
+import Link from "next/link";
 import type { ScenarioWithActors } from "@/lib/scenarios";
+
+function toSlug(name: string): string {
+  return name.toLowerCase().replace(/[^a-z0-9\s-]/g, "").trim().replace(/\s+/g, "-");
+}
 
 /* ── Color mapping ── */
 
@@ -145,9 +150,10 @@ export default function ScenarioCard({ scenario }: { scenario: ScenarioWithActor
       {scenario.actorNames.length > 0 && (
         <div className="px-3.5 pb-2.5 flex gap-1 flex-wrap">
           {scenario.actorNames.map((name) => (
-            <span
+            <Link
               key={name}
-              className="text-[10px] px-[7px] py-0.5 rounded"
+              href={`/actors/${toSlug(name)}`}
+              className="text-[10px] px-[7px] py-0.5 rounded transition-opacity hover:opacity-70"
               style={{
                 background: "color-mix(in srgb, var(--accent) 8%, transparent)",
                 border: "1px solid color-mix(in srgb, var(--accent) 18%, transparent)",
@@ -156,7 +162,7 @@ export default function ScenarioCard({ scenario }: { scenario: ScenarioWithActor
               }}
             >
               {name}
-            </span>
+            </Link>
           ))}
         </div>
       )}

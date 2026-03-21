@@ -1,5 +1,7 @@
+import Link from "next/link";
 import { getAllPublicConflicts, enrichConflictsWithActors } from "@/lib/conflicts";
 import { getLatestDeltaByActor } from "@/lib/scores";
+import { getActorEvents } from "@/lib/events";
 import type { ConflictPublic, ConflictActor } from "@/lib/types";
 import LogoMark from "@/components/LogoMark";
 
@@ -45,7 +47,7 @@ function ActorDeltaChip({ actor }: { actor: ConflictActor }) {
   const positive = (actor.delta ?? 0) >= 0;
 
   return (
-    <div className="flex items-center gap-1.5 px-2.5 py-1 rounded" style={{ backgroundColor: "var(--surface)", border: "1px solid var(--border)" }}>
+    <Link href={`/actors/${actor.slug}`} className="flex items-center gap-1.5 px-2.5 py-1 rounded transition-opacity hover:opacity-70" style={{ backgroundColor: "var(--surface)", border: "1px solid var(--border)" }}>
       <span className="text-xs font-medium" style={{ color: "var(--foreground)" }}>{actor.name}</span>
       <span className="text-xs font-mono" style={{ color: "var(--muted)" }}>{pf}</span>
       {hasDelta && (
@@ -57,7 +59,7 @@ function ActorDeltaChip({ actor }: { actor: ConflictActor }) {
           {actor.delta != null ? Math.round(actor.delta) : ""}
         </span>
       )}
-    </div>
+    </Link>
   );
 }
 
@@ -78,7 +80,9 @@ function GapTrendBadge({ trend }: { trend: string | null }) {
   );
 }
 
-function ConflictCard({ conflict }: { conflict: ConflictPublic }) {
+type RecentEvent = { date: string; name: string; eventType: string | null };
+
+function ConflictCard({ conflict, recentEvents }: { conflict: ConflictPublic; recentEvents?: RecentEvent[] }) {
   return (
     <div className="rounded-xl p-5 transition-colors" style={{ backgroundColor: "var(--surface)", border: "1px solid var(--border)" }}>
       {/* Card header */}
@@ -128,6 +132,27 @@ function ConflictCard({ conflict }: { conflict: ConflictPublic }) {
         </div>
       )}
 
+      {/* Recent Activity strip */}
+      {recentEvents && recentEvents.length > 0 && (
+        <div className="mt-3 pt-3" style={{ borderTop: "1px solid var(--border)" }}>
+          <p className="text-[9px] uppercase tracking-widest mb-1.5" style={{ color: "var(--muted)" }}>
+            Recent Activity
+          </p>
+          <div className="flex flex-col gap-1">
+            {recentEvents.map((e, i) => (
+              <div key={i} className="flex items-baseline gap-2 min-w-0">
+                <span className="font-mono text-[10px] shrink-0" style={{ color: "var(--muted)" }}>
+                  {e.date}
+                </span>
+                <span className="text-xs" style={{ color: "var(--muted-foreground)" }}>
+                  {e.name.length > 80 ? e.name.slice(0, 79) + "…" : e.name}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Nuclear risk indicator */}
       {conflict.nuclearRisk && conflict.nuclearRisk !== "None" && (
         <div className="mt-3 pt-2.5" style={{ borderTop: "1px solid var(--border)" }}>
@@ -147,6 +172,29 @@ export default async function ConflictsPage() {
   ]);
 
   const enriched = await enrichConflictsWithActors(conflicts, deltaMap);
+
+  // Fetch recent events for each conflict's top 2 linked actors
+  const eventsMap = new Map<string, RecentEvent[]>();
+  await Promise.all(
+    enriched.map(async (c) => {
+      const topActorIds = c.linkedActors.slice(0, 2).map((a) => a.id);
+      const eventsPerActor = await Promise.all(
+        topActorIds.map((actorId) => getActorEvents(actorId, 2))
+      );
+      const seen = new Set<string>();
+      const merged: RecentEvent[] = [];
+      for (const events of eventsPerActor) {
+        for (const e of events) {
+          if (!seen.has(e.id)) {
+            seen.add(e.id);
+            merged.push({ date: e.date ?? "", name: e.name, eventType: e.eventType });
+          }
+        }
+      }
+      merged.sort((a, b) => b.date.localeCompare(a.date));
+      eventsMap.set(c.id, merged.slice(0, 2));
+    })
+  );
 
   // Group by intensity for visual hierarchy
   const majorWars = enriched.filter((c) => c.intensity === "Major War");
@@ -174,7 +222,7 @@ export default async function ConflictsPage() {
         </div>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           {items.map((c) => (
-            <ConflictCard key={c.id} conflict={c} />
+            <ConflictCard key={c.id} conflict={c} recentEvents={eventsMap.get(c.id)} />
           ))}
         </div>
       </div>

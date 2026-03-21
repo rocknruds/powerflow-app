@@ -299,7 +299,8 @@ export default async function HomePage() {
         </section>
 
         {/* ── Latest Assessments ── */}
-        <section className="pt-[72px]">
+        <div className="mt-16 mb-12" style={{ borderTop: "1px solid var(--border)" }} />
+        <section>
           <CollapsibleSection label="Latest assessments" action={{ label: "All assessments", href: "/analysis" }}>
             {latestAssessments.length === 0 ? (
               <p className="text-sm" style={{ color: "var(--muted)" }}>
@@ -310,7 +311,7 @@ export default async function HomePage() {
                 {latestAssessments.map((assessment) => (
                   <Link
                     key={assessment.id}
-                    href={assessment.actorSlug ? `/actors/${assessment.actorSlug}` : "/analysis"}
+                    href={`/analysis/${assessment.id}`}
                     className="block group"
                   >
                     <div
@@ -377,7 +378,8 @@ export default async function HomePage() {
         </section>
 
         {/* ── Active Scenarios ── */}
-        <section className="pt-[72px]">
+        <div className="mt-16 mb-12" style={{ borderTop: "1px solid var(--border)" }} />
+        <section>
           <CollapsibleSection label="Active scenarios" action={{ label: "All conflicts", href: "/conflicts" }}>
             {scenarios.length === 0 ? (
               <p className="text-sm" style={{ color: "var(--muted)" }}>
@@ -394,10 +396,8 @@ export default async function HomePage() {
         </section>
 
         {/* ── How It Works ── */}
-        <section
-          className="pt-[96px] pb-[72px]"
-          style={{ borderTop: "1px solid var(--border)" }}
-        >
+        <div className="mt-16 mb-12" style={{ borderTop: "1px solid var(--border)" }} />
+        <section className="pb-[72px]">
           <CollapsibleSection label="How it works">
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
               {[

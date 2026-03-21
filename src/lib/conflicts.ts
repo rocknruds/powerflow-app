@@ -77,6 +77,7 @@ export async function enrichConflictsWithActors(
         return {
           id: actor.id,
           name: actor.name,
+          slug: actor.slug,
           pfScore: actor.pfScore,
           delta: deltaMap.get(actor.id) ?? null,
           actorType: actor.actorType,

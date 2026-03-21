@@ -230,16 +230,15 @@ export default function ScoreChart({ snapshots, intelFeeds }: ScoreChartProps) {
             />
           )}
 
-          {/* Annotated event dots — visible markers for inflection points */}
+          {/* Annotated event dots — annotation markers, subtle inflection indicators */}
           {annotatedPoints.map((pt, i) => (
             <ReferenceDot
               key={i}
               x={pt.date}
               y={pt.pfScore}
-              r={6}
-              fill={selectedPoint?.date === pt.date ? "var(--accent)" : "var(--accent)"}
-              stroke="white"
-              strokeWidth={2}
+              r={3}
+              fill="var(--accent)"
+              fillOpacity={0.5}
               cursor="pointer"
             />
           ))}
@@ -251,16 +250,14 @@ export default function ScoreChart({ snapshots, intelFeeds }: ScoreChartProps) {
         <div
           style={{ borderTop: "1px solid var(--border)" }}
           className="mt-0 pt-4"
-          onClick={() => setSelectedPoint(null)}
         >
           <div
-            className="rounded-lg p-4"
-            style={{ backgroundColor: "var(--surface-raised)", border: "1px solid var(--border)", cursor: "default" }}
-            onClick={(e) => e.stopPropagation()}
+            className="rounded-lg p-3"
+            style={{ backgroundColor: "var(--surface-raised)", border: "1px solid var(--border)" }}
           >
             {/* Header */}
             <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center gap-2 flex-wrap">
+              <div className="flex items-center gap-1.5 flex-nowrap">
                 <span
                   className="text-[10px] font-mono px-1.5 py-0.5 rounded tabular-nums"
                   style={{ backgroundColor: "var(--surface)", color: "var(--muted)" }}
@@ -293,9 +290,14 @@ export default function ScoreChart({ snapshots, intelFeeds }: ScoreChartProps) {
 
             {/* Annotation — primary "why" */}
             {selectedPoint.annotation && (
-              <p className="text-sm leading-relaxed mb-3" style={{ color: "var(--foreground)" }}>
-                {selectedPoint.annotation}
-              </p>
+              <>
+                <p className="text-[9px] uppercase tracking-widest mb-1" style={{ color: "var(--muted)" }}>
+                  Why it moved
+                </p>
+                <p className="text-sm leading-relaxed mb-3" style={{ color: "var(--foreground)" }}>
+                  {selectedPoint.annotation}
+                </p>
+              </>
             )}
 
             {/* Matching intel feeds */}
@@ -307,7 +309,7 @@ export default function ScoreChart({ snapshots, intelFeeds }: ScoreChartProps) {
                 {matchingFeeds.map((feed) => (
                   <div
                     key={feed.id}
-                    className="rounded px-3 py-2"
+                    className="rounded px-2.5 py-1.5"
                     style={{ backgroundColor: "var(--surface)", border: "1px solid var(--border)" }}
                   >
                     <div className="flex items-center gap-2 flex-wrap mb-1">
@@ -322,7 +324,7 @@ export default function ScoreChart({ snapshots, intelFeeds }: ScoreChartProps) {
                       <PFSignalBadge signal={feed.pfSignal} />
                     </div>
                     {feed.soWhatSummary && (
-                      <p className="text-xs leading-relaxed" style={{ color: "var(--muted-foreground)" }}>
+                      <p className="text-[11px] leading-relaxed" style={{ color: "var(--muted-foreground)" }}>
                         {feed.soWhatSummary}
                       </p>
                     )}

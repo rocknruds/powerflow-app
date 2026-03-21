@@ -99,12 +99,13 @@ function TrackedActorPanel({ actor }: { actor: MapActorFull }) {
             </span>
           )}
         </div>
-        <h2
-          className="text-xl font-bold tracking-tight"
+        <Link
+          href={`/actors/${actor.slug}`}
+          className="text-xl font-bold tracking-tight transition-opacity hover:opacity-70 block"
           style={{ color: '#e8eaf0' }}
         >
           {actor.name}
-        </h2>
+        </Link>
       </div>
 
       {/* Scores */}
