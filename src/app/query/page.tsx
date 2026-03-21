@@ -34,6 +34,35 @@ interface QueryResult {
   feedContext: string[]
 }
 
+function renderMarkdown(text: string): React.ReactNode {
+  return text.split('\n').map((line, i) => {
+    // Strip ## and # headers — render as bold paragraph instead
+    const headerMatch = line.match(/^#{1,3}\s+(.+)/)
+    if (headerMatch) {
+      return (
+        <p key={i} className="text-sm font-semibold mb-2 mt-4" style={{ color: "var(--foreground)" }}>
+          {headerMatch[1]}
+        </p>
+      )
+    }
+    // Empty line = spacer
+    if (!line.trim()) return <div key={i} className="h-2" />
+    // Inline bold: replace **text** with <strong>
+    const parts = line.split(/(\*\*[^*]+\*\*)/)
+    const rendered = parts.map((part, j) => {
+      if (part.startsWith('**') && part.endsWith('**')) {
+        return <strong key={j} style={{ color: "var(--foreground)" }}>{part.slice(2, -2)}</strong>
+      }
+      return <span key={j}>{part}</span>
+    })
+    return (
+      <p key={i} className="text-sm leading-relaxed mb-2" style={{ color: "var(--muted-foreground)" }}>
+        {rendered}
+      </p>
+    )
+  })
+}
+
 const CONFIDENCE_COLORS: Record<string, string> = {
   High: "var(--delta-up)",
   Medium: "var(--score-mid)",
@@ -195,9 +224,7 @@ export default function QueryPage() {
                   )}
                 </div>
 
-                <p className="text-sm leading-relaxed" style={{ color: "var(--foreground)" }}>
-                  {result.narrative}
-                </p>
+                <div>{renderMarkdown(result.narrative)}</div>
 
                 {result.meta.keyFinding && (
                   <div

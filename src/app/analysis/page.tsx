@@ -49,8 +49,9 @@ function getTeaser(text: string, maxLen = 180): string {
 
 function AssessmentFeedCard({ assessment }: { assessment: AssessmentSummary }) {
   return (
-    <div
-      className="rounded-xl p-5 transition-colors"
+    <Link
+      href={`/analysis/${assessment.id}`}
+      className="block rounded-xl p-5 transition-colors hover:opacity-90"
       style={{ backgroundColor: "var(--surface)", border: "1px solid var(--border)" }}
     >
       <div className="flex items-start justify-between gap-3 flex-wrap mb-3">
@@ -90,14 +91,10 @@ function AssessmentFeedCard({ assessment }: { assessment: AssessmentSummary }) {
         </p>
       )}
 
-      <Link
-        href={`/analysis/${assessment.id}`}
-        className="text-xs font-medium transition-opacity hover:opacity-70"
-        style={{ color: "var(--accent)" }}
-      >
+      <span className="text-xs font-medium" style={{ color: "var(--accent)" }}>
         Read full assessment →
-      </Link>
-    </div>
+      </span>
+    </Link>
   );
 }
 
