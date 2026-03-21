@@ -18,7 +18,8 @@ import ScoreChart from "@/components/ScoreChart";
 import AssessmentCard from "@/components/AssessmentCard";
 import { pfScoreColor, actorTypeBadgeColor } from "@/components/ActorCard";
 import ActorGeoPanel from "@/components/geo/ActorGeoPanelWrapper";
-import { getPowerPostureLabel } from "@/lib/powerPosture";
+import { getPowerPostureLabel } from "@/lib/powerPosture"
+import OrbitViz, { type OrbitActorNode } from "@/components/OrbitViz";
 
 export const revalidate = 300;
 
@@ -158,15 +159,57 @@ export default async function ActorProfilePage({ params }: { params: Promise<{ s
     getActorIntelFeeds(actor.id, 4).catch((): IntelFeedItem[] => []),
   ]);
 
-  const [patronActors, dependentOnActors] = await Promise.all([
-    actor.patronStateIds.length > 0 ? getActorsByIds(actor.patronStateIds) : Promise.resolve([]),
-    actor.dependentOnIds.length > 0 ? getActorsByIds(actor.dependentOnIds) : Promise.resolve([]),
-  ]);
-
   const pf = calcPFScore(actor.authorityScore, actor.reachScore);
   const scoreColor = pfScoreColor(pf ?? 0);
   const latestSnapshot = history[history.length - 1];
   const latestDelta = latestSnapshot?.delta ?? null;
+
+  // Resolve counterparty actor records to get PF scores for orbit nodes
+  const counterpartyIds = relationships.map(rel =>
+    rel.primaryActorId === actor.id ? rel.comparedActorId : rel.primaryActorId
+  ).filter((id): id is string => !!id && id !== actor.id)
+
+  const counterpartyActors = counterpartyIds.length > 0
+    ? await getActorsByIds([...new Set(counterpartyIds)])
+    : []
+
+  // Build orbit nodes: profile actor + top 8 by absolute alignment score
+  const profileOrbitNode: OrbitActorNode = {
+    id: actor.id,
+    name: actor.name,
+    slug: actor.slug,
+    pfScore: pf,
+    relationshipType: null,
+    alignmentScore: null,
+    isProfileActor: true,
+  }
+
+  const relOrbitNodes: OrbitActorNode[] = relationships
+    .filter(rel => rel.alignmentScore !== null)
+    .sort((a, b) => Math.abs(b.alignmentScore!) - Math.abs(a.alignmentScore!))
+    .slice(0, 8)
+    .map(rel => {
+      const counterpartyId = rel.primaryActorId === actor.id
+        ? rel.comparedActorId
+        : rel.primaryActorId
+      const counterparty = counterpartyActors.find(a => a.id === counterpartyId)
+      return {
+        id: counterpartyId || rel.id,
+        name: rel.counterpartyName,
+        slug: counterparty?.slug ?? toSlug(rel.counterpartyName),
+        pfScore: counterparty?.pfScore ?? null,
+        relationshipType: rel.relationshipType,
+        alignmentScore: rel.alignmentScore,
+        isProfileActor: false,
+      }
+    })
+
+  const orbitNodes: OrbitActorNode[] = [profileOrbitNode, ...relOrbitNodes]
+
+  const [patronActors, dependentOnActors] = await Promise.all([
+    actor.patronStateIds.length > 0 ? getActorsByIds(actor.patronStateIds) : Promise.resolve([]),
+    actor.dependentOnIds.length > 0 ? getActorsByIds(actor.dependentOnIds) : Promise.resolve([]),
+  ]);
 
   // Subtitle: State → region only; Non-State/Hybrid → subType or actorType; IGO → actorType
   const subtitle =
@@ -277,143 +320,138 @@ export default async function ActorProfilePage({ params }: { params: Promise<{ s
       {/* Main content */}
       <div className="max-w-6xl mx-auto px-6 py-10 space-y-8">
 
-        {/* SECTION 1+2: Score Trajectory (left) + Key Drivers (right) — two-column grid */}
-        {actor.scoreReasoning ? (
-          <div className="grid grid-cols-1 lg:grid-cols-[50fr_50fr] gap-6 items-start">
-
-            {/* Left: Score Trajectory */}
-            <div className="min-w-0">
-              <CollapsibleSection label="Score Trajectory" headerGap="mb-4">
-                <div className="rounded-xl p-6" style={{ backgroundColor: "var(--surface)", border: "1px solid var(--border)" }}>
-                  <ScoreChart snapshots={history} intelFeeds={intelFeeds} />
-                </div>
-              </CollapsibleSection>
-            </div>
-
-            {/* Right: Key Drivers */}
-            <div className="min-w-0">
-              <CollapsibleSection label="Key Drivers" headerGap="mb-4">
-                <div className="rounded-xl overflow-hidden" style={{ border: "1px solid var(--border)", backgroundColor: "var(--surface)" }}>
-                  {/* Three columns */}
-                  <div className="grid grid-cols-3">
-                    {[
-                      { label: "Overall", color: "var(--accent)", score: pf, scoreColor, reasoning: truncateToSentences(actor.pfReasoning || actor.scoreReasoning!, 160) },
-                      { label: "Authority", color: "var(--score-authority)", score: actor.authorityScore, scoreColor: "var(--score-authority)", reasoning: truncateToSentences(actor.authorityReasoning || actor.scoreReasoning!, 160) },
-                      { label: "Reach", color: "var(--score-reach)", score: actor.reachScore, scoreColor: "var(--score-reach)", reasoning: truncateToSentences(actor.reachReasoning || actor.scoreReasoning!, 160) },
-                    ].map((block, i) => (
-                      <div
-                        key={block.label}
-                        className="p-3 flex flex-col gap-2"
-                        style={{
-                          borderRight: i < 2 ? "1px solid var(--border)" : undefined,
-                          borderTop: `3px solid ${block.color}`,
-                        }}
-                      >
-                        {/* Score — dominant */}
-                        <div className="flex items-baseline gap-2">
-                          <span className="text-3xl font-bold tabular-nums" style={{ color: block.scoreColor }}>
-                            {block.score ?? "—"}
-                          </span>
-                          <span className="text-[10px] font-semibold uppercase tracking-widest" style={{ color: "var(--muted)" }}>
-                            {block.label}
-                          </span>
-                        </div>
-                        {/* Reasoning */}
-                        <p className="text-xs leading-relaxed line-clamp-3" style={{ color: "var(--muted-foreground)" }}>
-                          {block.reasoning}
-                        </p>
-                      </div>
-                    ))}
-                </div>
-
-                {/* Footer row */}
-                <div className="px-4 py-3 space-y-3" style={{ borderTop: "1px solid var(--border)", backgroundColor: "var(--surface-raised)" }}>
-                  {/* Full Assessment link */}
-                  <a href="#" className="group inline-flex items-center gap-1.5 text-xs transition-colors" style={{ color: "var(--muted-foreground)" }}>
-                    <Lock size={12} className="shrink-0" />
-                    <span className="group-hover:text-accent transition-colors">→ Full Assessment</span>
-                  </a>
-
-                  {/* Dependency Chain */}
-                  {(patronActors.length > 0 || dependentOnActors.length > 0) && (
-                    <div className="space-y-1.5">
-                      <span className="text-[10px] font-semibold uppercase tracking-widest" style={{ color: "var(--muted)" }}>Dependency Chain</span>
-                      {/* Patron chain: [Patron(s)] → [Actor] */}
-                      {patronActors.length > 0 && (
-                        <div className="flex items-center flex-wrap gap-1">
-                          {patronActors.slice(0, 3).map((pa) => (
-                            <span key={pa.id} className="flex items-center gap-1">
-                              <Link href={`/actors/${toSlug(pa.name)}`} className="text-xs px-2 py-0.5 rounded transition-opacity hover:opacity-70" style={{ color: "var(--accent)", border: "1px solid color-mix(in srgb, var(--accent) 30%, transparent)", backgroundColor: "color-mix(in srgb, var(--accent) 10%, transparent)" }}>
-                                {pa.name}
-                              </Link>
-                              <span className="text-xs" style={{ color: "var(--muted)" }}>→</span>
-                            </span>
-                          ))}
-                          {patronActors.length > 3 && (
-                            <span className="text-xs mr-1" style={{ color: "var(--muted)" }}>+{patronActors.length - 3} more →</span>
-                          )}
-                          <span className="text-xs px-2 py-0.5 rounded" style={{ color: "var(--accent)", border: "1px solid color-mix(in srgb, var(--accent) 30%, transparent)", backgroundColor: "color-mix(in srgb, var(--accent) 10%, transparent)" }}>
-                            {actor.name}
-                          </span>
-                        </div>
-                      )}
-                      {/* Dependent chain: [Actor] → [Dependent(s)] */}
-                      {dependentOnActors.length > 0 && (
-                        <div className="flex items-center flex-wrap gap-1">
-                          <span className="text-xs px-2 py-0.5 rounded" style={{ color: "var(--accent)", border: "1px solid color-mix(in srgb, var(--accent) 30%, transparent)", backgroundColor: "color-mix(in srgb, var(--accent) 10%, transparent)" }}>
-                            {actor.name}
-                          </span>
-                          <span className="text-xs" style={{ color: "var(--muted)" }}>→</span>
-                          {dependentOnActors.slice(0, 3).map((da, i) => (
-                            <span key={da.id} className="flex items-center gap-1">
-                              <Link href={`/actors/${toSlug(da.name)}`} className="text-xs px-2 py-0.5 rounded transition-opacity hover:opacity-70" style={{ color: "var(--accent)", border: "1px solid color-mix(in srgb, var(--accent) 30%, transparent)", backgroundColor: "color-mix(in srgb, var(--accent) 10%, transparent)" }}>
-                                {da.name}
-                              </Link>
-                              {i < Math.min(dependentOnActors.length, 3) - 1 && (
-                                <span className="text-xs" style={{ color: "var(--muted)" }}>→</span>
-                              )}
-                            </span>
-                          ))}
-                          {dependentOnActors.length > 3 && (
-                            <span className="text-xs" style={{ color: "var(--muted)" }}>+{dependentOnActors.length - 3} more</span>
-                          )}
-                        </div>
-                      )}
-                    </div>
-                  )}
-
-                  {/* Depth + Capabilities */}
-                  {(actor.proxyDepth || actor.capabilities.length > 0) && (
-                    <div className="space-y-2">
-                      {actor.proxyDepth && (
-                        <div className="flex items-center gap-2">
-                          <span className="text-[10px] font-semibold uppercase tracking-widest" style={{ color: "var(--muted)" }}>Depth:</span>
-                          <span className="text-xs" style={{ color: "var(--muted-foreground)" }}>{actor.proxyDepth}</span>
-                        </div>
-                      )}
-                      {actor.capabilities.length > 0 && (
-                        <div className="flex items-center flex-wrap gap-2">
-                          <span className="text-[10px] font-semibold uppercase tracking-widest" style={{ color: "var(--muted)" }}>Capabilities:</span>
-                          {actor.capabilities.slice(0, 4).map((cap) => (
-                            <span key={cap} className="text-[10px] px-1.5 py-0.5 rounded" style={{ backgroundColor: "var(--surface)", color: "var(--muted)" }}>
-                              {cap}
-                            </span>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  )}
-                  </div>
-                </div>
-              </CollapsibleSection>
-            </div>
-
-          </div>
-        ) : (
-          /* No scoreReasoning — Score Trajectory full width */
+        {/* Row 1: Score Trajectory + Power Orbit (two columns) */}
+        <div className="grid grid-cols-1 lg:grid-cols-[50fr_50fr] gap-6 items-start">
           <CollapsibleSection label="Score Trajectory" headerGap="mb-4">
             <div className="rounded-xl p-6" style={{ backgroundColor: "var(--surface)", border: "1px solid var(--border)" }}>
               <ScoreChart snapshots={history} intelFeeds={intelFeeds} />
+            </div>
+          </CollapsibleSection>
+
+          {orbitNodes.length > 2 && (
+            <CollapsibleSection label="Power Orbit" headerGap="mb-4">
+              <div className="rounded-xl overflow-hidden" style={{ border: "1px solid var(--border)", backgroundColor: "var(--surface)" }}>
+                <OrbitViz nodes={orbitNodes} />
+              </div>
+            </CollapsibleSection>
+          )}
+        </div>
+
+        {/* Row 2: Key Drivers — full width, only when scoreReasoning exists */}
+        {actor.scoreReasoning && (
+          <CollapsibleSection label="Key Drivers" headerGap="mb-4">
+            <div className="rounded-xl overflow-hidden" style={{ border: "1px solid var(--border)", backgroundColor: "var(--surface)" }}>
+              {/* Three columns */}
+              <div className="grid grid-cols-3">
+                {[
+                  { label: "Overall", color: "var(--accent)", score: pf, scoreColor, reasoning: truncateToSentences(actor.pfReasoning || actor.scoreReasoning!, 160) },
+                  { label: "Authority", color: "var(--score-authority)", score: actor.authorityScore, scoreColor: "var(--score-authority)", reasoning: truncateToSentences(actor.authorityReasoning || actor.scoreReasoning!, 160) },
+                  { label: "Reach", color: "var(--score-reach)", score: actor.reachScore, scoreColor: "var(--score-reach)", reasoning: truncateToSentences(actor.reachReasoning || actor.scoreReasoning!, 160) },
+                ].map((block, i) => (
+                  <div
+                    key={block.label}
+                    className="p-3 flex flex-col gap-2"
+                    style={{
+                      borderRight: i < 2 ? "1px solid var(--border)" : undefined,
+                      borderTop: `3px solid ${block.color}`,
+                    }}
+                  >
+                    {/* Score — dominant */}
+                    <div className="flex items-baseline gap-2">
+                      <span className="text-3xl font-bold tabular-nums" style={{ color: block.scoreColor }}>
+                        {block.score ?? "—"}
+                      </span>
+                      <span className="text-[10px] font-semibold uppercase tracking-widest" style={{ color: "var(--muted)" }}>
+                        {block.label}
+                      </span>
+                    </div>
+                    {/* Reasoning */}
+                    <p className="text-xs leading-relaxed line-clamp-3 font-medium" style={{ color: "var(--foreground)", opacity: 0.85 }}>
+                      {block.reasoning}
+                    </p>
+                  </div>
+                ))}
+              </div>
+
+              {/* Footer row */}
+              <div
+                className="px-4 py-3"
+                style={{ borderTop: "1px solid var(--border)", backgroundColor: "var(--surface-raised)" }}
+              >
+                <div className="flex items-start justify-between gap-4">
+                  <div className="space-y-2 flex-1 min-w-0">
+                    {/* Dependency Chain */}
+                    {(patronActors.length > 0 || dependentOnActors.length > 0) && (
+                      <div className="space-y-1.5">
+                        <span className="text-[10px] font-semibold uppercase tracking-widest" style={{ color: "var(--muted)" }}>Dependency Chain</span>
+                        {/* Patron chain: [Patron(s)] → [Actor] */}
+                        {patronActors.length > 0 && (
+                          <div className="flex items-center flex-wrap gap-1">
+                            {patronActors.slice(0, 3).map((pa) => (
+                              <span key={pa.id} className="flex items-center gap-1">
+                                <Link href={`/actors/${toSlug(pa.name)}`} className="text-xs px-2 py-0.5 rounded transition-opacity hover:opacity-70" style={{ color: "var(--accent)", border: "1px solid color-mix(in srgb, var(--accent) 30%, transparent)", backgroundColor: "color-mix(in srgb, var(--accent) 10%, transparent)" }}>
+                                  {pa.name}
+                                </Link>
+                                <span className="text-xs" style={{ color: "var(--muted)" }}>→</span>
+                              </span>
+                            ))}
+                            {patronActors.length > 3 && (
+                              <span className="text-xs mr-1" style={{ color: "var(--muted)" }}>+{patronActors.length - 3} more →</span>
+                            )}
+                            <span className="text-xs px-2 py-0.5 rounded" style={{ color: "var(--accent)", border: "1px solid color-mix(in srgb, var(--accent) 30%, transparent)", backgroundColor: "color-mix(in srgb, var(--accent) 10%, transparent)" }}>
+                              {actor.name}
+                            </span>
+                          </div>
+                        )}
+                        {/* Dependent chain: [Actor] → [Dependent(s)] */}
+                        {dependentOnActors.length > 0 && (
+                          <div className="flex items-center flex-wrap gap-1">
+                            <span className="text-xs px-2 py-0.5 rounded" style={{ color: "var(--accent)", border: "1px solid color-mix(in srgb, var(--accent) 30%, transparent)", backgroundColor: "color-mix(in srgb, var(--accent) 10%, transparent)" }}>
+                              {actor.name}
+                            </span>
+                            <span className="text-xs" style={{ color: "var(--muted)" }}>→</span>
+                            {dependentOnActors.slice(0, 3).map((da, i) => (
+                              <span key={da.id} className="flex items-center gap-1">
+                                <Link href={`/actors/${toSlug(da.name)}`} className="text-xs px-2 py-0.5 rounded transition-opacity hover:opacity-70" style={{ color: "var(--accent)", border: "1px solid color-mix(in srgb, var(--accent) 30%, transparent)", backgroundColor: "color-mix(in srgb, var(--accent) 10%, transparent)" }}>
+                                  {da.name}
+                                </Link>
+                                {i < Math.min(dependentOnActors.length, 3) - 1 && (
+                                  <span className="text-xs" style={{ color: "var(--muted)" }}>→</span>
+                                )}
+                              </span>
+                            ))}
+                            {dependentOnActors.length > 3 && (
+                              <span className="text-xs" style={{ color: "var(--muted)" }}>+{dependentOnActors.length - 3} more</span>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Depth + Capabilities */}
+                    {(actor.proxyDepth || actor.capabilities.length > 0) && (
+                      <div className="flex items-center flex-wrap gap-2">
+                        {actor.proxyDepth && (
+                          <span className="text-[10px]" style={{ color: "var(--muted)" }}>
+                            <span className="font-semibold uppercase tracking-widest">Depth:</span> {actor.proxyDepth}
+                          </span>
+                        )}
+                        {actor.capabilities.slice(0, 4).map((cap) => (
+                          <span key={cap} className="text-[10px] px-1.5 py-0.5 rounded" style={{ backgroundColor: "var(--surface)", color: "var(--muted)" }}>
+                            {cap}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Full Assessment link — pinned to right */}
+                  <a href="#" className="group inline-flex items-center gap-1.5 text-xs transition-colors shrink-0 pt-0.5" style={{ color: "var(--muted-foreground)" }}>
+                    <Lock size={11} className="shrink-0" />
+                    <span className="group-hover:text-accent transition-colors">Full Assessment →</span>
+                  </a>
+                </div>
+              </div>
             </div>
           </CollapsibleSection>
         )}
