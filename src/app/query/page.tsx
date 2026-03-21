@@ -120,27 +120,43 @@ export default function QueryPage() {
 
         {/* Query input */}
         <div className="space-y-3">
-          <textarea
-            rows={3}
-            value={question}
-            onChange={(e) => setQuestion(e.target.value)}
-            onKeyDown={handleKey}
-            placeholder="Ask a geopolitical intelligence question…"
-            className="w-full rounded-lg p-4 text-sm resize-none focus:outline-none"
-            style={{
-              backgroundColor: "var(--surface)",
-              border: "1px solid var(--border)",
-              color: "var(--foreground)",
-            }}
-          />
+          <div className="relative">
+            <textarea
+              rows={2}
+              value={question}
+              onChange={(e) => setQuestion(e.target.value)}
+              onKeyDown={handleKey}
+              placeholder="Ask a geopolitical intelligence question…"
+              className="w-full rounded-2xl px-6 py-4 pr-36 text-sm resize-none focus:outline-none"
+              style={{
+                backgroundColor: "var(--surface)",
+                border: "1px solid var(--border)",
+                color: "var(--foreground)",
+              }}
+            />
+            <div className="absolute right-3 top-1/2 -translate-y-1/2">
+              <button
+                onClick={runQuery}
+                disabled={!question.trim() || loading}
+                className="px-4 py-1.5 rounded-xl text-sm font-medium text-white transition-opacity"
+                style={{
+                  backgroundColor: "var(--accent)",
+                  opacity: !question.trim() || loading ? 0.5 : 1,
+                  cursor: !question.trim() || loading ? "not-allowed" : "pointer",
+                }}
+              >
+                {loading ? "Running…" : "Run Query"}
+              </button>
+            </div>
+          </div>
 
           {/* Example chips */}
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-2 justify-center">
             {EXAMPLES.map((ex) => (
               <button
                 key={ex}
                 onClick={() => setQuestion(ex)}
-                className="text-xs px-3 py-1.5 rounded-md transition-colors"
+                className="text-xs px-3 py-1.5 rounded-md transition-colors cursor-pointer"
                 style={{
                   backgroundColor: "var(--surface)",
                   border: "1px solid var(--border)",
@@ -150,24 +166,6 @@ export default function QueryPage() {
                 {ex}
               </button>
             ))}
-          </div>
-
-          <div className="flex items-center gap-3">
-            <button
-              onClick={runQuery}
-              disabled={!question.trim() || loading}
-              className="px-5 py-2.5 rounded-md text-sm font-medium text-white transition-opacity"
-              style={{
-                backgroundColor: "var(--accent)",
-                opacity: !question.trim() || loading ? 0.6 : 1,
-                cursor: !question.trim() || loading ? "not-allowed" : "pointer",
-              }}
-            >
-              {loading ? "Running…" : "Run Query"}
-            </button>
-            <span className="text-xs" style={{ color: "var(--muted)" }}>
-              ⌘↵ to run
-            </span>
           </div>
         </div>
 

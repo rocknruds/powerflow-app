@@ -145,6 +145,10 @@
 
   --font-family-sans: var(--font-geologica);
   --font-family-serif: var(--font-serif);
+
+  --radius-lg: 2rem;
+  --radius-xl: 2rem;
+  --radius-2xl: 3rem;
 }
 
 /* ============================= */
