@@ -105,7 +105,7 @@ export default async function HomePage() {
 
         {/* ── Score Movers Band ── */}
         {(topGainers.length > 0 || topFallers.length > 0) && (
-          <div className="py-5">
+          <div className="py-3">
             <div className="flex items-center justify-center gap-2 mb-3">
               <span
                 className="inline-block w-1.5 h-1.5 rounded-full animate-pulse"
@@ -150,7 +150,7 @@ export default async function HomePage() {
         )}
 
         {/* ── Featured Brief + Actor Leaderboard ── */}
-        <section className="pt-[72px]">
+        <section className="pt-10">
           <div className="flex flex-col md:flex-row md:items-start gap-10">
 
             {/* Featured brief — left column (dominant) */}
@@ -241,66 +241,71 @@ export default async function HomePage() {
                   </Link>
                 )}
 
-                <p className="text-xs mt-4" style={{ color: "var(--muted)" }}>
-                  Monthly synthesis brief — coming soon
-                </p>
               </CollapsibleSection>
             </div>
 
             {/* Leaderboard — right column (compact data panel) */}
             <div className="md:flex-1 min-w-0">
               <CollapsibleSection label="Actor leaderboard" action={{ label: "View all", href: "/actors" }}>
-                <div>
-                  {top5.map((actor, idx) => {
-                    const score = actor.pfScore !== null ? Math.round(actor.pfScore) : null;
-                    const delta = deltaRecord[actor.id] ?? null;
-                    const scoreColor = pfScoreColor(actor.pfScore ?? 0);
-                    return (
-                      <Link
-                        key={actor.id}
-                        href={`/actors/${actor.slug}`}
-                        className="flex items-center justify-between py-2.5 transition-colors group"
-                        style={idx < 4 ? { borderBottom: "1px solid color-mix(in srgb, var(--border) 50%, transparent)" } : undefined}
-                      >
-                        <div className="flex items-center gap-3">
-                          <span
-                            className="text-sm font-mono font-semibold w-5 shrink-0 tabular-nums"
-                            style={{ color: "var(--accent)" }}
-                          >
-                            {idx + 1}
-                          </span>
-                          <span
-                            className="text-sm font-medium group-hover:text-accent transition-colors"
-                            style={{ color: "var(--foreground)" }}
-                          >
-                            {actor.name}
-                          </span>
-                        </div>
-                        <div className="flex items-center gap-3">
-                          <span
-                            className="text-base font-mono font-medium tabular-nums"
-                            style={{ color: scoreColor }}
-                          >
-                            {score ?? "—"}
-                          </span>
-                          <ScoreDelta delta={delta} />
-                        </div>
-                      </Link>
-                    );
-                  })}
-                </div>
+                <div
+                  style={{
+                    backgroundColor: "var(--surface)",
+                    border: "1px solid var(--border)",
+                    borderRadius: "8px",
+                    padding: "0 16px",
+                  }}
+                >
+                  <div>
+                    {top5.map((actor, idx) => {
+                      const score = actor.pfScore !== null ? Math.round(actor.pfScore) : null;
+                      const delta = deltaRecord[actor.id] ?? null;
+                      const scoreColor = pfScoreColor(actor.pfScore ?? 0);
+                      return (
+                        <Link
+                          key={actor.id}
+                          href={`/actors/${actor.slug}`}
+                          className="flex items-center justify-between py-2.5 transition-colors group"
+                          style={idx < 4 ? { borderBottom: "1px solid color-mix(in srgb, var(--border) 50%, transparent)" } : undefined}
+                        >
+                          <div className="flex items-center gap-3">
+                            <span
+                              className="text-sm font-mono font-semibold w-5 shrink-0 tabular-nums"
+                              style={{ color: "var(--accent)" }}
+                            >
+                              {idx + 1}
+                            </span>
+                            <span
+                              className="text-sm font-medium group-hover:text-accent transition-colors"
+                              style={{ color: "var(--foreground)" }}
+                            >
+                              {actor.name}
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-3">
+                            <span
+                              className="text-base font-mono font-medium tabular-nums"
+                              style={{ color: scoreColor }}
+                            >
+                              {score ?? "—"}
+                            </span>
+                            <ScoreDelta delta={delta} />
+                          </div>
+                        </Link>
+                      );
+                    })}
+                  </div>
 
-                <p className="text-xs mt-4" style={{ color: "var(--muted)" }}>
-                  Showing 5 of {actors.length} tracked actors
-                </p>
+                  <p className="text-xs mt-4 mb-4" style={{ color: "var(--muted)" }}>
+                    Showing 5 of {actors.length} tracked actors
+                  </p>
+                </div>
               </CollapsibleSection>
             </div>
           </div>
         </section>
 
         {/* ── Latest Assessments ── */}
-        <div className="mt-16 mb-12" style={{ borderTop: "1px solid var(--border)" }} />
-        <section>
+        <section style={{ borderTop: "1px solid var(--border)", paddingTop: "64px" }}>
           <CollapsibleSection label="Latest assessments" action={{ label: "All assessments", href: "/analysis" }}>
             {latestAssessments.length === 0 ? (
               <p className="text-sm" style={{ color: "var(--muted)" }}>
@@ -378,8 +383,7 @@ export default async function HomePage() {
         </section>
 
         {/* ── Active Scenarios ── */}
-        <div className="mt-16 mb-12" style={{ borderTop: "1px solid var(--border)" }} />
-        <section>
+        <section style={{ borderTop: "1px solid var(--border)", paddingTop: "64px" }}>
           <CollapsibleSection label="Active scenarios" action={{ label: "All conflicts", href: "/conflicts" }}>
             {scenarios.length === 0 ? (
               <p className="text-sm" style={{ color: "var(--muted)" }}>
