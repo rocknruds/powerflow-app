@@ -75,6 +75,16 @@ export async function getLatestBrief(): Promise<BriefPublic | null> {
   return briefs[0] ?? null
 }
 
+export async function getLatestBriefsByType(): Promise<{
+  weekly: BriefPublic | null
+  monthly: BriefPublic | null
+}> {
+  const briefs = await getAllPublicBriefs()
+  const weekly = briefs.find((b) => b.briefType === 'Weekly') ?? null
+  const monthly = briefs.find((b) => b.briefType === 'Monthly') ?? null
+  return { weekly, monthly }
+}
+
 /**
  * Fetch a brief with its full Notion block content.
  * PAID ONLY — gate this at the route/page level.

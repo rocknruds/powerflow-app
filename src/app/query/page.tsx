@@ -7,9 +7,9 @@ import { pfScoreColor } from "@/components/ActorCard"
 import { getPowerPostureLabel } from "@/lib/powerPosture"
 
 const EXAMPLES = [
-  "How has the Iran-US confrontation affected Gulf state alignments?",
-  "What's driving the shift in US-Canada relations?",
-  "How exposed is Israel to a simultaneous multi-front deterioration?",
+  "Iran-US impact on Gulf alignments?",
+  "What's driving the US-Canada shift?",
+  "Israel's multi-front exposure?",
 ]
 
 interface SupportingActor {
@@ -120,25 +120,27 @@ export default function QueryPage() {
 
         {/* Query input */}
         <div className="space-y-3">
-          <div className="relative">
+          <div
+            className="rounded-2xl px-6 pt-4 pb-3"
+            style={{
+              backgroundColor: "var(--surface)",
+              border: "1px solid var(--border)",
+            }}
+          >
             <textarea
-              rows={2}
+              rows={1}
               value={question}
               onChange={(e) => setQuestion(e.target.value)}
               onKeyDown={handleKey}
               placeholder="Ask a geopolitical intelligence question…"
-              className="w-full rounded-2xl px-6 py-4 pr-36 text-sm resize-none focus:outline-none"
-              style={{
-                backgroundColor: "var(--surface)",
-                border: "1px solid var(--border)",
-                color: "var(--foreground)",
-              }}
+              className="w-full text-sm resize-none focus:outline-none bg-transparent"
+              style={{ color: "var(--foreground)" }}
             />
-            <div className="absolute right-3 top-1/2 -translate-y-1/2">
+            <div className="flex justify-end pt-1">
               <button
                 onClick={runQuery}
                 disabled={!question.trim() || loading}
-                className="px-4 py-1.5 rounded-xl text-sm font-medium text-white transition-opacity"
+                className="px-5 py-1.5 rounded-xl text-sm font-medium text-white transition-opacity"
                 style={{
                   backgroundColor: "var(--accent)",
                   opacity: !question.trim() || loading ? 0.5 : 1,
@@ -168,7 +170,6 @@ export default function QueryPage() {
             ))}
           </div>
         </div>
-
         {/* Loading */}
         {loading && (
           <div

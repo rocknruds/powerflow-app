@@ -10,7 +10,6 @@ const NAV_LINKS = [
   { label: "Map", href: "/map" },
   { label: "Conflicts", href: "/conflicts" },
   { label: "Analysis", href: "/analysis" },
-  { label: "Query", href: "/query" },
   { label: "Briefs", href: "/briefs" },
 ];
 
@@ -26,30 +25,45 @@ export default function Masthead() {
       }}
     >
       <div className="max-w-7xl mx-auto px-6 h-[68px] flex items-center justify-between">
-        <Link
-          href="/"
-          className="flex items-center gap-3 group"
-          aria-label="PowerFlow home"
-        >
-          <LogoMark size={26} />
-          <span
-            className="font-sans text-base"
-            style={{ letterSpacing: "0.13em", lineHeight: 1 }}
+        <div className="flex items-center gap-4">
+          <Link
+            href="/"
+            className="flex items-center gap-3 group"
+            aria-label="PowerFlow home"
           >
+            <LogoMark size={26} />
             <span
-              className="font-normal"
-              style={{ color: "#e8eaf0", opacity: 0.9 }}
+              className="font-sans text-base"
+              style={{ letterSpacing: "0.13em", lineHeight: 1 }}
             >
-              Power
+              <span
+                className="font-normal"
+                style={{ color: "#e8eaf0", opacity: 0.9 }}
+              >
+                Power
+              </span>
+              <span
+                className="font-semibold"
+                style={{ color: "#60a5fa" }}
+              >
+                Flow
+              </span>
             </span>
-            <span
-              className="font-semibold"
-              style={{ color: "#60a5fa" }}
-            >
-              Flow
-            </span>
-          </span>
-        </Link>
+          </Link>
+
+          <span
+            className="w-px h-4"
+            style={{ backgroundColor: "color-mix(in srgb, var(--border) 80%, transparent)" }}
+          />
+
+          <Link
+            href="/query"
+            className="text-sm font-medium transition-colors hover:opacity-80"
+            style={{ color: pathname.startsWith("/query") ? "#e8eaf0" : "var(--accent)" }}
+          >
+            Ask
+          </Link>
+        </div>
 
         <div className="flex items-center gap-4">
           <nav className="flex items-center gap-1">

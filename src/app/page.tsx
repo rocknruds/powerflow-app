@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { getAllPublicActors, enrichActorsWithDeltas } from "@/lib/actors";
 import { getLatestDeltaByActor, computeScoreMovers } from "@/lib/scores";
-import { getLatestBrief } from "@/lib/briefs";
+import { getLatestBriefsByType } from "@/lib/briefs";
 import { getLatestPublicAssessments } from "@/lib/assessments";
 import { getActiveScenariosWithActors } from "@/lib/scenarios";
 import ScoreDelta from "@/components/ScoreDelta";
@@ -14,13 +14,14 @@ import ScenarioCard from "@/components/ScenarioCard";
 export const revalidate = 300;
 
 export default async function HomePage() {
-  const [actors, deltaMap, latestBrief, latestAssessments, scenarios] = await Promise.all([
+  const [actors, deltaMap, latestBriefs, latestAssessments, scenarios] = await Promise.all([
     getAllPublicActors(),
     getLatestDeltaByActor(),
-    getLatestBrief(),
+    getLatestBriefsByType(),
     getLatestPublicAssessments(2),
     getActiveScenariosWithActors(),
   ]);
+  const { weekly: latestWeeklyBrief, monthly: latestMonthlyBrief } = latestBriefs;
 
   const enrichedActors = enrichActorsWithDeltas(actors, deltaMap);
   const top5 = enrichedActors.slice(0, 5);
@@ -153,97 +154,100 @@ export default async function HomePage() {
         <section className="pt-[72px]">
           <div className="flex flex-col md:flex-row md:items-start gap-10">
 
-            {/* Featured brief — left column (dominant) */}
-            <div className="md:w-[58%] md:shrink-0">
-              <CollapsibleSection label="Featured brief" action={{ label: "All briefs", href: "/briefs" }}>
-                {!latestBrief ? (
+            {/* Briefs — left column */}
+            <div className="md:w-[50%] md:shrink-0">
+              <CollapsibleSection label="Latest briefs" action={{ label: "All briefs", href: "/briefs" }}>
+                {!latestWeeklyBrief && !latestMonthlyBrief ? (
                   <p className="text-sm" style={{ color: "var(--muted)" }}>
                     No briefs published yet.
                   </p>
                 ) : (
-                  <Link href={`/briefs/${latestBrief.id}`} className="block group">
-                    <div
-                      className="p-6 rounded-lg transition-colors"
-                      style={{
-                        backgroundColor: "var(--surface)",
-                        borderTop: "1px solid var(--border)",
-                        borderRight: "1px solid var(--border)",
-                        borderBottom: "1px solid var(--border)",
-                        borderLeft: "3px solid var(--accent)",
-                      }}
-                    >
-                      <div className="flex items-center gap-2 mb-2 flex-wrap">
-                        {latestBrief.briefType && (
-                          <span
-                            className="text-[11px] px-2 py-0.5 rounded font-medium"
-                            style={{
-                              color: "var(--accent)",
-                              border: "1px solid color-mix(in srgb, var(--accent) 30%, transparent)",
-                              backgroundColor: "color-mix(in srgb, var(--accent) 10%, transparent)",
-                            }}
+                  <div className="flex flex-col gap-7">
+
+                    {/* Weekly brief */}
+                    {latestWeeklyBrief && (
+                      <Link href={`/briefs/${latestWeeklyBrief.id}`} className="block group">
+                        <div
+                          className="p-4 rounded-lg transition-colors"
+                          style={{ backgroundColor: "var(--surface)", border: "1px solid var(--border)" }}
+                        >
+                          <div className="flex items-center gap-2 mb-1.5">
+                            <span
+                              className="text-[11px] font-semibold uppercase tracking-wide"
+                              style={{ color: "var(--accent)" }}
+                            >
+                              Weekly
+                            </span>
+                            {latestWeeklyBrief.dateRangeStart && (
+                              <span className="text-[11px] font-mono" style={{ color: "var(--muted)" }}>
+                                {(() => {
+                                  const [y, m, d] = latestWeeklyBrief.dateRangeStart.split("-").map(Number);
+                                  const start = new Date(y, m - 1, d);
+                                  let s = start.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+                                  if (latestWeeklyBrief.dateRangeEnd) {
+                                    const [y2, m2, d2] = latestWeeklyBrief.dateRangeEnd.split("-").map(Number);
+                                    const end = new Date(y2, m2 - 1, d2);
+                                    s += ` – ${end.toLocaleDateString("en-US", { month: "short", day: "numeric" })}`;
+                                  }
+                                  return s;
+                                })()}
+                              </span>
+                            )}
+                          </div>
+                          <p
+                            className="text-[15px] leading-relaxed line-clamp-2 group-hover:text-accent transition-colors"
+                            style={{ color: "var(--muted-foreground)" }}
                           >
-                            {latestBrief.briefType}
-                          </span>
-                        )}
-                        {latestBrief.status && (
-                          <span
-                            className="text-[11px] px-2 py-0.5 rounded font-medium"
-                            style={{
-                              color: latestBrief.status === "Final" ? "var(--delta-up)" : "var(--score-mid)",
-                              backgroundColor: latestBrief.status === "Final"
-                                ? "color-mix(in srgb, var(--delta-up) 10%, transparent)"
-                                : "color-mix(in srgb, var(--score-mid) 10%, transparent)",
-                            }}
+                            {latestWeeklyBrief.summaryDek || latestWeeklyBrief.leadThesis || latestWeeklyBrief.title}
+                          </p>
+                        </div>
+                      </Link>
+                    )}
+
+                    {/* Monthly synthesis brief */}
+                    {latestMonthlyBrief ? (
+                      <Link href={`/briefs/${latestMonthlyBrief.id}`} className="block group">
+                        <div
+                          className="p-4 rounded-lg transition-colors"
+                          style={{ backgroundColor: "var(--surface)", border: "1px solid var(--border)" }}
+                        >
+                          <div className="flex items-center gap-2 mb-1.5">
+                            <span
+                              className="text-[11px] font-semibold uppercase tracking-wide"
+                              style={{ color: "#a78bfa" }}
+                            >
+                              Monthly Synthesis
+                            </span>
+                            {latestMonthlyBrief.dateRangeStart && (
+                              <span className="text-[11px] font-mono" style={{ color: "var(--muted)" }}>
+                                {(() => {
+                                  const [y, m] = latestMonthlyBrief.dateRangeStart.split("-").map(Number);
+                                  return new Date(y, m - 1, 1).toLocaleDateString("en-US", { month: "long", year: "numeric" });
+                                })()}
+                              </span>
+                            )}
+                          </div>
+                          <p
+                            className="text-[15px] leading-relaxed line-clamp-2 group-hover:opacity-80 transition-opacity"
+                            style={{ color: "var(--muted-foreground)" }}
                           >
-                            {latestBrief.status}
-                          </span>
-                        )}
-                        {(latestBrief.dateRangeStart || latestBrief.dateRangeEnd) && (
-                          <span className="text-[11px] font-mono" style={{ color: "var(--muted)" }}>
-                            {latestBrief.dateRangeStart && new Date(latestBrief.dateRangeStart).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
-                            {latestBrief.dateRangeEnd && ` – ${new Date(latestBrief.dateRangeEnd).toLocaleDateString("en-US", { month: "short", day: "numeric" })}`}
-                          </span>
-                        )}
+                            {latestMonthlyBrief.summaryDek || latestMonthlyBrief.leadThesis || latestMonthlyBrief.title}
+                          </p>
+                        </div>
+                      </Link>
+                    ) : (
+                      <div
+                        className="p-4 rounded-lg"
+                        style={{ border: "1px dashed color-mix(in srgb, var(--border) 60%, transparent)" }}
+                      >
+                        <p className="text-xs" style={{ color: "var(--muted)" }}>
+                          Monthly synthesis — coming soon
+                        </p>
                       </div>
+                    )}
 
-                      <p
-                        className="text-lg font-medium leading-snug mb-3 group-hover:text-accent transition-colors"
-                        style={{ color: "var(--foreground)" }}
-                      >
-                        {latestBrief.title || "Untitled Brief"}
-                      </p>
-
-                      {latestBrief.leadThesis && (
-                        <p
-                          className="text-sm leading-[1.75] mb-3"
-                          style={{ color: "var(--muted-foreground)" }}
-                        >
-                          {latestBrief.leadThesis}
-                        </p>
-                      )}
-
-                      {!latestBrief.leadThesis && latestBrief.editorialPriority && (
-                        <p
-                          className="text-sm leading-[1.75] line-clamp-3 mb-3"
-                          style={{ color: "var(--muted-foreground)" }}
-                        >
-                          {latestBrief.editorialPriority}
-                        </p>
-                      )}
-
-                      <span
-                        className="text-xs font-medium transition-opacity group-hover:opacity-70"
-                        style={{ color: "var(--accent)" }}
-                      >
-                        Read full brief →
-                      </span>
-                    </div>
-                  </Link>
+                  </div>
                 )}
-
-                <p className="text-xs mt-4" style={{ color: "var(--muted)" }}>
-                  Monthly synthesis brief — coming soon
-                </p>
               </CollapsibleSection>
             </div>
 
