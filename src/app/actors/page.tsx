@@ -1,5 +1,5 @@
 import { getAllPublicActors } from "@/lib/actors";
-import { getLatestDeltaByActor } from "@/lib/scores";
+import { getLatestDeltaByActor, fillMissingDeltas } from "@/lib/scores";
 import ActorTable from "@/components/ActorTable";
 import LogoMark from "@/components/LogoMark";
 
@@ -7,7 +7,8 @@ export const revalidate = 300;
 export const metadata = { title: "Actor Leaderboard" };
 
 export default async function ActorsPage() {
-  const [actors, deltaMap] = await Promise.all([getAllPublicActors(), getLatestDeltaByActor()]);
+  const [actors, rawDeltaMap] = await Promise.all([getAllPublicActors(), getLatestDeltaByActor()]);
+  const deltaMap = await fillMissingDeltas(actors, rawDeltaMap);
 
   const snapshotDeltaMap: Record<string, number> = {};
   for (const [id, delta] of deltaMap.entries()) {

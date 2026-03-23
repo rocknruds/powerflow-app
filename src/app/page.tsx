@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { getAllPublicActors, enrichActorsWithDeltas } from "@/lib/actors";
-import { getLatestDeltaByActor, computeScoreMovers } from "@/lib/scores";
+import { getLatestDeltaByActor, fillMissingDeltas, computeScoreMovers } from "@/lib/scores";
 import { getLatestBriefsByType } from "@/lib/briefs";
 import { getLatestPublicAssessments } from "@/lib/assessments";
 import { getActiveScenariosWithActors } from "@/lib/scenarios";
@@ -23,11 +23,12 @@ export default async function HomePage() {
   ]);
   const { weekly: latestWeeklyBrief, monthly: latestMonthlyBrief } = latestBriefs;
 
-  const enrichedActors = enrichActorsWithDeltas(actors, deltaMap);
+  const fullDeltaMap = await fillMissingDeltas(actors, deltaMap);
+  const enrichedActors = enrichActorsWithDeltas(actors, fullDeltaMap);
   const top5 = enrichedActors.slice(0, 5);
 
   const deltaRecord: Record<string, number | null> = {};
-  for (const [id, delta] of deltaMap.entries()) {
+  for (const [id, delta] of fullDeltaMap.entries()) {
     deltaRecord[id] = delta;
   }
 

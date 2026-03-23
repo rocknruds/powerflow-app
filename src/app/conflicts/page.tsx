@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { getAllPublicConflicts, enrichConflictsWithActors } from "@/lib/conflicts";
-import { getLatestDeltaByActor } from "@/lib/scores";
+import { getAllPublicActors } from "@/lib/actors";
+import { getLatestDeltaByActor, fillMissingDeltas } from "@/lib/scores";
 import { getActorEvents } from "@/lib/events";
 import type { ConflictPublic, ConflictActor } from "@/lib/types";
 import LogoMark from "@/components/LogoMark";
@@ -166,10 +167,12 @@ function ConflictCard({ conflict, recentEvents }: { conflict: ConflictPublic; re
 }
 
 export default async function ConflictsPage() {
-  const [conflicts, deltaMap] = await Promise.all([
+  const [conflicts, rawDeltaMap, actors] = await Promise.all([
     getAllPublicConflicts(),
     getLatestDeltaByActor(),
+    getAllPublicActors(),
   ]);
+  const deltaMap = await fillMissingDeltas(actors, rawDeltaMap);
 
   const enriched = await enrichConflictsWithActors(conflicts, deltaMap);
 

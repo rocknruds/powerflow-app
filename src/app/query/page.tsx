@@ -101,7 +101,10 @@ export default function QueryPage() {
   }
 
   function handleKey(e: React.KeyboardEvent<HTMLTextAreaElement>) {
-    if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) runQuery()
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault()
+      runQuery()
+    }
   }
 
   return (

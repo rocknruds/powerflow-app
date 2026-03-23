@@ -1,5 +1,5 @@
 import { getAllPublicActors, enrichActorsWithDeltas } from '@/lib/actors'
-import { getLatestDeltaByActor } from '@/lib/scores'
+import { getLatestDeltaByActor, fillMissingDeltas } from '@/lib/scores'
 import { getTopRelationshipsForActors } from '@/lib/relationships'
 import { getRecentEventsForActors } from '@/lib/events'
 import type { MapActorFull } from '@/lib/types'
@@ -14,10 +14,11 @@ const ISO3_NORMALIZE: Record<string, string> = {
 }
 
 export default async function MapPage() {
-  const [actors, deltaMap] = await Promise.all([
+  const [actors, rawDeltaMap] = await Promise.all([
     getAllPublicActors(),
     getLatestDeltaByActor(),
   ])
+  const deltaMap = await fillMissingDeltas(actors, rawDeltaMap)
 
   const enriched = enrichActorsWithDeltas(actors, deltaMap)
 
